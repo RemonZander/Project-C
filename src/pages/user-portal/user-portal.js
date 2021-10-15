@@ -14,13 +14,11 @@ export default {
                     </div>
                     <div class="klantenportaalHeader">Klantenportaal</div>
                     <div class="dropdown">
-                        <label for="menu">Geen idee:</label>
+                        <label for="menu">Geen idee: </label>
                         <select name="menu" id="menu">
                             <option value="optie1">optie1</option>
                             <option value="optie2">optie2</option>
-                            <option value="optie3" selected>
-                                optie3
-                            </option>
+                            <option value="optie3">optie3</option>
                             <option value="optie4">optie4</option>
                         </select>
                     </div>
