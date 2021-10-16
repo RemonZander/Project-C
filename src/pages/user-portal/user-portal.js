@@ -59,6 +59,5 @@ function fotos() {
     for (let a = 0; a < 5; a++) {
         list.push(<div class="item"></div>);
     }
-
     return list;
 }
