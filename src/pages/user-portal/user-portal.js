@@ -34,22 +34,30 @@ export default {
                 <div class="mainpage">
                     <div>
                         <p class="recent">Recente designs</p>
-                        <div class="itemlist">
-                            <div class="item"></div>
-                            <div class="item"></div>
-                            <div class="item"></div>
-                        </div>
+                        <div class="itemlist">{designs()}</div>
                     </div>
                     <div>
                         <p class="recent">Recente foto's</p>
-                        <div class="itemlist">
-                            <div class="item"></div>
-                            <div class="item"></div>
-                            <div class="item"></div>
-                        </div>
+                        <div class="itemlist">{fotos()}</div>
                     </div>
                 </div>
             </React.Fragment>
         );
     },
 };
+
+function designs() {
+    let list = [];
+    for (let a = 0; a < 5; a++) {
+        list.push(<div class="item"></div>);
+    }
+    return list;
+}
+
+function fotos() {
+    let list = [];
+    for (let a = 0; a < 5; a++) {
+        list.push(<div class="item"></div>);
+    }
+    return list;
+}

@@ -60,9 +60,24 @@ loguitbutton {
     height: 20px;
     text-align: center;
 
-    background: -moz-linear-gradient(left, #0000FF 0%, #FE04FF 56%, #DB0000 100%);
-    background: -webkit-linear-gradient(left, #0000FF 0%, #FE04FF 56%, #DB0000 100%);
-    background: linear-gradient(to right, #0000FF 0%, #FE04FF 56%, #DB0000 100%);
+    background: -moz-linear-gradient(
+        left,
+        #0000ff 0%,
+        #fe04ff 56%,
+        #db0000 100%
+    );
+    background: -webkit-linear-gradient(
+        left,
+        #0000ff 0%,
+        #fe04ff 56%,
+        #db0000 100%
+    );
+    background: linear-gradient(
+        to right,
+        #0000ff 0%,
+        #fe04ff 56%,
+        #db0000 100%
+    );
 }
 
 .itemlist {
