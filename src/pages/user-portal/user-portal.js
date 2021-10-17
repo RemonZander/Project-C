@@ -2,6 +2,7 @@ import * as React from 'react';
 import './user-portal.css';
 import kyndaletter from './kyndaletter.png';
 import cog from './cog69420.png';
+import plus from './plus afbeelding.png';
 
 export default {
     url: '/user-portal',
