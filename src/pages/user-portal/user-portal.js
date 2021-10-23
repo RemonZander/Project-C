@@ -15,7 +15,7 @@ export default {
                     </div>
                     <div class="klantenportaalHeader">Klantenportaal</div>
                     <div class="dropdown">
-                        <label for="menu"> Opties: </label> 
+                        <label for="menu"> Opties: </label>
                         <select name="menu" id="menu">
                             <option value="optie1">optie1</option>
                             <option value="optie2">optie2</option>
@@ -47,6 +47,8 @@ export default {
     },
 };
 
+//Functie voor het aantal vakjes voor design preview. Dit gaat nog verder aangepast worden wanneer het systeem meer opgezet is
+//Er mogen max 5 vakjes zijn + vakje voor alle designs + plus teken
 function designs() {
     // function om design-vakjes aantal te tekenen; current = 5
     let list = [];
@@ -57,20 +59,25 @@ function designs() {
     if (max >= 5) {
         list.push(<div class="lastitem"> Alle designs </div>);
     }
-    list.push(<img class="plusimage" src={plus} width="130" height="130"></img>);
+    list.push(
+        <img class="plusimage" src={plus} width="130" height="130"></img>
+    );
     return list;
 }
 
+//Functie voor het aantal vakjes voor foto preview. Dit gaat nog verder aangepast worden wanneer het systeem meer opgezet is
+//Er mogen max 5 vakjes zijn + vakje voor alle foto's + plus teken
 function fotos() {
-    // function om foto-vakjes aantal te tekenen; current = 5
     let list = [];
     let max = 4; // temp variable
     for (let a = 0; a < max; a++) {
         list.push(<div class="item"></div>);
     }
     if (max >= 5) {
-        list.push(<div class="lastitem"> Alle designs </div>);    
+        list.push(<div class="lastitem"> Alle foto's </div>);
     }
-    list.push(<img class="plusimage" src={plus} width="130" height="130"></img>);
+    list.push(
+        <img class="plusimage" src={plus} width="130" height="130"></img>
+    );
     return list;
 }
