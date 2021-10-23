@@ -2,7 +2,7 @@ import * as React from 'react';
 import './user-portal.css';
 import kyndaletter from './kyndaletter.png';
 import cog from './cog69420.png';
-import plus from './plus afbeelding.png';
+import plus from './plusafbeelding.png';
 
 export default {
     url: '/user-portal',
@@ -15,7 +15,7 @@ export default {
                     </div>
                     <div class="klantenportaalHeader">Klantenportaal</div>
                     <div class="dropdown">
-                        <label for="menu">Geen idee: </label>
+                        <label for="menu"> Opties: </label> 
                         <select name="menu" id="menu">
                             <option value="optie1">optie1</option>
                             <option value="optie2">optie2</option>
@@ -48,18 +48,29 @@ export default {
 };
 
 function designs() {
+    // function om design-vakjes aantal te tekenen; current = 5
     let list = [];
-    for (let a = 0; a < 5; a++) {
+    let max = 5; // temp variable
+    for (let a = 0; a < max; a++) {
         list.push(<div class="item"></div>);
     }
+    if (max >= 5) {
+        list.push(<div class="lastitem"> Alle designs </div>);
+    }
+    list.push(<img class="plusimage" src={plus} width="130" height="130"></img>);
     return list;
 }
 
 function fotos() {
+    // function om foto-vakjes aantal te tekenen; current = 5
     let list = [];
-    for (let a = 0; a < 5; a++) {
+    let max = 4; // temp variable
+    for (let a = 0; a < max; a++) {
         list.push(<div class="item"></div>);
     }
-
+    if (max >= 5) {
+        list.push(<div class="lastitem"> Alle designs </div>);    
+    }
+    list.push(<img class="plusimage" src={plus} width="130" height="130"></img>);
     return list;
 }

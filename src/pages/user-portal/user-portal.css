@@ -52,8 +52,8 @@ loguitbutton {
 
 .logoutbutton {
     border-style: solid;
-    border-width: 2px;
-    border-color: gray;
+    border-width: 1px;
+    border-color: black;
     font-family: Raleway;
     margin-left: 38px;
     width: 80px;
@@ -80,6 +80,11 @@ loguitbutton {
     );
 }
 
+.plusimage {
+    margin-top: 110px;
+    margin-left: 50px;
+}
+
 .itemlist {
     display: flex;
     justify-content: flex-start;
@@ -93,6 +98,40 @@ loguitbutton {
     /*
         verhouding is 1.4
     */
+}
+
+.lastitem {
+    border-color: black;
+    border-style: solid;
+    width: 250px;
+    height: 350px;
+    /*
+        verhouding is 1.4
+    */
+
+    color: white;
+    font-family: Raleway;
+    font-size: 40px;
+    text-align: center;
+
+    background: -moz-linear-gradient(
+        left,
+        #0000ff 0%,
+        #fe04ff 56%,
+        #db0000 100%
+    );
+    background: -webkit-linear-gradient(
+        left,
+        #0000ff 0%,
+        #fe04ff 56%,
+        #db0000 100%
+    );
+    background: linear-gradient(
+        to right,
+        #0000ff 0%,
+        #fe04ff 56%,
+        #db0000 100%
+    );
 }
 
 .mainpage {
