@@ -2,8 +2,10 @@ import logo from './logo.svg';
 import './App.css';
 import Example1Page from './pages/example1/example1';
 import Example2Page from './pages/example2/example2';
+import LoginPage from './pages/login/login';
+import ForgotPasswordPage from './pages/forgot password/forgot_pass';
 
-const pages = [Example1Page, Example2Page];
+const pages = [Example1Page, Example2Page, LoginPage, ForgotPasswordPage];
 
 function App() {
     const pathName = window.location.pathname;
