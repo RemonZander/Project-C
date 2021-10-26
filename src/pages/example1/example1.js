@@ -11,7 +11,7 @@ In de render method doe je dan je react gedoe dus hoe je dat normaal zou gebruik
 
 export default {
     url: '/example1',
-    render: (queryParams) => {
+    Render: (queryParams) => {
         return (
             <div>
                 <h1 className="example1-title">Voorbeeld 1</h1>
