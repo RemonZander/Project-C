@@ -137,3 +137,11 @@ input[type='submit']:hover {
     width: 200px;
     height: 67px;
 }
+
+.message {
+    display: none;
+}
+
+.message > p {
+    display: none;
+}
