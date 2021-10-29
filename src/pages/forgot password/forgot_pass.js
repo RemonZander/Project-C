@@ -3,7 +3,7 @@ import kynda from './kynda.png';
 
 export default {
     url: '/forgot_password',
-    render: (queryParams) => {
+    Render: (queryParams) => {
         return (
             <div className="center">
                 <img src={kynda} alt="Kynda logo" className="image"></img>
