@@ -6,7 +6,7 @@ import plus from './plusafbeelding.png';
 
 export default {
     url: '/user-portal',
-    render: (queryParams) => {
+    Render: (queryParams) => {
         return (
             <React.Fragment>
                 <div class="menubar">
