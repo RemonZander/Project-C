@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 export default {
     url: '/',
-    render: (queryParams) => {
+    Render: (queryParams) => {
         const [isAdminPortal, setIsAdminPortal] = useState(false);
         const array = [
             <p id="passwordShort">U wachtwoord is te kort</p>,
@@ -17,9 +17,6 @@ export default {
         ];
         return (
             <div className="center">
-                <div id="message" className="message">
-                    {array}
-                </div>
                 <img src={kynda} alt="Kynda logo" className="image"></img>
                 <h2>
                     {isAdminPortal
@@ -108,6 +105,9 @@ export default {
                             letter, 1 cijfer)
                         </label>
                     </div>
+                    <div id="message" className="message">
+                        {array}
+                    </div>
                     <input
                         type="submit"
                         onClick={(e) => {
@@ -130,7 +130,7 @@ export default {
                     <div className="pass-adminlogin">
                         <a href="./forgot_password">Wachtwoord vergeten?</a>
                         <a
-                            href=""
+                            href="/"
                             className="adminlogin_link"
                             onClick={(e) => {
                                 e.preventDefault();
@@ -139,7 +139,7 @@ export default {
                         >
                             {isAdminPortal
                                 ? 'Zoekt u naar het klanten-portal?'
-                                : 'Zoekt het admin-portal?'}
+                                : 'Zoekt u het admin-portal?'}
                         </a>
                     </div>
                 </form>

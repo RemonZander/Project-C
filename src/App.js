@@ -6,8 +6,13 @@ import user_portal from './pages/user-portal/user-portal';
 import LoginPage from './pages/login/login';
 import ForgotPasswordPage from './pages/forgot password/forgot_pass';
 
-const pages = [Example1Page, Example2Page, LoginPage, ForgotPasswordPage, user_portal];
-
+const pages = [
+    Example1Page,
+    Example2Page,
+    LoginPage,
+    ForgotPasswordPage,
+    user_portal,
+];
 
 function App() {
     const pathName = window.location.pathname;
@@ -36,7 +41,7 @@ function App() {
                 }
             }
 
-            return page.render(queryParamsObject);
+            return page.Render(queryParamsObject);
         }
     }
 
