@@ -1,12 +1,3 @@
-body {
-    margin: 0;
-    padding: 0;
-    font-family: Helvetica;
-    background: linear-gradient(120deg);
-    height: 100vh;
-    overflow: hidden;
-}
-
 .center {
     position: absolute;
     top: 50%;
@@ -81,7 +72,10 @@ form .txt_field {
 
 .pass-adminlogin {
     text-align: center;
-    vertical-align: top;
+}
+
+.pass-adminlogin > a {
+    margin: 0 20px;
 }
 
 .pass {
@@ -136,4 +130,13 @@ input[type='submit']:hover {
 .image {
     width: 200px;
     height: 67px;
+}
+
+.message {
+    display: none;
+    text-align: center;
+}
+
+.message > p {
+    display: none;
 }
