@@ -5,6 +5,7 @@ import Example2Page from './pages/example2/example2';
 import user_portal from './pages/user-portal/user-portal';
 import LoginPage from './pages/login/login';
 import ForgotPasswordPage from './pages/forgot password/forgot_pass';
+import TemplateEngine from './pages/template-engine/templateEngine';
 
 const pages = [
     Example1Page,
@@ -12,6 +13,7 @@ const pages = [
     LoginPage,
     ForgotPasswordPage,
     user_portal,
+    TemplateEngine,
 ];
 
 function App() {
@@ -20,7 +22,7 @@ function App() {
     for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
 
-        if (pathName == page.url) {
+        if (pathName === page.url) {
             let queryParamsString = window.location.search;
             let queryParamsObject = {};
 
