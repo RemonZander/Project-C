@@ -81,7 +81,10 @@ form .txt_field {
 
 .pass-adminlogin {
     text-align: center;
-    vertical-align: top;
+}
+
+.pass-adminlogin > a {
+    margin: 0 20px;
 }
 
 .pass {
@@ -140,6 +143,7 @@ input[type='submit']:hover {
 
 .message {
     display: none;
+    text-align: center;
 }
 
 .message > p {
