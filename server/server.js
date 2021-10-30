@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const http = require('http');
 
 // Create a local server to receive data from

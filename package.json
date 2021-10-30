@@ -6,6 +6,7 @@
         "@testing-library/jest-dom": "^5.11.4",
         "@testing-library/react": "^11.1.0",
         "@testing-library/user-event": "^12.1.10",
+        "dotenv": "^10.0.0",
         "mysql": "^2.18.1",
         "react": "^17.0.2",
         "react-dom": "^17.0.2",
@@ -18,9 +19,7 @@
         "test": "react-scripts test",
         "eject": "react-scripts eject",
         "start-server": "node server/server.js",
-        "setupDatabase": "node server/db/scripts/setupDatabase.js",
-        "runTestData": "node server/db/scripts/runTestData.js",
-        "drop-refill": "npm run setupDatabase & npm run runTestData",
+        "drop-refill": "node setupDatabase",
         "prepare": "husky install"
     },
     "eslintConfig": {
@@ -44,6 +43,7 @@
     "devDependencies": {
         "husky": "^7.0.0",
         "prettier": "2.4.1",
-        "pretty-quick": "^3.1.1"
+        "pretty-quick": "^3.1.1",
+        "sqlite3": "^5.0.2"
     }
 }
