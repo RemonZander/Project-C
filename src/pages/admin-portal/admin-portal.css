@@ -1,0 +1,53 @@
+.menubarAdmin {
+    border-style: solid;
+    height: 60px;
+    width: 99.7%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.adminportalHeader {
+    font-family: Raleway;
+    margin-left: 1.5%;
+    font-size: 35px;
+}
+
+.dropdown {
+    font-family: Raleway;
+    margin-left: 65%;
+}
+
+.listviewtxtbox {
+    margin-left: 1%;
+    height: 30px;
+    width: 300px;
+}
+
+.listviewtxt {
+    font-family: Raleway;
+    margin-left: 1%;
+    font-size: 25px;
+    text-align: center;
+}
+
+.userportallist {
+    border-style: solid;
+    margin-top: 1%;
+    margin-left: 1%;
+    height: 600px;
+    width: 300px;
+    overflow-y: scroll;
+}
+
+.userportalitembox {
+    border-style: groove;
+    width: auto;
+    height: 24%;
+}
+
+.userportalitem {
+    font-family: Raleway;
+    text-align: center;
+    margin-top: 5%;
+}
