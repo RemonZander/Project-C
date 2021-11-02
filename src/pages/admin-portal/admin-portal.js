@@ -35,26 +35,30 @@ export default {
                     <div class="listviewtxtbox"> 
                         <p class="listviewtxt">User Portals</p>
                     </div>
-                    <div class="userportallist">{userportals()}</div> 
+                    <div class="userportallist">{drawuserportals()}</div> 
+                    <div class="listviewtxtbox">
+                        <p class="adduserportalbutton" onClick={adduserportal()}>User Portal Toevoegen</p>
+                    </div>
                 </div>
             </React.Fragment>
         );
     },
 };
 
-function userportals() {
+function drawuserportals() {
     // function to generate user-portal list-view
-    let list = [];
-    let amount = 10; // temp value, should be amount of user-portals, get from database
-    for (let a = 1; a <= amount; a++) {
-        list.push(<div class="userportalitembox">
+    window.userportallist = [];
+    window.userportalamount = 10; // temp value, should be amount of user-portals, get from database
+    for (window.listpos = 1; window.listpos <= window.userportalamount; window.listpos++) {
+        window.userportallist.push(<div class="userportalitembox">
             <div class="userportalitem">
-                {getuserportalid(a)} <br/>
+                {getuserportalid(window.listpos)} <br/>
                 {getuserportalcompany()}
+                <div class="deletebutton" onClick={removeuserportal(window.listpos, window.userportallist)}>Delete</div>
             </div>
         </div>);
     }
-    return list;
+    return window.userportallist;
 }
 
 function getuserportalid(listpos) {
@@ -68,4 +72,19 @@ function getuserportalcompany() {
     // use internal user-portal id to get company name (& maybe logo but idk)
     let companyname = "Temporary Intelligence Incorporated" // temp value, should be the corporation name, get from database
     return companyname
+}
+
+function removeuserportal(listpos, list) {
+    delete list[listpos];
+}
+
+function adduserportal() {
+    window.userportalamount++;
+    window.userportallist.push(<div class="userportalitembox">
+        <div class="userportalitem">
+            {getuserportalid(window.userportalamount)} <br/>
+            {getuserportalcompany()}
+            <div class="deletebutton" onClick={removeuserportal(window.userportalamount, window.userportallist)}>Delete</div>
+        </div>
+    </div>);
 }

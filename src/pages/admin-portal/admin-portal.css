@@ -1,7 +1,8 @@
 .menubarAdmin {
     border-style: solid;
+    border-width: 2px;
     height: 60px;
-    width: 99.7%;
+    width: 100%;
     display: flex;
     justify-content: flex-start;
     align-items: center;
@@ -42,12 +43,72 @@
 
 .userportalitembox {
     border-style: groove;
+    background: white;
     width: auto;
     height: 24%;
 }
 
+.deletebutton {
+    display: none;
+}
+
+.userportalitembox:hover {
+    width: auto;
+    height: 24%;
+    background: rgb(77, 77, 77);
+    opacity: 0.9;
+    transition: 0.4s ease-in-out;
+    color: white;
+    font-size: 110%;
+}
+
 .userportalitem {
+    width: auto;
+    height: 100%;
     font-family: Raleway;
     text-align: center;
-    margin-top: 5%;
+    padding-top: 5%;
+}
+
+.userportalitem:hover > .deletebutton {
+    display: block;
+    margin-top: 20%;
+    margin-left: 20%;
+    margin-right: 20%;
+    border-style: groove;
+    background: rgb(219, 0, 0);
+    cursor: pointer;
+}
+
+.adduserportalbutton {
+    font-family: Raleway;
+    margin-left: 10%;
+    margin-right: 10%;
+    font-size: 20px;
+    text-align: center;
+    color: white;
+
+    border-style: solid;
+    border-width: 2px;
+    border-color: black;
+    background: -moz-linear-gradient(
+        left,
+        #0000ff 0%,
+        #fe04ff 56%,
+        #db0000 100%
+    );
+    background: -webkit-linear-gradient(
+        left,
+        #0000ff 0%,
+        #fe04ff 56%,
+        #db0000 100%
+    );
+    background: linear-gradient(
+        to right,
+        #0000ff 0%,
+        #fe04ff 56%,
+        #db0000 100%
+    );
+
+    cursor: pointer;
 }
