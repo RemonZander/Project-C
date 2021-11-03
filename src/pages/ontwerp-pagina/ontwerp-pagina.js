@@ -120,10 +120,16 @@ function bewerkopties(choice) {
         return;
     }
     message.style.display = 'block';
-    document.getElementById('templatepage1').style.width = '459px';
-    document.getElementById('templatepage1').style.height = '650px';
-    document.getElementById('templatepage2').style.width = '459px';
-    document.getElementById('templatepage2').style.height = '650px';
+
+    const elements = document.getElementsByClassName('templatepage');
+
+    for (let i = 0; i < elements.length; i++) {
+        const element = elements[i];
+
+        element.style.width = '459px';
+        element.style.height = '650px';
+    }
+
     if (choice == 'bestand') {
         document.getElementById('bestandoptiemenu').style.display = 'flex';
         document.getElementById('startoptiemenu').style.display = 'none';
@@ -145,10 +151,15 @@ function bewerkoptiessluiten() {
     document.getElementById('bestandoptiemenu').style.display = 'none';
     document.getElementById('startoptiemenu').style.display = 'none';
     document.getElementById('invoegenoptiemenu').style.display = 'none';
-    document.getElementById('templatepage1').style.width = '495px';
-    document.getElementById('templatepage1').style.height = '700px';
-    document.getElementById('templatepage2').style.width = '495px';
-    document.getElementById('templatepage2').style.height = '700px';
+
+    const elements = document.getElementsByClassName('templatepage');
+
+    for (let i = 0; i < elements.length; i++) {
+        const element = elements[i];
+
+        element.style.width = '459px';
+        element.style.height = '650px';
+    }
 }
 
 const optiemenuarray = [
