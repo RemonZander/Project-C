@@ -34,10 +34,23 @@ export default {
                 <div class="mainpage">
                     <div class="listviewtxtbox"> 
                         <p class="listviewtxt">User Portals</p>
+                        <p class="downloadsviewtxt">Downloadstatistieken</p>
                     </div>
-                    <div class="userportallist">{drawuserportals()}</div> 
+                    <div class="midsection">
+                        <div class="userportallist">{drawuserportals()}</div>
+                        <div class="downloadstatistics">
+                            <div class="templatedownloadsbox">
+                                <div class="statheader">Templates</div>
+                                {drawstatisticstemplates()}
+                            </div>
+                            <div class="designdownloadsbox">
+                                <div class="statheader">Designs</div>
+                                {drawstatisticsdesigns()}
+                            </div>
+                        </div> 
+                    </div>
                     <div class="listviewtxtbox">
-                        <p class="adduserportalbutton" onClick={adduserportal()}>User Portal Toevoegen</p>
+                        <p class="adduserportalbutton">User Portal Toevoegen</p>
                     </div>
                 </div>
             </React.Fragment>
@@ -54,6 +67,7 @@ function drawuserportals() {
             <div class="userportalitem">
                 {getuserportalid(window.listpos)} <br/>
                 {getuserportalcompany()}
+                <div class="fotolibraryaccessbutton">Open Fotolibrary</div>
                 <div class="deletebutton" onClick={removeuserportal(window.listpos, window.userportallist)}>Delete</div>
             </div>
         </div>);
@@ -76,6 +90,7 @@ function getuserportalcompany() {
 
 function removeuserportal(listpos, list) {
     delete list[listpos];
+    return list;
 }
 
 function adduserportal() {
@@ -84,7 +99,40 @@ function adduserportal() {
         <div class="userportalitem">
             {getuserportalid(window.userportalamount)} <br/>
             {getuserportalcompany()}
+            <div class="fotolibraryaccessbutton">Open Fotolibrary</div>
             <div class="deletebutton" onClick={removeuserportal(window.userportalamount, window.userportallist)}>Delete</div>
         </div>
     </div>);
+    return window.userportallist;
+}
+
+function drawstatisticstemplates() {
+    let templates = {1: 5, 2: 11, 3: 10, 4: 6, 5: 4, 6: 20, 7: 11, 8: 16, 9: 2, 10: 43}; // temp value, is dictionary with key=templateId & value=downloadamount, get from database (not sure if downloads have to be per template & per user portal or just per template)
+    let stats = [];
+    for (var key in templates) {
+        stats.push(
+            <div class="templatedownloads"> 
+                <div class="templatedownloadstxt">
+                    Template {key} <br/>
+                    Aantal Downloads = {templates[key]}
+                </div>
+            </div>
+        );
+    }
+    return stats;
+}
+
+function drawstatisticsdesigns() {
+    let designs = {1: 22, 2: 3, 3: 741, 4: 9, 5: 20, 6: 14, 7: 10, 8: 41, 9: 7, 10: 89}; // temp value, is dictionary with key=userportalId & value=downloadamount, get from database
+    let stats = [];
+    for (var key in designs) {
+        stats.push(<div class="designdownloads">
+                <div class="designdownloadstxt">
+                    User Portal {key} <br/>
+                    Aantal Downloads = {designs[key]}
+                </div>
+            </div>
+        );
+    }
+    return stats;
 }
