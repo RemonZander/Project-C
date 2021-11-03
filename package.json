@@ -19,7 +19,9 @@
         "test": "react-scripts test",
         "eject": "react-scripts eject",
         "start-server": "node server/server.js",
-        "drop-refill": "node setupDatabase",
+        "db-test": "node setupDatabase testDB.sql",
+        "db-test-restore": "node setupDatabase testDB.sql restore",
+        "db-prod": "node setupDatabase dbFile.sql",
         "prepare": "husky install"
     },
     "eslintConfig": {

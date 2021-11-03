@@ -7,8 +7,12 @@ class SqliteInstance extends BaseSqlInstance {
     }
 
     runStatement(query, values) {
-        return this.db.run(query, values, (err) => {
-            if (err) throw err;
+        return new Promise((resolve, reject) => {
+            this.db.all(query, values, (err, results) => {
+                if (err) reject(err);
+
+                resolve(results);
+            });
         });
     }
 
@@ -17,11 +21,7 @@ class SqliteInstance extends BaseSqlInstance {
             for (let i = 0; i < this.preparedStatements.length; i++) {
                 const stmt = this.preparedStatements[i];
 
-                this.db.run(stmt.query, stmt.values, (err) => {
-                    if (err) throw err;
-
-                    console.log('All good baby');
-                });
+                this.runStatement(stmt.query, stmt.values);
             }
 
             this.preparedStatements = [];
