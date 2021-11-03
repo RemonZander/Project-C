@@ -7,7 +7,7 @@ import pijllinks from './pijllinks.PNG';
 import pijlrechts from './pijlrechts.png';
 
 export default {
-    url: '/desinger',
+    url: '/designer',
     Render: (queryParams) => {
         return (
             <React.Fragment>
@@ -56,6 +56,12 @@ export default {
                     {optiemenuarray}
                 </div>
 
+                <div
+                    className="designnaam"
+                    onClick={() => bewerkoptiessluiten()}
+                >
+                    Design naam
+                </div>
                 <div className="designpage">
                     <img
                         className="pijlen"
@@ -67,14 +73,22 @@ export default {
                         className="innerdesignpage"
                         onClick={() => bewerkoptiessluiten()}
                     >
-                        <iframe
-                            id="templatepage1"
-                            className="templatepage"
-                        ></iframe>
-                        <iframe
-                            id="templatepage2"
-                            className="templatepage"
-                        ></iframe>
+                        <div>
+                            <iframe
+                                id="templatepage1"
+                                className="templatepage"
+                            ></iframe>
+                            <br />
+                            <h5 className="pagenum">Pagina nummer: 1</h5>
+                        </div>
+                        <div>
+                            <iframe
+                                id="templatepage2"
+                                className="templatepage"
+                            ></iframe>
+                            <br />
+                            <h5 className="pagenum">Pagina nummer: 2</h5>
+                        </div>
                     </div>
                     <img
                         className="pijlen"
@@ -155,7 +169,7 @@ const optiemenuarray = [
         <div className="lettertype">
             <div className="flex">
                 <label for="lettertypekeuze"> Lettertype: </label>
-                <select name="lettertypekeuze" id="lettertypekeuze">
+                <select name="lettertypekeuze" className="lettertypekeuze">
                     <option value="lettertype1">lettertype1</option>
                     <option value="lettertype2">lettertype2</option>
                     <option value="lettertype3">lettertype3</option>
