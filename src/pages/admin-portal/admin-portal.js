@@ -1,5 +1,5 @@
 import * as React from 'react';
-import './admin-portal.css'
+import './admin-portal.css';
 import kyndaLetter from './kyndaletter.png';
 import cog from './cog69420.png';
 
@@ -10,16 +10,11 @@ export default {
     url: '/admin-portal',
     Render: (queryParams) => {
         const [userPortalList1, SetUserPortalList] = React.useState([]);
-        
-        
-        React.useEffect(() => {
-            
-        }) 
         return (
             <React.Fragment>
                 {/* menubar bijna tzelfde als die in user-portal.js */}
                 <div class="menuBarAdmin">
-                    <div class="kyndaLogo">  
+                    <div class="kyndaLogo">
                         <img src={kyndaLetter} width="104" height="55" />
                     </div>
                     <div class="adminPortalHeader">Adminportaal</div>
@@ -41,12 +36,14 @@ export default {
                 </div>
 
                 <div class="mainPage">
-                    <div class="listViewTxtBox"> 
+                    <div class="listViewTxtBox">
                         <p class="listViewTxt">User Portals</p>
                         {/*<p class="downloadsviewtxt">Downloadstatistieken</p>*/}
                     </div>
                     <div class="midSection">
-                        <div class="userPortalList" id="userPortalList">{userPortalList}</div>
+                        <div class="userPortalList" id="userPortalList">
+                            {userPortalList}
+                        </div>
                         {/*<div class="downloadstatistics">
                             <div class="templatedownloadsbox">
                                 <div class="statheader">Templates</div>
@@ -56,10 +53,19 @@ export default {
                                 <div class="statheader">Designs</div>
                                 {drawstatisticsdesigns()}
                             </div>
-                        </div>*/} 
+                        </div>*/}
                     </div>
                     <div class="listViewTxtBox">
-                        <p class="addUserPortalButton" onClick={() => SetUserPortalList(AddUserPortal())}>User Portal Toevoegen</p>
+                        <p
+                            class="addUserPortalButton"
+                            onClick={() =>
+                                SetUserPortalList(
+                                    userPortalList.push(AddUserPortal())
+                                )
+                            }
+                        >
+                            User Portal Toevoegen
+                        </p>
                     </div>
                 </div>
             </React.Fragment>
@@ -69,30 +75,32 @@ export default {
 
 function DrawUserPortals() {
     // function to generate user-portal list-view
-    
+
     let userPortalAmount = 10; // temp value, should be amount of user-portals, get from database
     for (let listPos = 1; listPos <= userPortalAmount; listPos++) {
-        userPortalList.push(<div class="userPortalItemBox">
-            <div class="userPortalItem">
-                {GetUserPortalId(listPos)} <br/>
-                {GetUserPortalCompany()}
-                <div class="selectUserPortalButton">Selecteren</div>
+        userPortalList.push(
+            <div class="userPortalItemBox">
+                <div class="userPortalItem">
+                    {GetUserPortalId(listPos)} <br />
+                    {GetUserPortalCompany()}
+                    <div class="selectUserPortalButton">Selecteren</div>
+                </div>
             </div>
-        </div>);
+        );
     }
 }
 
 function GetUserPortalId(listPos) {
     // for filling the individual user-portal boxes with actual info
     // update later to get the user-portal internal id, so company name (& maybe logo) can be retrieved
-    let id = "User Portal " + listPos;
+    let id = 'User Portal ' + listPos;
     return id;
 }
 
 function GetUserPortalCompany() {
     // use internal user-portal id to get company name (& maybe logo but idk)
-    let companyname = "Temporary Intelligence Incorporated" // temp value, should be the corporation name, get from database
-    return companyname
+    let companyname = 'Temporary Intelligence Incorporated'; // temp value, should be the corporation name, get from database
+    return companyname;
 }
 
 /*function removeuserportal(listPos, list) {
@@ -101,14 +109,19 @@ function GetUserPortalCompany() {
 }*/
 
 function AddUserPortal() {
-    userPortalList.push(<div class="userPortalItemBox">
-        <div class="userPortalItem">
-            {GetUserPortalId(69420 /* change l8er */)} <br/>
-            {GetUserPortalCompany()}
-            <div class="selectUserPortalButton">Selecteren</div>
+    let temp = [];
+    temp.push(
+        <div class="userPortalItemBox">
+            <div class="userPortalItem">
+                {GetUserPortalId(69420 /* change l8er */)} <br />
+                {GetUserPortalCompany()}
+                <div class="selectUserPortalButton">Selecteren</div>
+            </div>
         </div>
-    </div>);
+    );
     console.log(userPortalList);
+
+    return temp;
 }
 
 /*function drawstatisticstemplates() {
