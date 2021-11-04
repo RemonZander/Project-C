@@ -1,4 +1,4 @@
-.menubarAdmin {
+.menuBarAdmin {
     border-style: solid;
     border-width: 2px;
     height: 60px;
@@ -8,18 +8,62 @@
     align-items: center;
 }
 
-.adminportalHeader {
+.kyndaLogo {
+    margin-top: 0.3%;
+}
+
+.logOutButton {
+    border-style: solid;
+    border-width: 1px;
+    border-color: black;
+    font-family: Raleway;
+    margin-left: 1.8%;
+    margin-right: 1.8%;
+    width: 80px;
+    height: 20px;
+    text-align: center;
+
+    background: -moz-linear-gradient(
+        left,
+        #0000ff 0%,
+        #fe04ff 56%,
+        #db0000 100%
+    );
+    background: -webkit-linear-gradient(
+        left,
+        #0000ff 0%,
+        #fe04ff 56%,
+        #db0000 100%
+    );
+    background: linear-gradient(
+        to right,
+        #0000ff 0%,
+        #fe04ff 56%,
+        #db0000 100%
+    );
+}
+
+.kyndaCog {
+    margin-top: 0.2%;
+}
+
+.adminPortalHeader {
     font-family: Raleway;
     margin-left: 1.5%;
     font-size: 35px;
 }
 
-.dropdown {
+.dropDown {
     font-family: Raleway;
     margin-left: 65%;
 }
 
-.listviewtxtbox {
+.mainPage {
+    margin-left: 20px;
+    margin-top: 20px;
+}
+
+.listViewTxtBox {
     margin-left: 2%;
     height: 30px;
     width: 100%;
@@ -28,20 +72,20 @@
     align-items: center;
 }
 
-.listviewtxt {
+.listViewTxt {
     font-family: Raleway;
     margin-left: 3.7%;
     font-size: 25px;
     text-align: center;
 }
 
-.midsection {
+.midSection {
     display: flex;
     justify-content: flex-start;
     align-items: center;
 }
 
-.userportallist {
+.userPortalList {
     border-style: solid;
     margin-top: 1%;
     margin-left: 1%;
@@ -50,18 +94,18 @@
     overflow-y: scroll;
 }
 
-.userportalitembox {
+.userPortalItemBox {
     border-style: groove;
     background: white;
     width: auto;
     height: 24%;
 }
 
-.deletebutton, .fotolibraryaccessbutton {
+.selectUserPortalButton {
     display: none;
 }
 
-.userportalitembox:hover {
+.userPortalItemBox:hover {
     width: auto;
     height: 24%;
     background: rgb(77, 77, 77);
@@ -71,7 +115,7 @@
     font-size: 110%;
 }
 
-.userportalitem {
+.userPortalItem {
     width: auto;
     height: 100%;
     font-family: Raleway;
@@ -79,9 +123,9 @@
     padding-top: 5%;
 }
 
-.userportalitem:hover > .fotolibraryaccessbutton {
+.userPortalItem:hover > .selectUserPortalButton {
     display: block;
-    margin-top: 7%;
+    margin-top: 15%;
     margin-left: 10%;
     margin-right: 10%;
     border-style: solid;
@@ -108,19 +152,7 @@
     cursor: pointer;
 }
 
-.userportalitem:hover > .deletebutton {
-    display: block;
-    margin-top: 2%;
-    margin-left: 20%;
-    margin-right: 20%;
-    border-style: solid;
-    border-width: 2px;
-    border-color: white;
-    background: rgb(219, 0, 0);
-    cursor: pointer;
-}
-
-.adduserportalbutton {
+.addUserPortalButton {
     font-family: Raleway;
     width: 250px;
     margin-top: 5%;
