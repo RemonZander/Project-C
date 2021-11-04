@@ -6,6 +6,7 @@ import user_portal from './pages/user-portal/user-portal';
 import LoginPage from './pages/login/login';
 import ForgotPasswordPage from './pages/forgot password/forgot_pass';
 import TemplateEngine from './pages/template-engine/templateEngine';
+import ontwerp_pagina from './pages/ontwerp-pagina/ontwerp-pagina';
 
 const pages = [
     Example1Page,
@@ -14,6 +15,7 @@ const pages = [
     ForgotPasswordPage,
     user_portal,
     TemplateEngine,
+    ontwerp_pagina,
 ];
 
 function App() {

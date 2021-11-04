@@ -1,0 +1,146 @@
+.optiebar {
+    border-left: 2px solid;
+    border-right: 2px solid;
+    border-bottom: 2px solid;
+    height: 30px;
+    width: 99.8%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.bewerkopties {
+    font-size: 20px;
+    width: 100px;
+    border-right: 2px solid;
+    text-align: center;
+    background: none;
+    border-right: 2px solid;
+    border-top: none;
+    border-left: none;
+    border-bottom: none;
+}
+
+.optionmenu {
+    display: none;
+}
+
+.bestandoptiemenu {
+    display: none;
+    border-left: 2px solid;
+    border-right: 2px solid;
+    border-bottom: 2px solid;
+    height: 100px;
+}
+
+.startoptiemenu {
+    display: none;
+    border-left: 2px solid;
+    border-right: 2px solid;
+    border-bottom: 2px solid;
+    height: 100px;
+}
+
+.butttongeneral {
+    font-size: 20px;
+    text-align: center;
+    background: none;
+    border-style: solid;
+    border-width: 1px;
+    width: 200px;
+    height: 50%;
+}
+
+.butttongenerallast {
+    font-size: 20px;
+    text-align: center;
+    background: none;
+    border-style: solid;
+    border-width: 1px;
+    width: 200px;
+    height: 100%;
+}
+
+.innerdesignpage {
+    width: 99.7%;
+    height: 500px;
+    display: flex;
+    justify-content: center;
+}
+
+.designpage {
+    width: 99.7%;
+    height: 500px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lettertypegrootte {
+    margin-right: 10px;
+}
+
+.butttongeneralsmall {
+    text-align: center;
+    background: none;
+    width: 28px;
+    height: 19px;
+    border-style: none;
+}
+
+.butttongeneralsmall:hover {
+    background: rgb(120, 120, 120);
+    opacity: 0.9;
+    transition: 0.4s ease-in-out;
+    color: white;
+}
+
+.lettertype {
+    padding-right: 5px;
+    border-right: 1px solid;
+}
+
+.lettertypekeuze {
+    margin-left: 5px;
+}
+
+.flex {
+    display: flex;
+    align-items: baseline;
+}
+
+.devider {
+    margin: 0px;
+    padding: 0px;
+}
+
+.invoegenoptiemenu {
+    display: none;
+    border-left: 2px solid;
+    border-right: 2px solid;
+    border-bottom: 2px solid;
+    height: 100px;
+}
+
+.templatepage {
+    margin: 20px 20px 0px 20px;
+    border-style: solid;
+    border-width: 2px;
+    width: 495px;
+    height: 700px;
+}
+
+.pijlen {
+    margin-left: 5px;
+    margin-top: 300px;
+}
+
+.pagenum {
+    margin: 0px 0px 0px 20px;
+}
+
+.designnaam {
+    font-size: 25px;
+    margin: 5px 0px 0px 0px;
+    text-align: center;
+}
