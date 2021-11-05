@@ -5,15 +5,13 @@ const fs = require('fs');
 const path = require('path');
 const DBManager = new (require('./server/db/DBManager').DBManager)();
 
-if (args[1] === 'restore' && args[0].toLowerCase() === 'testdb.sql') {
+if (args[0].toLowerCase() === 'testdb.sql') {
     try {
         fs.unlinkSync(__dirname + '/kyndaDatabase.sqlite3');
         console.log('Test database removed.');
     } catch (err) {
         console.error(err);
     }
-
-    process.exit();
 }
 
 const sqlData = fs
