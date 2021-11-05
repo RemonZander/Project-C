@@ -7,6 +7,7 @@ import LoginPage from './pages/login/login';
 import ForgotPasswordPage from './pages/forgot password/forgot_pass';
 import TemplateEngine from './pages/template-engine/templateEngine';
 import ontwerp_pagina from './pages/ontwerp-pagina/ontwerp-pagina';
+import fotolibraryPagina from './pages/fotolibrary-pagina/fotolibrary-pagina';
 
 const pages = [
     Example1Page,
@@ -16,6 +17,7 @@ const pages = [
     user_portal,
     TemplateEngine,
     ontwerp_pagina,
+    fotolibraryPagina,
 ];
 
 function App() {
@@ -29,9 +31,7 @@ function App() {
             let queryParamsObject = {};
 
             if (queryParamsString !== '') {
-                const params = queryParamsString
-                    .slice(1, queryParamsString.length)
-                    .split('&');
+                const params = queryParamsString.slice(1, queryParamsString.length).split('&');
 
                 for (let i = 0; i < params.length; i++) {
                     const param = params[i];

@@ -1,0 +1,58 @@
+.menubar {
+    border-style: solid;
+    border-width: 2px;
+    height: 60px;
+    width: 99.8%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.fotogalerijHeader {
+    font-family: Arial, Helvetica, sans-serif;
+    margin-left: 1.5%;
+    margin-right: 49%;
+    font-size: 35px;
+}
+
+.searchbar input[type='text'] {
+    float: right;
+    padding: 6px;
+    border: none;
+    margin-top: 8px;
+    margin-right: 16px;
+    font-size: 17px;
+    position: relative;
+}
+
+.fotolist {
+    display: flex;
+    justify-content: flex-start;
+    gap: 20px;
+    align-items: center;
+}
+
+.foto {
+    margin-top: 5%;
+    margin-bottom: 5%;
+    border-style: solid;
+    width: 250px;
+    height: 350px;
+}
+
+button[type='button'] {
+    background-color: #ff00ff;
+    padding: 15px 32px;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-style: solid;
+    border-radius: 25px;
+}
+
+button[type='button']:hover {
+    border-color: white;
+    transition: 0.5s;
+}
