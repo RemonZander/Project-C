@@ -19,16 +19,15 @@ export default {
             <div className="center">
                 <img src={kynda} alt="Kynda logo" className="image"></img>
                 <h2>
-                    {isAdminPortal
-                        ? 'Log in op uw admin-portaal'
-                        : 'Log in op uw klanten-portaal'}
+                    {isAdminPortal ? 'Log in op uw admin-portaal' : 'Log in op uw klanten-portaal'}
                 </h2>
-                <form method="post">
+                <form method="post" action="http://localhost:8080/auth">
                     <div className="txt_field">
                         <input
                             type="text"
                             onInput={(e) => emailValidation(e)}
                             id="email"
+                            name="email"
                             required
                         ></input>
                         <span></span>
@@ -39,12 +38,12 @@ export default {
                             type="password"
                             onInput={(e) => passwordValidation(e)}
                             id="wachtwoord"
+                            name="password"
                             required
                         ></input>
                         <span></span>
                         <label>
-                            Wachtwoord (min. 8 tekens, 1 hoofdletter, 1
-                            kleineletter, 1 cijfer)
+                            Wachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleineletter, 1 cijfer)
                         </label>
                     </div>
                     <div id="message" className="message">
@@ -82,14 +81,8 @@ function emailValidation(e) {
         cond ? (el.style.display = 'block') : (el.style.display = 'none');
     if (e.target.value.length > 0) {
         message.style.display = 'block';
-        showMessage(
-            document.getElementById('emailApenstaartje'),
-            e.target.value.indexOf('@') < 0
-        );
-        showMessage(
-            document.getElementById('emailSpatie'),
-            e.target.value.indexOf(' ') >= 0
-        );
+        showMessage(document.getElementById('emailApenstaartje'), e.target.value.indexOf('@') < 0);
+        showMessage(document.getElementById('emailSpatie'), e.target.value.indexOf(' ') >= 0);
     } else {
         message.style.display = 'none';
     }
@@ -101,18 +94,9 @@ function passwordValidation(e) {
         cond ? (el.style.display = 'block') : (el.style.display = 'none');
     if (e.target.value.length > 0) {
         message.style.display = 'block';
-        showMessage(
-            document.getElementById('passwordShort'),
-            e.target.value.length < 8
-        );
-        showMessage(
-            document.getElementById('passwordNoLower'),
-            e.target.value.search(/[a-z]/) < 0
-        );
-        showMessage(
-            document.getElementById('passwordNoUpper'),
-            e.target.value.search(/[A-Z]/) < 0
-        );
+        showMessage(document.getElementById('passwordShort'), e.target.value.length < 8);
+        showMessage(document.getElementById('passwordNoLower'), e.target.value.search(/[a-z]/) < 0);
+        showMessage(document.getElementById('passwordNoUpper'), e.target.value.search(/[A-Z]/) < 0);
         showMessage(
             document.getElementById('passwordNoNumber'),
             e.target.value.search(/[0-9]/) < 0
@@ -123,14 +107,14 @@ function passwordValidation(e) {
 }
 
 function loginSubmitValidation(e) {
-    e.preventDefault();
-    const errorMessages = document.querySelectorAll('.message > p');
-    for (let i = 0; i < errorMessages.length; i++) {
-        const element = errorMessages[i];
-        if (element.style.display === 'block') {
-            alert('De eisen voor uw email of wachtwoord zijn nog niet voldaan');
-            return;
-        }
-    }
-    console.log('Eisen zijn voldaan.');
+    // e.preventDefault();
+    // const errorMessages = document.querySelectorAll('.message > p');
+    // for (let i = 0; i < errorMessages.length; i++) {
+    //     const element = errorMessages[i];
+    //     if (element.style.display === 'block') {
+    //         alert('De eisen voor uw email of wachtwoord zijn nog niet voldaan');
+    //         return;
+    //     }
+    // }
+    // console.log('Eisen zijn voldaan.');
 }

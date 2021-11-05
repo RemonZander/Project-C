@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 	`Email`	text NOT NULL,
 	`Password`	text NOT NULL,
 	`Role_Id`	integer NOT NULL,
-	`Comapany_Id`	integer NOT NULL,
+	`Company_Id`	integer NOT NULL,
 	`Is_logged_on`	BOOLEAN,
 	FOREIGN KEY(`Role_Id`) REFERENCES `role`(`Id`)
 );

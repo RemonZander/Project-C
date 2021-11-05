@@ -51,5 +51,11 @@ conn.runStatements();
 // Hierin kan je functies maken die testdata aanmaken.
 // Het is de bedoeling dat je alle statements in dit bestand toevoeg net als erboven.
 
+conn.runStatement(
+    "INSERT INTO user (Email, Password, Role_Id, Company_Id, Is_logged_on) VALUES ('test@gmail.com', 'Test123', 1, 1, FALSE)"
+);
+
+conn.runStatement('SELECT * FROM user', []).then((data) => console.log(data));
+
 // DB CONNECTION END
 conn.endConnection();
