@@ -82,14 +82,13 @@
 .midSection {
     display: flex;
     justify-content: flex-start;
-    align-items: center;
 }
 
 .userPortalList {
     border-style: solid;
     margin-top: 1%;
     margin-left: 1%;
-    height: 600px;
+    height: 700px;
     width: 300px;
     overflow-y: scroll;
 }
@@ -98,7 +97,7 @@
     border-style: groove;
     background: white;
     width: auto;
-    height: 24%;
+    height: 19.15%;
 }
 
 .selectUserPortalButton {
@@ -107,7 +106,7 @@
 
 .userPortalItemBox:hover {
     width: auto;
-    height: 24%;
+    height: 19.15%;
     background: rgb(77, 77, 77);
     opacity: 0.9;
     transition: 0.4s ease-in-out;
@@ -187,7 +186,8 @@
     cursor: pointer;
 }
 
-.downloadsviewtxt {
+/* was for downloadstatistics, re-use in mainView derived divs */
+/*.downloadsviewtxt {
     margin-left: 25.2%;
     font-family: Raleway;
     font-size: 25px;
@@ -250,4 +250,25 @@
 
 .templatedownloadstxt, .designdownloadstxt {
     padding-top: 5%;
+}*/
+
+.mainView {
+    margin-top: 1%;
+    margin-left: 10%;
+    border-style: solid;
+    height: 700px;
+    width: 70%;
+}
+
+.topLayerMainView {
+    display: flex;
+    justify-content: flex-start;
+    align-items: top;
+}
+
+.mainViewHeader {
+    margin-top: 1%;
+    margin-left: 5%;
+    font-family: Raleway;
+    font-size: 35px;
 }

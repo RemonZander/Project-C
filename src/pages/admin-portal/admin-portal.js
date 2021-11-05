@@ -3,7 +3,22 @@ import './admin-portal.css';
 import kyndaLetter from './kyndaletter.png';
 import cog from './cog69420.png';
 
-let userPortalList = [];
+class UserPortalData {
+    constructor(id, divs) {
+        this.portalId = id;
+        this.portalListDivs = divs; // are the divs that appear in the userportal list on the side
+        this.companyName = "Concrete Lovers inc."; // get from database
+        this.mainUserList = {69420: "Barend Ballebak"}; // get from database; is {mainUserId: "mainUserName"}, also can be more than 1 (should we even allow more? idk)
+        this.registeredEmployeeList = {0: "Henkje Geisterbrei", 1: "Sinter Klaas"}; //get from database; is {employeeId: "employeeName"}
+        this.importedTemplateList = [6, 8, 21]; // get from database; is [templateId, templateId...]
+        this.designDownloadList = {6: 12, 8: 0, 21: 5}; // get from database; is {templateId: amount of downloaded designs w this templateId}
+    }
+}
+
+let userPortalAmount = 10; // temp value, should be amount of user-portals, get from database
+let userPortalDivList = [] // array for divs
+let userPortalList = []; // array of UserPortalData objects
+
 DrawUserPortals();
 
 export default {
@@ -38,11 +53,16 @@ export default {
                 <div class="mainPage">
                     <div class="listViewTxtBox">
                         <p class="listViewTxt">User Portals</p>
-                        {/*<p class="downloadsviewtxt">Downloadstatistieken</p>*/}
+                        
                     </div>
                     <div class="midSection">
                         <div class="userPortalList" id="userPortalList">
-                            {userPortalList}
+                            {userPortalDivList}
+                        </div>
+                        <div class="mainView">
+                            <div class="topLayerMainView">
+                                <div class="mainViewHeader" id="mainViewHeader"></div>
+                            </div>
                         </div>
                         {/*<div class="downloadstatistics">
                             <div class="templatedownloadsbox">
@@ -60,12 +80,13 @@ export default {
                             class="addUserPortalButton"
                             onClick={() =>
                                 SetUserPortalList(
-                                    userPortalList.push(AddUserPortal())
+                                    userPortalDivList.push(AddUserPortal())
                                 )
                             }
                         >
                             User Portal Toevoegen
                         </p>
+                        
                     </div>
                 </div>
             </React.Fragment>
@@ -75,53 +96,43 @@ export default {
 
 function DrawUserPortals() {
     // function to generate user-portal list-view
-
-    let userPortalAmount = 10; // temp value, should be amount of user-portals, get from database
     for (let listPos = 1; listPos <= userPortalAmount; listPos++) {
-        userPortalList.push(
+        let id = "selector " + listPos;
+        let temp = new UserPortalData(
+            listPos,
             <div class="userPortalItemBox">
                 <div class="userPortalItem">
-                    {GetUserPortalId(listPos)} <br />
-                    {GetUserPortalCompany()}
-                    <div class="selectUserPortalButton">Selecteren</div>
+                    {"User Portal " + listPos} <br />
+                    {"S.T.D. Wines & Liquors inc."}
+                    <div class="selectUserPortalButton" id={id} onClick = {() => SelectUser(id)}>Selecteren</div>
                 </div>
             </div>
         );
+        userPortalDivList.push(temp.portalListDivs);
+        userPortalList.push(temp);
     }
 }
 
-function GetUserPortalId(listPos) {
-    // for filling the individual user-portal boxes with actual info
-    // update later to get the user-portal internal id, so company name (& maybe logo) can be retrieved
-    let id = 'User Portal ' + listPos;
-    return id;
+function SelectUser(id) {
+    const pos = id.replace('selector ', '');
+    document.getElementById("mainViewHeader").innerHTML = "User Portal " + userPortalList[pos - 1].portalId;
+    // continue making selection screen; isn't hidden yet for testing reasons
 }
-
-function GetUserPortalCompany() {
-    // use internal user-portal id to get company name (& maybe logo but idk)
-    let companyname = 'Temporary Intelligence Incorporated'; // temp value, should be the corporation name, get from database
-    return companyname;
-}
-
-/*function removeuserportal(listPos, list) {
-    delete list[listPos];
-    return list;
-}*/
 
 function AddUserPortal() {
-    let temp = [];
-    temp.push(
+    let id = "selector " + (userPortalList.length + 1);
+    let temp = new UserPortalData(
+        userPortalList.length + 1,
         <div class="userPortalItemBox">
             <div class="userPortalItem">
-                {GetUserPortalId(69420 /* change l8er */)} <br />
-                {GetUserPortalCompany()}
-                <div class="selectUserPortalButton">Selecteren</div>
+                {"User Portal " + (userPortalList.length + 1)} <br />
+                {"S.T.D. Wines & Liquors inc."}
+                <div class="selectUserPortalButton" id={id} onClick = {() => SelectUser(id)}>Selecteren</div>
             </div>
         </div>
     );
-    console.log(userPortalList);
-
-    return temp;
+    userPortalDivList.push(temp.portalListDivs);
+    userPortalList.push(temp);
 }
 
 /*function drawstatisticstemplates() {
