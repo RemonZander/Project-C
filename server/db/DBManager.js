@@ -20,6 +20,11 @@ class DBManager {
             return new sqliteInstance(
                 new sqlite3.Database(path.normalize(__dirname + '../../../kyndaDatabase.sqlite3'))
             );
+        } else {
+            console.log(
+                'process.env.APP_ENV is not production or local, is the .env file missing?'
+            );
+            process.exit();
         }
     }
 }
