@@ -1,7 +1,7 @@
 BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS `user` (
 	`Id`	integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-	`Email`	text NOT NULL,
+	`Email`	text NOT NULL UNIQUE,
 	`Password`	text NOT NULL,
 	`Role_Id`	integer NOT NULL,
 	`Company_Id`	integer NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `foto` (
 );
 CREATE TABLE IF NOT EXISTS `company` (
 	`Id`	integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-	`Name`	text NOT NULL,
+	`Name`	text NOT NULL UNIQUE,
 	`Phonenumber`	text DEFAULT NULL,
 	`Email`	text NOT NULL,
 	`Country`	text NOT NULL,
