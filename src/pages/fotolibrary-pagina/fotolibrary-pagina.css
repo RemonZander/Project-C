@@ -56,3 +56,17 @@ button[type='button']:hover {
     border-color: white;
     transition: 0.5s;
 }
+
+.fotogallery {
+    margin: 10px 50px;
+}
+
+.fotogallery img {
+    width: 460px;
+    padding: 5px;
+}
+
+.fotogallery img:hover {
+    -webkit-filter: blur(4px);
+    filter: blur(4px);
+}

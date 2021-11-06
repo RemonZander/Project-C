@@ -1,6 +1,12 @@
 import './fotolibrary-pagina.css';
 import kyndalogo from './kynda.png';
 import settingslogo from './tandwiel.png';
+import voorbeeld1 from './voorbeeld1.jpg';
+import voorbeeld2 from './voorbeeld2.jpg';
+import voorbeeld3 from './voorbeeld3.jpg';
+import voorbeeld4 from './voorbeeld4.jpg';
+import voorbeeld5 from './voorbeeld5.jpg';
+import voorbeeld6 from './voorbeeld6.jpg';
 
 export default {
     url: '/fotogalerij',
@@ -24,7 +30,7 @@ export default {
                     </div>
                 </div>
 
-                <div class="gallery">
+                <div class="gallerySpace">
                     <div>
                         <div class="fotolist">{fotolibrary()}</div>
                     </div>
@@ -35,13 +41,26 @@ export default {
 };
 
 function fotolibrary() {
-    let list = [];
-    let max = 5;
-    for (let a = 0; a < max; a++) {
-        list.push(<div class="foto"></div>);
-    }
-    if (max == 5) {
-        list.push(<button type="button">Meer foto's</button>);
-    }
-    return list;
+    let fotolibrary = [
+        <div class="fotogallery">
+            <img src={voorbeeld1} height="374"></img>
+            <img src={voorbeeld2} height="329"></img>
+            <img src={voorbeeld3} height="244"></img>
+            <img src={voorbeeld4} height="260"></img>
+            <img src={voorbeeld5} height="333"></img>
+            <img src={voorbeeld6} height="357"></img>
+        </div>,
+    ];
+
+    //Beginnetje van een functie om foto's zelf toe te voegen als admin:
+
+    // const maxFotosPerLine = 3;
+    // for (let foto = 0; foto < maxFotosPerLine; foto++) {
+    //     list.push(<div class="foto"></div>);
+    //     if (foto == maxFotosPerLine) {
+    //         list.push(<br></br>)
+    //     }
+    // }
+
+    return fotolibrary;
 }
