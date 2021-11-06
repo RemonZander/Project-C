@@ -8,7 +8,7 @@ const DBManager = new (require('./server/db/DBManager').DBManager)();
 if (args[0].toLowerCase() === 'testdb.sql') {
     try {
         fs.unlinkSync(__dirname + '/kyndaDatabase.sqlite3');
-        console.log('Test database removed.');
+        console.log('Succesfully deleted database');
     } catch (err) {
         console.error(err);
     }
@@ -22,6 +22,8 @@ const sqlData = fs
 
 // DB CONNECTION START
 const conn = DBManager.startConnection();
+
+console.log('Succesfully created database file.');
 
 for (let i = 0; i < sqlData.length; i++) {
     const query = sqlData[i];
@@ -55,9 +57,9 @@ conn.runStatement(
     `INSERT INTO user
      (Email, Password, Role_Id, Company_Id, Is_logged_on) VALUES
      ('admin@gmail.com', 'Admin1!', 1, -1, FALSE),
-     ('hoogfgbr1@gmail.com', 'Hoofdgbr1!', 2, 1, FALSE),
-     ('hoogfgbr2@gmail.com', 'Hoofdgbr1!', 2, 2, FALSE),
-     ('hoogfgbr3@gmail.com', 'Hoofdgbr1!', 2, 3, FALSE),
+     ('hoofdgbr1@gmail.com', 'Hoofdgbr1!', 2, 1, FALSE),
+     ('hoofdgbr2@gmail.com', 'Hoofdgbr1!', 2, 2, FALSE),
+     ('hoofdgbr3@gmail.com', 'Hoofdgbr1!', 2, 3, FALSE),
      ('gbr@gmail.com', 'Gbr1!', 3, 1, FALSE),
      ('gbr1@gmail.com', 'Gbr1!', 3, 2, FALSE),
      ('gbr2@gmail.com', 'Gbr1!', 3, 3, FALSE)
@@ -70,6 +72,8 @@ conn.runStatement(
      ('Meta(Facebook)', '98765432310', 'notfacebook@gmail.com', 'Verenigde Staten', 'Menlo Park', 'CA94025', 'Hacker Way', '1'),
      ('Hogeschool Rotterdam', '+31107944000', 'hr@gmail.com', 'Nederland', 'Rotterdam', '3011WN', 'Wijnhaven', '107')`
 );
+
+console.log('Succesfully created dummy data.');
 
 // DB CONNECTION END
 conn.endConnection();
