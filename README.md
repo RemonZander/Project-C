@@ -11,5 +11,4 @@ Om de productie script te draaien verander APP_ENV naar production. (Dit gaan we
 Commands:
 
 -   npm run db-test: Run de database script.
--   npm run db-test-restore: Delete de lokale database, run db-test om weer een nieuwe te maken.
 -   npm run db-prod: Run de database script in een productie connectie (via een server).

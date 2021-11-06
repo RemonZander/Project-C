@@ -11,6 +11,7 @@ if (args[0].toLowerCase() === 'testdb.sql') {
         console.log('Succesfully deleted database');
     } catch (err) {
         console.error(err);
+        process.exit(1);
     }
 }
 
