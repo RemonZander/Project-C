@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 
 const args = process.argv.slice(2);
 const fs = require('fs');
@@ -50,8 +50,26 @@ conn.runStatements();
 // Hierin kan je functies maken die testdata aanmaken.
 // Het is de bedoeling dat je alle statements in dit bestand toevoeg net als erboven.
 
+conn.runStatement(`INSERT INTO role (Name) VALUES ('admin'), ('hoofdgbr'), ('gbr')`);
+
 conn.runStatement(
-    "INSERT INTO user (Email, Password, Role_Id, Company_Id, Is_logged_on) VALUES ('admin@gmail.com', 'Admin1!', 1, -1, FALSE)"
+    `INSERT INTO user
+     (Email, Password, Role_Id, Company_Id, Is_logged_on) VALUES
+     ('admin@gmail.com', 'Admin1!', 1, -1, FALSE),
+     ('hoogfgbr1@gmail.com', 'Hoofdgbr1!', 2, 1, FALSE),
+     ('hoogfgbr2@gmail.com', 'Hoofdgbr1!', 2, 2, FALSE),
+     ('hoogfgbr3@gmail.com', 'Hoofdgbr1!', 2, 3, FALSE),
+     ('gbr@gmail.com', 'Gbr1!', 3, 1, FALSE),
+     ('gbr1@gmail.com', 'Gbr1!', 3, 2, FALSE),
+     ('gbr2@gmail.com', 'Gbr1!', 3, 3, FALSE)
+     `
+);
+
+conn.runStatement(
+    `INSERT INTO company (Name, Phonenumber, Email, Country, City, Postcode, Streetname, Housenumber) VALUES
+     ('Google', '0123456789', 'google@gmail.com', 'everywhere', 'yours', 'allofthem', 'inyourhouse', '∞'),
+     ('Meta(Facebook)', '98765432310', 'notfacebook@gmail.com', 'Verenigde Staten', 'Menlo Park', 'CA94025', 'Hacker Way', '1'),
+     ('Hogeschool Rotterdam', '+31107944000', 'hr@gmail.com', 'Nederland', 'Rotterdam', '3011WN', 'Wijnhaven', '107')`
 );
 
 // DB CONNECTION END

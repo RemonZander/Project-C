@@ -34,7 +34,6 @@ server.on('request', (req, res) => {
             // Hier doen we dan onze standaard dingen
             getDataFromRequest(req).then((data) => {
                 const conn = DBManager.startConnection();
-                console.log(data);
                 conn.runStatement('SELECT * FROM user WHERE Email = ? AND Password = ?', [
                     data.email,
                     data.password,
