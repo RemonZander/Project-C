@@ -12,3 +12,4 @@ Commands:
 
 -   npm run db-test: Run de database script.
 -   npm run db-prod: Run de database script in een productie connectie (via een server).
+-   npm run start-server: Run de server die de http requests ontvangt voor de database.
