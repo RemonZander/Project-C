@@ -16,7 +16,7 @@ function getDataFromRequest(req) {
         req.on('end', () => {
             stringData.split('&').forEach((item) => {
                 const splitString = item.split('=');
-                data[splitString[0]] = splitString[1];
+                data[splitString[0]] = decodeURIComponent(splitString[1]);
             });
 
             resolve(data);
@@ -34,9 +34,9 @@ server.on('request', (req, res) => {
             // Hier doen we dan onze standaard dingen
             getDataFromRequest(req).then((data) => {
                 const conn = DBManager.startConnection();
-
+                console.log(data);
                 conn.runStatement('SELECT * FROM user WHERE Email = ? AND Password = ?', [
-                    data.email.replace('%40', '@'),
+                    data.email,
                     data.password,
                 ]).then((result) => {
                     if (result.length === 0) {
