@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS "template" (
 	FOREIGN KEY("Company_id") REFERENCES "company"("Id"),
 	PRIMARY KEY("Id" AUTOINCREMENT)
 );
-CREATE TABLE IF NOT EXISTS "designs" (
+CREATE TABLE IF NOT EXISTS "design" (
 	"Id"	integer NOT NULL,
 	"Filepath"	text NOT NULL,
 	"Created_at"	datetime NOT NULL,

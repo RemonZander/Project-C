@@ -1,76 +1,89 @@
 import './login.css';
 import kynda from './kynda.png';
-import { doc } from 'prettier';
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import Alert from '../../components/Alert';
 
 export default {
     url: '/',
     Render: (queryParams) => {
-        const [isAdminPortal, setIsAdminPortal] = useState(false);
-        const array = [
-            <p id="passwordShort">U wachtwoord is te kort</p>,
-            <p id="passwordNoLower">U wachtwoord bevat geen kleine letter</p>,
-            <p id="passwordNoUpper">U wachtwoord bevat geen hoofdletter</p>,
-            <p id="passwordNoNumber">U wachtwoord bevat geen cijfer</p>,
-            <p id="emailApenstaartje">Uw email bevat geen apenstaartje</p>,
-            <p id="emailSpatie">Uw email bevat een spatie</p>,
-        ];
+        const [isAuthError, setIsAuthError] = useState(false);
+
         return (
-            <div className="center">
-                <img src={kynda} alt="Kynda logo" className="image"></img>
-                <h2>
-                    {isAdminPortal ? 'Log in op uw admin-portaal' : 'Log in op uw klanten-portaal'}
-                </h2>
-                <form method="post" action="http://localhost:8080/auth">
-                    <div className="txt_field">
+            <React.Fragment>
+                <div className="errors">
+                    {isAuthError === true && <Alert text="Login gegevens kloppen niet dum dum!" />}
+                </div>
+                <div className="center">
+                    <img src={kynda} alt="Kynda logo" className="image"></img>
+                    <h2>
+                        {queryParams.adminPage
+                            ? 'Log in op het admin-portaal'
+                            : 'Log in op het klanten-portaal'}
+                    </h2>
+                    <form method="post" action="http://localhost:8080/auth">
+                        <div className="txt_field">
+                            <input type="text" id="email" name="email" required></input>
+                            <label>Email</label>
+                        </div>
+                        <div className="txt_field">
+                            <input type="password" id="password" name="password" required></input>
+                            <label>Wachtwoord</label>
+                        </div>
                         <input
-                            type="text"
-                            onInput={(e) => emailValidation(e)}
-                            id="email"
-                            name="email"
-                            required
-                        ></input>
-                        <span></span>
-                        <label>Email</label>
-                    </div>
-                    <div className="txt_field">
-                        <input
-                            type="password"
-                            onInput={(e) => passwordValidation(e)}
-                            id="wachtwoord"
-                            name="password"
-                            required
-                        ></input>
-                        <span></span>
-                        <label>
-                            Wachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleineletter, 1 cijfer)
-                        </label>
-                    </div>
-                    <div id="message" className="message">
-                        {array}
-                    </div>
-                    <input
-                        type="submit"
-                        onClick={(e) => loginSubmitValidation(e)}
-                        value="Inloggen"
-                    ></input>
-                    <div className="pass-adminlogin">
-                        <a href="./forgot_password">Wachtwoord vergeten?</a>
-                        <a
-                            href="/"
-                            className="adminlogin_link"
+                            type="submit"
+                            value="Inloggen"
                             onClick={(e) => {
                                 e.preventDefault();
-                                setIsAdminPortal(!isAdminPortal);
+
+                                const sessionEmail = sessionStorage.getItem('email');
+                                const sessionPassword = sessionStorage.getItem('password');
+
+                                if (sessionEmail !== null && sessionPassword !== null) {
+                                    console.log('Not implemented yet');
+                                } else {
+                                    fetch('http://localhost:8080/auth', {
+                                        method: 'POST',
+                                        body: JSON.stringify({
+                                            email: document.getElementById('email').value,
+                                            password: document.getElementById('password').value,
+                                        }),
+                                    })
+                                        .then((res) => res.json())
+                                        .then((data) => {
+                                            if ('auth' in data.content) {
+                                                if (data.content.auth) {
+                                                    sessionStorage.setItem(
+                                                        'email',
+                                                        document.getElementById('email').value
+                                                    );
+                                                    sessionStorage.setItem(
+                                                        'password',
+                                                        document.getElementById('password').value
+                                                    );
+
+                                                    data.content.isAdmin
+                                                        ? (window.location.href =
+                                                              window.location.href + 'admin-portal')
+                                                        : (window.location.href =
+                                                              window.location.href + 'user-portal');
+                                                } else {
+                                                    setIsAuthError(true);
+                                                }
+                                            } else {
+                                                console.error(
+                                                    'No auth. Request not made to auth url?'
+                                                );
+                                            }
+                                        });
+                                }
                             }}
-                        >
-                            {isAdminPortal
-                                ? 'Zoekt u naar het klanten-portal?'
-                                : 'Zoekt u het admin-portal?'}
-                        </a>
-                    </div>
-                </form>
-            </div>
+                        ></input>
+                        <div className="pass-adminlogin">
+                            <a href="./forgot_password">Wachtwoord vergeten?</a>
+                        </div>
+                    </form>
+                </div>
+            </React.Fragment>
         );
     },
 };
@@ -104,17 +117,4 @@ function passwordValidation(e) {
     } else {
         message.style.display = 'none';
     }
-}
-
-function loginSubmitValidation(e) {
-    // e.preventDefault();
-    // const errorMessages = document.querySelectorAll('.message > p');
-    // for (let i = 0; i < errorMessages.length; i++) {
-    //     const element = errorMessages[i];
-    //     if (element.style.display === 'block') {
-    //         alert('De eisen voor uw email of wachtwoord zijn nog niet voldaan');
-    //         return;
-    //     }
-    // }
-    // console.log('Eisen zijn voldaan.');
 }

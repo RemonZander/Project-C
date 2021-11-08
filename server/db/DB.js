@@ -5,7 +5,7 @@ const sqlite3 = require('sqlite3').verbose();
 const mySqlInstance = require('./MySqlInstance').instance;
 const sqliteInstance = require('./SqliteInstance').instance;
 
-class DBManager {
+class DB {
     startConnection() {
         if (process.env.APP_ENV === 'production') {
             return new mySqlInstance(
@@ -29,4 +29,4 @@ class DBManager {
     }
 }
 
-module.exports = { DBManager: DBManager };
+module.exports = DB;

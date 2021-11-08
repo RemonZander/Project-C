@@ -3,7 +3,7 @@
 const args = process.argv.slice(2);
 const fs = require('fs');
 const path = require('path');
-const DBManager = new (require('./server/db/DBManager').DBManager)();
+const DB = new (require('./server/db/DB'))();
 
 if (args[0].toLowerCase() === 'testdb.sql') {
     try {
@@ -22,7 +22,7 @@ const sqlData = fs
     .split(';');
 
 // DB CONNECTION START
-const conn = DBManager.startConnection();
+const conn = DB.startConnection();
 
 console.log('Succesfully created database file.');
 
@@ -87,7 +87,7 @@ conn.runStatement(
 );
 
 conn.runStatement(
-    `INSERT INTO designs (Filepath, Created_at, Updated_at, Downloads, Verified, Template_id, Name) VALUES
+    `INSERT INTO design (Filepath, Created_at, Updated_at, Downloads, Verified, Template_id, Name) VALUES
      ('filepath_to_design', '6-11-2021', '', '', FALSE, 1, 'design1_template1'),
      ('filepath_to_design', '1-10-2021', '6-11-2021', '10', TRUE, 1, 'design2_template1'),
      ('filepath_to_design', '10-11-2020', '4-5-2021', '', FALSE, 2, 'design1_template2'),
