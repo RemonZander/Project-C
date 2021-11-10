@@ -1,6 +1,7 @@
 import './fotolibrary-pagina.css';
 import kyndalogo from './kynda.png';
 import settingslogo from './tandwiel.png';
+import { useState } from 'react';
 import voorbeeld1 from './voorbeeld1.jpg';
 import voorbeeld2 from './voorbeeld2.jpg';
 import voorbeeld3 from './voorbeeld3.jpg';
@@ -11,6 +12,9 @@ import voorbeeld6 from './voorbeeld6.jpg';
 export default {
     url: '/fotogalerij',
     Render: (queryParams) => {
+        const [isModerator, setIsModerator] = useState(false);
+        const [isAdmin, setisAdmin] = useState(false);
+        let fotoStorage = [voorbeeld1, voorbeeld2, voorbeeld3, voorbeeld4, voorbeeld5, voorbeeld6];
         return (
             <div>
                 <div class="menubar">
@@ -18,6 +22,7 @@ export default {
                         <img src={kyndalogo} width="120" height="40"></img>
                     </div>
                     <div class="fotogalerijHeader">Fotogalerij</div>
+                    <div class="adminButton">{adminButton(isModerator, isAdmin)}</div>
                     <div class="searchbar">
                         <input type="text" placeholder="Zoeken..."></input>
                     </div>
@@ -31,36 +36,77 @@ export default {
                 </div>
 
                 <div class="gallerySpace">
-                    <div>
-                        <div class="fotolist">{fotolibrary()}</div>
-                    </div>
+                    <div class="fotogallery">{fotolibrary(fotoStorage, isAdmin)}</div>
                 </div>
             </div>
         );
     },
 };
 
-function fotolibrary() {
-    let fotolibrary = [
-        <div class="fotogallery">
-            <img src={voorbeeld1} height="374"></img>
-            <img src={voorbeeld2} height="329"></img>
-            <img src={voorbeeld3} height="244"></img>
-            <img src={voorbeeld4} height="260"></img>
-            <img src={voorbeeld5} height="333"></img>
-            <img src={voorbeeld6} height="357"></img>
-        </div>,
-    ];
+function imageOnHover(id) {
+    const imgId = 'img' + id;
+    const buttonId = 'btn' + id;
+    document.getElementById(imgId).style.filter = 'blur(4px)';
+    document.getElementById(imgId).style.transition = '1s';
+    document.getElementById(buttonId).style.display = 'block';
+}
 
-    //Beginnetje van een functie om foto's zelf toe te voegen als admin:
+function imageLeave(id) {
+    const imgId = 'img' + id;
+    const buttonId = 'btn' + id;
+    document.getElementById(imgId).style.filter = 'none';
+    document.getElementById(buttonId).style.display = 'none';
+}
 
-    // const maxFotosPerLine = 3;
-    // for (let foto = 0; foto < maxFotosPerLine; foto++) {
-    //     list.push(<div class="foto"></div>);
-    //     if (foto == maxFotosPerLine) {
-    //         list.push(<br></br>)
-    //     }
-    // }
+function selectedPicture(picture, type) {
+    picture.preventDefault();
+    if (type == 'select') {
+        alert('Uw foto is geselecteerd!');
+    } else {
+        alert('De geselecteerde foto is verwijderd!');
+    }
+}
 
+function adminButton(isModerator, isAdmin) {
+    if (isModerator || isAdmin) {
+        return <button type="button">Foto's toevoegen</button>;
+    }
+}
+
+function deleteButton(isAdmin) {
+    if (isAdmin) {
+        const buttonStyle = { backgroundColor: 'red', border: 'solid red' };
+        return buttonStyle;
+    } else {
+        const buttonStyle = { backgroundColor: 'blue' };
+        return buttonStyle;
+    }
+}
+
+function fotolibrary(fotoStorage, isAdmin) {
+    let fotolibrary = [];
+
+    for (let a = 1; a <= fotoStorage.length; a++) {
+        fotolibrary.push(
+            <div class="picture">
+                <button
+                    id={'btn' + a}
+                    type="button"
+                    style={deleteButton(isAdmin)}
+                    onMouseEnter={() => imageOnHover(a)}
+                    onMouseLeave={() => imageLeave(a)}
+                    onClick={(e) => selectedPicture(e, isAdmin ? 'delete' : 'select')}
+                >
+                    {isAdmin ? 'Verwijderen' : 'Selecteren'}
+                </button>
+                <img
+                    id={'img' + a}
+                    onMouseEnter={() => imageOnHover(a)}
+                    onMouseLeave={() => imageLeave(a)}
+                    src={fotoStorage[a - 1]}
+                ></img>
+            </div>
+        );
+    }
     return fotolibrary;
 }

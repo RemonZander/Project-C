@@ -11,7 +11,7 @@
 .fotogalerijHeader {
     font-family: Arial, Helvetica, sans-serif;
     margin-left: 1.5%;
-    margin-right: 49%;
+    margin-right: 45%;
     font-size: 35px;
 }
 
@@ -25,48 +25,66 @@
     position: relative;
 }
 
-.fotolist {
-    display: flex;
-    justify-content: flex-start;
-    gap: 20px;
-    align-items: center;
+.fotogallery {
+    position: relative;
+    line-height: 0;
+    -webkit-column-count: 5;
+    -webkit-column-gap: 0px;
+    -moz-column-count: 5;
+    -moz-column-gap: 0px;
+    column-count: 5;
+    column-gap: 0px;
+    display: inline-block;
+    margin-right: auto;
+    margin-left: auto;
 }
 
-.foto {
-    margin-top: 5%;
-    margin-bottom: 5%;
-    border-style: solid;
-    width: 250px;
-    height: 350px;
+.picture img {
+    width: 100% !important;
+    height: auto !important;
 }
 
-button[type='button'] {
-    background-color: #ff00ff;
+.picture button[type='button'] {
+    margin: auto;
+    background-color: blue;
+    position: absolute;
     padding: 15px 32px;
     color: white;
     text-align: center;
-    text-decoration: none;
-    display: inline-block;
+    display: none;
+    font-size: 16px;
+    border-style: solid;
+    z-index: 1000;
+    border-radius: 25px;
+    border: solid blue;
+    box-sizing: border-box;
+}
+
+.picture button[type='button'] {
+    margin: auto;
+    background-color: blue;
+    position: absolute;
+    padding: 15px 32px;
+    color: white;
+    text-align: center;
+    display: none;
+    font-size: 16px;
+    border-style: solid;
+    z-index: 1000;
+    border-radius: 25px;
+    border: solid blue;
+    box-sizing: border-box;
+}
+
+.adminButton button[type='button'] {
+    background-color: rgb(255, 174, 0);
+    padding: 5px 30px;
+    color: white;
+    text-align: center;
+    display: block;
     font-size: 16px;
     border-style: solid;
     border-radius: 25px;
-}
-
-button[type='button']:hover {
-    border-color: white;
-    transition: 0.5s;
-}
-
-.fotogallery {
-    margin: 10px 50px;
-}
-
-.fotogallery img {
-    width: 460px;
-    padding: 5px;
-}
-
-.fotogallery img:hover {
-    -webkit-filter: blur(4px);
-    filter: blur(4px);
+    border: solid rgb(255, 174, 0);
+    box-sizing: border-box;
 }
