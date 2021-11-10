@@ -254,21 +254,40 @@
 
 .mainView {
     margin-top: 1%;
-    margin-left: 10%;
-    border-style: solid;
+    margin-left: 8%;
+    border-style: none;
     height: 700px;
     width: 70%;
 }
 
-.topLayerMainView {
+.mainViewLeft {
+    width: 40%;
+    height: 100%;
+    border-style: none;
+}
+
+.mainViewLeftTop {
+    font-family: Raleway;
+    height: 10%;
+    width: 100%;
+    border-style: none;
     display: flex;
-    justify-content: flex-start;
-    align-items: top;
+    justify-content: center;
+    align-items: center;
 }
 
 .mainViewHeader {
+    font-size: 35px;
+}
+
+.mainViewCompany {
     margin-top: 1%;
     margin-left: 5%;
-    font-family: Raleway;
-    font-size: 35px;
+    font-size: 20px;
+}
+
+.mainViewLeftUser {
+    height: 8%;
+    width: 100%;
+    border-style: none;
 }

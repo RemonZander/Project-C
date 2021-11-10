@@ -7,8 +7,8 @@ class UserPortalData {
     constructor(id, divs) {
         this.portalId = id;
         this.portalListDivs = divs; // are the divs that appear in the userportal list on the side
-        this.companyName = "Concrete Lovers inc."; // get from database
-        this.mainUserList = {69420: "Barend Ballebak"}; // get from database; is {mainUserId: "mainUserName"}, also can be more than 1 (should we even allow more? idk)
+        this.companyName = "S.T.D. Wines & Liquors inc."; // get from database
+        this.mainUserList = {69420: ["Barend Ballebak", "barendballebak@email.nl"]}; // get from database; is {mainUserId: "mainUserName"}, also can be more than 1 (should we even allow more? idk)
         this.registeredEmployeeList = {0: "Henkje Geisterbrei", 1: "Sinter Klaas"}; //get from database; is {employeeId: "employeeName"}
         this.importedTemplateList = [6, 8, 21]; // get from database; is [templateId, templateId...]
         this.designDownloadList = {6: 12, 8: 0, 21: 5}; // get from database; is {templateId: amount of downloaded designs w this templateId}
@@ -59,9 +59,13 @@ export default {
                         <div class="userPortalList" id="userPortalList">
                             {userPortalDivList}
                         </div>
-                        <div class="mainView">
-                            <div class="topLayerMainView">
-                                <div class="mainViewHeader" id="mainViewHeader"></div>
+                        <div class="mainView" id="mainView">
+                            <div class="mainViewLeft">
+                                <div class="mainViewLeftTop" id="mainViewLeftTop">
+                                    <div class="mainViewHeader" id="mainViewHeader"></div>
+                                    <div class="mainViewCompany" id="mainViewCompany"></div>
+                                </div>
+                                <div class="mainViewLeftUser" id="mainViewLeftUser"></div>
                             </div>
                         </div>
                         {/*<div class="downloadstatistics">
@@ -103,7 +107,7 @@ function DrawUserPortals() {
             <div class="userPortalItemBox">
                 <div class="userPortalItem">
                     {"User Portal " + listPos} <br />
-                    {"S.T.D. Wines & Liquors inc."}
+                    {"S.T.D. Wines & Liquors inc."} {/* get company name from method call */}
                     <div class="selectUserPortalButton" id={id} onClick = {() => SelectUser(id)}>Selecteren</div>
                 </div>
             </div>
@@ -115,8 +119,19 @@ function DrawUserPortals() {
 
 function SelectUser(id) {
     const pos = id.replace('selector ', '');
+    document.getElementById("mainView").style.border = "4px solid";
+
+    // sets relevant data for header (portal id, company name)
+    document.getElementById("mainViewLeftTop").style.borderBottom = "2px solid";
+    document.getElementById("mainViewLeftTop").style.borderRight = "2px solid";
     document.getElementById("mainViewHeader").innerHTML = "User Portal " + userPortalList[pos - 1].portalId;
-    // continue making selection screen; isn't hidden yet for testing reasons
+    document.getElementById("mainViewCompany").innerHTML = userPortalList[pos - 1].companyName;
+
+    // sets relevant data for main user display (id, name, e-mail)
+    document.getElementById("mainViewLeftUser").style.borderBottom = "2px solid";
+    document.getElementById("mainViewLeftUser").style.borderRight = "2px solid";
+    // put info of main user here am too lazy rn
+    // continue making selection screen
 }
 
 function AddUserPortal() {
