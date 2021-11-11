@@ -11,7 +11,7 @@ export default {
         return (
             <React.Fragment>
                 <div className="errors">
-                    {isAuthError === true && <Alert text="Login gegevens kloppen niet dum dum!" />}
+                    {isAuthError === true && <Alert text="Login gegevens kloppen niet!" />}
                 </div>
                 <div className="center">
                     <img src={kynda} alt="Kynda logo" className="image"></img>
