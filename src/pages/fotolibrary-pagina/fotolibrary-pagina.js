@@ -12,7 +12,7 @@ import voorbeeld6 from './voorbeeld6.jpg';
 export default {
     url: '/fotogalerij',
     Render: (queryParams) => {
-        const [isModerator, setIsModerator] = useState(false);
+        const [isModerator, setIsModerator] = useState(true);
         const [isAdmin, setisAdmin] = useState(false);
         let fotoStorage = [voorbeeld1, voorbeeld2, voorbeeld3, voorbeeld4, voorbeeld5, voorbeeld6];
         return (
@@ -48,6 +48,7 @@ function imageOnHover(id) {
     const buttonId = 'btn' + id;
     document.getElementById(imgId).style.filter = 'blur(4px)';
     document.getElementById(imgId).style.transition = '1s';
+
     document.getElementById(buttonId).style.display = 'block';
 }
 
@@ -89,6 +90,7 @@ function fotolibrary(fotoStorage, isAdmin) {
     for (let a = 1; a <= fotoStorage.length; a++) {
         fotolibrary.push(
             <div class="picture">
+                <h3>naam van foto</h3>
                 <button
                     id={'btn' + a}
                     type="button"
