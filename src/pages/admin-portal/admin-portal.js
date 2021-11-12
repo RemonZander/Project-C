@@ -8,8 +8,8 @@ class UserPortalData {
         this.portalId = id;
         this.portalListDivs = divs; // are the divs that appear in the userportal list on the side
         this.companyName = "S.T.D. Wines & Liquors inc."; // get from database
-        this.mainUserList = {69420: ["Barend Ballebak", "barendballebak@email.nl"]}; // get from database; is {mainUserId: "mainUserName"}, also can be more than 1 (should we even allow more? idk)
-        this.registeredEmployeeList = {0: "Henkje Geisterbrei", 1: "Sinter Klaas"}; //get from database; is {employeeId: "employeeName"}
+        this.mainUserList = {id: 69420, name: "Barend Ballebak", contact: "barendballebak@email.nl"}; // get from database; is {id: id, name: name, contact: contact}, also can be more than 1 (should we even allow more? idk)
+        this.registeredEmployeeList = [{id: 0, name: "Henkje Geisterbrei"}, {id: 1, name: "Sinter Klaas"}]; //get from database; is {id: id, name: name}
         this.importedTemplateList = [6, 8, 21]; // get from database; is [templateId, templateId...]
         this.designDownloadList = {6: 12, 8: 0, 21: 5}; // get from database; is {templateId: amount of downloaded designs w this templateId}
     }
@@ -65,7 +65,18 @@ export default {
                                     <div class="mainViewHeader" id="mainViewHeader"></div>
                                     <div class="mainViewCompany" id="mainViewCompany"></div>
                                 </div>
-                                <div class="mainViewLeftUser" id="mainViewLeftUser"></div>
+                                <div class="mainViewLeftUser" id="mainViewLeftUser">
+                                    <div class="mainViewLeftUserHeader" id="mainViewLeftUserHeader">Hoofdgebruiker</div>
+                                    <div class="mainViewLeftUserData">
+                                        <div class="mainViewLeftUserId" id="mainViewLeftUserId"></div>
+                                        <div class="mainViewLeftUserName" id="mainViewLeftUserName"></div>
+                                        <div class="mainViewLeftUserContact" id="mainViewLeftUserContact"></div>
+                                    </div>
+                                </div>
+                                <div class="mainViewLeftUserList">
+                                    <div class="mainViewLeftUserDataHeader" id="mainViewLeftUserDataHeader">Geregistreerde gebruikers</div>
+                                    <div class="mainViewLeftUserDataList" id="mainViewLeftUserDataList"></div>
+                                </div>
                             </div>
                         </div>
                         {/*<div class="downloadstatistics">
@@ -119,22 +130,24 @@ function DrawUserPortals() {
 
 function SelectUser(id) {
     const pos = id.replace('selector ', '');
-    document.getElementById("mainView").style.border = "4px solid";
+    document.getElementById("mainView").style.display = "block";
 
     // sets relevant data for header (portal id, company name)
-    document.getElementById("mainViewLeftTop").style.borderBottom = "2px solid";
-    document.getElementById("mainViewLeftTop").style.borderRight = "2px solid";
     document.getElementById("mainViewHeader").innerHTML = "User Portal " + userPortalList[pos - 1].portalId;
     document.getElementById("mainViewCompany").innerHTML = userPortalList[pos - 1].companyName;
 
     // sets relevant data for main user display (id, name, e-mail)
-    document.getElementById("mainViewLeftUser").style.borderBottom = "2px solid";
-    document.getElementById("mainViewLeftUser").style.borderRight = "2px solid";
-    // put info of main user here am too lazy rn
+    document.getElementById("mainViewLeftUserId").innerHTML = "ID: " + userPortalList[pos - 1].mainUserList.id;
+    document.getElementById("mainViewLeftUserName").innerHTML = "Naam: " + userPortalList[pos - 1].mainUserList.name;
+    document.getElementById("mainViewLeftUserContact").innerHTML = "E-mail: " + userPortalList[pos - 1].mainUserList.contact;
+    
+    // sets relevant data for users in portal
+    document.getElementById("mainViewLeftUserDataList").innerHTML = FillUserDataList(pos);
     // continue making selection screen
 }
 
 function AddUserPortal() {
+    // gives functionality to "User Portal Toevoegen" button; ID incrementally increases by 1
     let id = "selector " + (userPortalList.length + 1);
     let temp = new UserPortalData(
         userPortalList.length + 1,
@@ -148,6 +161,22 @@ function AddUserPortal() {
     );
     userPortalDivList.push(temp.portalListDivs);
     userPortalList.push(temp);
+}
+
+function FillUserDataList(portalPos) {
+    // fills the list of registered users in mainView
+    let tempList = [];
+    for (let a = 0; a < userPortalList[portalPos].registeredEmployeeList.length; a++) {
+        tempList.push(
+            <div class="userItemBox">
+                <div class="userItem">
+                    {userPortalList[portalPos].registeredEmployeeList[a].id}
+                    {userPortalList[portalPos].registeredEmployeeList[a].name}
+                </div>
+            </div>
+        )
+    }
+    return tempList;
 }
 
 /*function drawstatisticstemplates() {
