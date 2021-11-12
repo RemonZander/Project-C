@@ -9,8 +9,7 @@
     float: right;
     padding: 6px;
     border: none;
-    margin-top: 8px;
-    margin-right: 16px;
+    margin: 8px 16px 16px;
     font-size: 17px;
     position: relative;
 }
@@ -35,34 +34,23 @@
 
 .picture {
     width: 300px;
-    height: 300px;
+    height: 250px;
     margin: 0px 20px;
+    text-align: center;
+}
+
+.picture h3 {
+    position: absolute;
 }
 
 .picture button[type='button'] {
-    margin: auto;
-    background-color: blue;
-    position: absolute;
+    position: relative;
     padding: 15px 32px;
     color: white;
     text-align: center;
-    display: none;
-    font-size: 16px;
-    border-style: solid;
-    z-index: 1000;
-    border-radius: 25px;
-    border: solid blue;
-    box-sizing: border-box;
-}
-
-.picture button[type='button'] {
-    margin: auto;
-    background-color: blue;
-    position: absolute;
-    padding: 15px 32px;
-    color: white;
-    text-align: center;
-    display: none;
+    align-self: center;
+    opacity: 0;
+    transition: 1s;
     font-size: 16px;
     border-style: solid;
     z-index: 1000;

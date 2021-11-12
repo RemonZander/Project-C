@@ -48,15 +48,19 @@ function imageOnHover(id) {
     const buttonId = 'btn' + id;
     document.getElementById(imgId).style.filter = 'blur(4px)';
     document.getElementById(imgId).style.transition = '1s';
-
     document.getElementById(buttonId).style.display = 'block';
+    document.getElementById(buttonId).style.opacity = '1';
+    document.getElementById(buttonId).style.top =
+        String(document.getElementById(imgId).height / 1.5) + 'px';
+    document.getElementById(buttonId).style.left =
+        String(document.getElementById(imgId).width / 7) + 'px';
 }
 
 function imageLeave(id) {
     const imgId = 'img' + id;
     const buttonId = 'btn' + id;
     document.getElementById(imgId).style.filter = 'none';
-    document.getElementById(buttonId).style.display = 'none';
+    document.getElementById(buttonId).style.opacity = '0';
 }
 
 function selectedPicture(picture, type) {
