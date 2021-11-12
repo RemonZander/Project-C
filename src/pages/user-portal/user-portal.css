@@ -1,7 +1,8 @@
 .menubar {
     border-style: solid;
+    border-width: 2px;
     height: 60px;
-    width: 99.7%;
+    width: 99.8%;
     display: flex;
     justify-content: flex-start;
     align-items: center;
@@ -16,6 +17,7 @@
 .klantenportaalHeader {
     font-family: Raleway;
     margin-left: 1.5%;
+    margin-right: 66%;
     font-size: 35px;
 }
 
@@ -29,7 +31,6 @@
 
 .dropdown {
     font-family: Raleway;
-    margin-left: 55%;
 }
 
 loguitbutton {
