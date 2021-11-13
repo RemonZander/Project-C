@@ -22,6 +22,7 @@
     width: 80px;
     height: 20px;
     text-align: center;
+    cursor: pointer;
 
     background: -moz-linear-gradient(
         left,
@@ -45,6 +46,7 @@
 
 .kyndaCog {
     margin-top: 0.2%;
+    cursor: pointer;
 }
 
 .adminPortalHeader {
@@ -106,7 +108,6 @@
 
 .userPortalItemBox:hover {
     width: auto;
-    height: 19.15%;
     background: rgb(77, 77, 77);
     opacity: 0.9;
     transition: 0.4s ease-in-out;
@@ -123,6 +124,7 @@
 }
 
 .userPortalItem:hover > .selectUserPortalButton {
+    width: auto;
     display: block;
     margin-top: 15%;
     margin-left: 10%;
@@ -368,7 +370,7 @@
 .userItemBox {
     border: groove;
     width: auto;
-    height: 15%;
+    height: 23.8%;
 }
 
 .userItem {

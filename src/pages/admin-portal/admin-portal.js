@@ -137,13 +137,12 @@ export default {
 
 function DrawUserPortals() {
     // function to generate user-portal list-view
+    const names = ['Henkje Geisterbrei', 'Sinter Klaas', 'Sietske Haarbal', 'Saskia Krentenbol', 'La Llrona', 'Brammetje Bakvet', 'Pauline Pisnicht', 'Merel Maagzuur'];
     let employeedatatemp = [];
-    const names = ['Henkje Geisterbrei', 'Sinter Klaas'];
-    for (var a = 0; a < 2; a++) {
+    for (var a = 0; a < names.length; a++) {
         let employeedata = new EmployeeData(a, names[a]);
         employeedatatemp.push(employeedata);
     }
-
     for (let listPos = 1; listPos <= userPortalAmount; listPos++) {
         let id = 'selector ' + listPos;
         let temp = new UserPortalData(
@@ -163,6 +162,7 @@ function DrawUserPortals() {
         );
         userPortalDivList.push(temp.portalListDivs);
         userPortalList.push(temp);
+        console.log(userPortalList[listPos - 1]);
     }
 }
 
@@ -211,6 +211,7 @@ function AddUserPortal() {
 
 function FillUserDataList(portalPos) {
     // fills the list of registered users in mainView
+    console.log(userPortalList[portalPos]);
     let tempList = ``;
     for (let a = 0; a < userPortalList[portalPos].registeredEmployeeList.length; a++) {
         tempList =
@@ -218,8 +219,8 @@ function FillUserDataList(portalPos) {
             `
                 <div class="userItemBox">
                     <div class="userItem">` +
-            userPortalList[portalPos].registeredEmployeeList[a].id +
-            userPortalList[portalPos].registeredEmployeeList[a].name +
+            `ID: ` + userPortalList[portalPos].registeredEmployeeList[a].id + `<br />` +
+            `Naam: ` + userPortalList[portalPos].registeredEmployeeList[a].name +
             `
                     </div>
                 </div>`;
