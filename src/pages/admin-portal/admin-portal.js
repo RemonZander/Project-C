@@ -15,7 +15,10 @@ class UserPortalData {
         }; // get from database; is {id: id, name: name, contact: contact}, also can be more than 1 (should we even allow more? idk)
         this.registeredEmployeeList = employeedata; //get from database; is {id: id, name: name}
         this.importedTemplateList = [6, 8, 21]; // get from database; is [templateId, templateId...]
-        this.designDownloadList = { 6: 12, 8: 0, 21: 5 }; // get from database; is {templateId: amount of downloaded designs w this templateId}
+        this.designList = [
+            { designName: 'Billboard take 1', templateId: 6, downloaded: false },
+            { designName: 'NewspaperAd Kompas', templateId: 8, downloaded: true },
+        ]; // get from database; is [{designName: string, templateId: int, downloaded: bool}, ...]
     }
 }
 
@@ -23,6 +26,14 @@ class EmployeeData {
     constructor(id, name) {
         this.id = id;
         this.name = name;
+    }
+}
+
+class DownloadData {
+    constructor(id, totalDL, totalEuroDL) {
+        this.id = id;
+        this.totalDL = totalDL;
+        this.totalEuroDL = totalEuroDL;
     }
 }
 
@@ -94,17 +105,31 @@ export default {
                                         ></div>
                                     </div>
                                 </div>
-                                <div class="mainViewLeftUserList">
-                                    <div
-                                        class="mainViewLeftUserDataHeader"
-                                        id="mainViewLeftUserDataHeader"
-                                    >
-                                        Geregistreerde gebruikers
+                                <div class="mainViewLeftLists">
+                                    {' '}
+                                    {/*Div met lijst uers + header*/}
+                                    <div class="mainViewLeftUserList">
+                                        <div
+                                            class="mainViewLeftUserDataHeader"
+                                            id="mainViewLeftUserDataHeader"
+                                        >
+                                            {' '}
+                                            {/*Div header box*/}
+                                            Geregistreerde gebruikers
+                                        </div>
+                                        <div
+                                            class="mainViewLeftUserDataList"
+                                            id="mainViewLeftUserDataList"
+                                        ></div>{' '}
+                                        {/*Div met lijst alle gebruikers*/}
                                     </div>
-                                    <div
-                                        class="mainViewLeftUserDataList"
-                                        id="mainViewLeftUserDataList"
-                                    ></div>
+                                    <div class="mainViewLeftDownloads">
+                                        <div class="mainViewLeftDownloadsHeader">Dowloads</div>
+                                        <div
+                                            class="mainViewLeftDownloadsList"
+                                            id="mainViewLeftDownloadsList"
+                                        ></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -137,7 +162,16 @@ export default {
 
 function DrawUserPortals() {
     // function to generate user-portal list-view
-    const names = ['Henkje Geisterbrei', 'Sinter Klaas', 'Sietske Haarbal', 'Saskia Krentenbol', 'La Llrona', 'Brammetje Bakvet', 'Pauline Pisnicht', 'Merel Maagzuur'];
+    const names = [
+        'Henkje Geisterbrei',
+        'Sinter Klaas',
+        'Sietske Haarbal',
+        'Saskia Krentenbol',
+        'La Llrona',
+        'Brammetje Bakvet',
+        'Pauline Pisnicht',
+        'Merel Maagzuur',
+    ];
     let employeedatatemp = [];
     for (var a = 0; a < names.length; a++) {
         let employeedata = new EmployeeData(a, names[a]);
@@ -162,7 +196,6 @@ function DrawUserPortals() {
         );
         userPortalDivList.push(temp.portalListDivs);
         userPortalList.push(temp);
-        console.log(userPortalList[listPos - 1]);
     }
 }
 
@@ -184,13 +217,37 @@ function SelectUser(id) {
         'E-mail: ' + userPortalList[pos - 1].mainUserList.contact;
 
     // sets relevant data for users in portal
-    document.getElementById('mainViewLeftUserDataList').innerHTML = FillUserDataList(pos);
+    document.getElementById('mainViewLeftUserDataList').innerHTML = FillUserDataList(pos - 1);
+
+    // sets relevant data for download stats
+    document.getElementById('mainViewLeftDownloadsList').innerHTML = FillDownloadList(pos - 1);
+
     // continue making selection screen
+    /* verhouding a4:
+        element.style.width = '459px'; 
+        element.style.height = '650px';
+        1 : 1.416
+    */
 }
 
 function AddUserPortal() {
     // gives functionality to "User Portal Toevoegen" button; ID incrementally increases by 1
     let id = 'selector ' + (userPortalList.length + 1);
+    const names = [
+        'Henkje Geisterbrei',
+        'Sinter Klaas',
+        'Sietske Haarbal',
+        'Saskia Krentenbol',
+        'La Llrona',
+        'Brammetje Bakvet',
+        'Pauline Pisnicht',
+        'Merel Maagzuur',
+    ];
+    let employeedatatemp = [];
+    for (var a = 0; a < names.length; a++) {
+        let employeedata = new EmployeeData(a, names[a]);
+        employeedatatemp.push(employeedata);
+    }
     let temp = new UserPortalData(
         userPortalList.length + 1,
         (
@@ -203,7 +260,8 @@ function AddUserPortal() {
                     </div>
                 </div>
             </div>
-        )
+        ),
+        employeedatatemp
     );
     userPortalDivList.push(temp.portalListDivs);
     userPortalList.push(temp);
@@ -211,19 +269,86 @@ function AddUserPortal() {
 
 function FillUserDataList(portalPos) {
     // fills the list of registered users in mainView
-    console.log(userPortalList[portalPos]);
-    let tempList = ``;
+    let tempList = '';
     for (let a = 0; a < userPortalList[portalPos].registeredEmployeeList.length; a++) {
+        let deleteUser = document.createElement('div');
+        deleteUser.className = 'deleteUser';
+        deleteUser.setAttribute('onClick', 'DeleteUser(' + a + ',' + portalPos + ');');
+        deleteUser.innerHTML = 'Verwijderen';
+
+        let userItem = document.createElement('div');
+        userItem.className = 'userItem';
+        userItem.innerHTML =
+            'ID: ' +
+            userPortalList[portalPos].registeredEmployeeList[a].id +
+            `<br />` +
+            'Naam: ' +
+            userPortalList[portalPos].registeredEmployeeList[a].name;
+        userItem.appendChild(deleteUser);
+
+        let userItemBox = document.createElement('div');
+        userItemBox.className = 'userItemBox';
+        userItemBox.appendChild(userItem);
+
+        tempList = tempList + userItemBox.outerHTML;
+    }
+    return tempList;
+}
+
+function DeleteUser(pos, portalPos) {
+    let registeredEmployeeListtemp = userPortalList[portalPos].registeredEmployeeList;
+    registeredEmployeeListtemp[pos].id = null;
+    registeredEmployeeListtemp[pos].name = null;
+    userPortalList[portalPos].registeredEmployeeList = [];
+    for (var a = 0; a < registeredEmployeeListtemp.length; a++) {
+        if (registeredEmployeeListtemp[a].id !== null) {
+            let employeedata = registeredEmployeeListtemp[a];
+            userPortalList[portalPos].registeredEmployeeList.push(employeedata);
+        }
+    }
+    console.log('test');
+    document.getElementById('mainViewLeftUserDataList').innerHTML = FillUserDataList(portalPos);
+}
+
+function FillDownloadList(portalPos) {
+    let tempList = '';
+    let statsList = [];
+    let total = 0;
+    let totalEuro = 0;
+    for (var a = 0; a < userPortalList[portalPos].importedTemplateList.length; a++) {
+        for (var b = 0; b < userPortalList[portalPos].designList.length; b++) {
+            if (
+                userPortalList[portalPos].designList[b].templateId ===
+                    userPortalList[portalPos].importedTemplateList[a] &&
+                userPortalList[portalPos].designList[b].downloaded === true
+            ) {
+                total++;
+                totalEuro = totalEuro + 4.99;
+            }
+        }
+        let tempObj = new DownloadData(
+            userPortalList[portalPos].importedTemplateList[a],
+            total,
+            totalEuro
+        );
+        console.log(tempObj);
+        statsList.push(tempObj);
+    }
+    for (var c = 0; c < statsList.length; c++) {
         tempList =
             tempList +
-            `
-                <div class="userItemBox">
-                    <div class="userItem">` +
-            `ID: ` + userPortalList[portalPos].registeredEmployeeList[a].id + `<br />` +
-            `Naam: ` + userPortalList[portalPos].registeredEmployeeList[a].name +
-            `
-                    </div>
-                </div>`;
+            '<div class="DownloadItemBox">' +
+            '<div class="DownloadItem">' +
+            'Template ID: ' +
+            statsList[c].id +
+            '<br />' +
+            'Aantal Downloads: ' +
+            statsList[c].totalDL +
+            '<br />' +
+            "Euro's: " +
+            statsList[c].totalEuroDL +
+            '</div>' +
+            '</div>';
     }
     return tempList;
 }
