@@ -17,7 +17,7 @@ class UserPortalData {
         this.importedTemplateList = [6, 8, 21]; // get from database; is [templateId, templateId...]
         this.designList = [
             { designName: 'Billboard take 1', templateId: 6, downloaded: false },
-            { designName: 'NewspaperAd Kompas', templateId: 8, downloaded: true },
+            { designName: 'NewspaperAd Kompas', templateId: 8, downloaded: true }
         ]; // get from database; is [{designName: string, templateId: int, downloaded: bool}, ...]
     }
 }
@@ -313,13 +313,14 @@ function DeleteUser(pos, portalPos) {
 function FillDownloadList(portalPos) {
     let tempList = '';
     let statsList = [];
-    let total = 0;
-    let totalEuro = 0;
+    
     for (var a = 0; a < userPortalList[portalPos].importedTemplateList.length; a++) {
+        let total = 0;
+        let totalEuro = 0;
         for (var b = 0; b < userPortalList[portalPos].designList.length; b++) {
             if (
-                userPortalList[portalPos].designList[b].templateId ===
-                    userPortalList[portalPos].importedTemplateList[a] &&
+                 userPortalList[portalPos].importedTemplateList[a] ===
+                    userPortalList[portalPos].designList[b].templateId &&
                 userPortalList[portalPos].designList[b].downloaded === true
             ) {
                 total++;
@@ -331,7 +332,6 @@ function FillDownloadList(portalPos) {
             total,
             totalEuro
         );
-        console.log(tempObj);
         statsList.push(tempObj);
     }
     for (var c = 0; c < statsList.length; c++) {

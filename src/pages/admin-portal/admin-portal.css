@@ -347,7 +347,7 @@
 .userItem:hover > .deleteUser {
     width: auto;
     display: block;
-    margin-top: 8%;
+    margin-top: 6%;
     margin-left: 10%;
     margin-right: 10%;
     border-style: solid;
