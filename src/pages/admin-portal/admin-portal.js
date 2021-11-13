@@ -2,6 +2,7 @@ import * as React from 'react';
 import './admin-portal.css';
 import kyndaLetter from './kyndaletter.png';
 import cog from './cog69420.png';
+import FotoGalleryImg from './FotoGalleryImg.PNG';
 
 class UserPortalData {
     constructor(id, divs, employeedata) {
@@ -132,6 +133,25 @@ export default {
                                     </div>
                                 </div>
                             </div>
+                            <div className="MainViewRight">
+                                <div className="MainViewTop">
+                                    <img className="FotoGalleryButton" src={FotoGalleryImg} />
+                                    <div className="ImportTemplateButon">
+                                        <h3>Import template</h3>
+                                    </div>
+                                    <div className="DoubleButtons">
+                                        <div className="HoofdgebruikerWijzigen">
+                                            <h3>Hoofdgebruker account wijzigen</h3>
+                                        </div>
+                                        <div className="BedrijfnaamWijzigen">
+                                            <h3>Bedrijfnaam wijzigen</h3>
+                                        </div>
+                                    </div>
+                                    <div className="DeletePortal">
+                                        <h3>Delete user-portal</h3>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         {/*<div class="downloadstatistics">
                             <div class="templatedownloadsbox">
@@ -201,7 +221,7 @@ function DrawUserPortals() {
 
 function SelectUser(id) {
     const pos = id.replace('selector ', '');
-    document.getElementById('mainView').style.display = 'block';
+    document.getElementById('mainView').style.display = 'flex';
 
     // sets relevant data for header (portal id, company name)
     document.getElementById('mainViewHeader').innerHTML =
@@ -217,6 +237,7 @@ function SelectUser(id) {
         'E-mail: ' + userPortalList[pos - 1].mainUserList.contact;
 
     // sets relevant data for users in portal
+    document.getElementById('mainViewLeftUserDataList').innerHTML = '';
     document.getElementById('mainViewLeftUserDataList').appendChild(FillUserDataList(pos - 1));
 
     // sets relevant data for download stats
