@@ -17,7 +17,7 @@ class UserPortalData {
         this.importedTemplateList = [6, 8, 21]; // get from database; is [templateId, templateId...]
         this.designList = [
             { designName: 'Billboard take 1', templateId: 6, downloaded: false },
-            { designName: 'NewspaperAd Kompas', templateId: 8, downloaded: true }
+            { designName: 'NewspaperAd Kompas', templateId: 8, downloaded: true },
         ]; // get from database; is [{designName: string, templateId: int, downloaded: bool}, ...]
     }
 }
@@ -217,7 +217,7 @@ function SelectUser(id) {
         'E-mail: ' + userPortalList[pos - 1].mainUserList.contact;
 
     // sets relevant data for users in portal
-    document.getElementById('mainViewLeftUserDataList').innerHTML = FillUserDataList(pos - 1);
+    document.getElementById('mainViewLeftUserDataList').appendChild(FillUserDataList(pos - 1));
 
     // sets relevant data for download stats
     document.getElementById('mainViewLeftDownloadsList').innerHTML = FillDownloadList(pos - 1);
@@ -269,11 +269,13 @@ function AddUserPortal() {
 
 function FillUserDataList(portalPos) {
     // fills the list of registered users in mainView
-    let tempList = '';
+    let tempList = document.createDocumentFragment();
     for (let a = 0; a < userPortalList[portalPos].registeredEmployeeList.length; a++) {
         let deleteUser = document.createElement('div');
         deleteUser.className = 'deleteUser';
-        deleteUser.setAttribute('onClick', 'DeleteUser(' + a + ',' + portalPos + ');');
+        deleteUser.onclick = function () {
+            DeleteUser(a, portalPos);
+        };
         deleteUser.innerHTML = 'Verwijderen';
 
         let userItem = document.createElement('div');
@@ -290,7 +292,7 @@ function FillUserDataList(portalPos) {
         userItemBox.className = 'userItemBox';
         userItemBox.appendChild(userItem);
 
-        tempList = tempList + userItemBox.outerHTML;
+        tempList.appendChild(userItemBox);
     }
     return tempList;
 }
@@ -306,20 +308,20 @@ function DeleteUser(pos, portalPos) {
             userPortalList[portalPos].registeredEmployeeList.push(employeedata);
         }
     }
-    console.log('test');
-    document.getElementById('mainViewLeftUserDataList').innerHTML = FillUserDataList(portalPos);
+    document.getElementById('mainViewLeftUserDataList').innerHTML = '';
+    document.getElementById('mainViewLeftUserDataList').appendChild(FillUserDataList(portalPos));
 }
 
 function FillDownloadList(portalPos) {
     let tempList = '';
     let statsList = [];
-    
+
     for (var a = 0; a < userPortalList[portalPos].importedTemplateList.length; a++) {
         let total = 0;
         let totalEuro = 0;
         for (var b = 0; b < userPortalList[portalPos].designList.length; b++) {
             if (
-                 userPortalList[portalPos].importedTemplateList[a] ===
+                userPortalList[portalPos].importedTemplateList[a] ===
                     userPortalList[portalPos].designList[b].templateId &&
                 userPortalList[portalPos].designList[b].downloaded === true
             ) {
