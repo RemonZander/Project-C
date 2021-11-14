@@ -57,6 +57,7 @@
     border-radius: 25px;
     border: solid blue;
     box-sizing: border-box;
+    cursor: pointer;
 }
 
 .adminButton button[type='button'] {
@@ -70,4 +71,5 @@
     border-radius: 25px;
     border: solid rgb(255, 174, 0);
     box-sizing: border-box;
+    cursor: pointer;
 }
