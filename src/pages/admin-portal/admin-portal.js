@@ -2,7 +2,7 @@ import * as React from 'react';
 import './admin-portal.css';
 import kyndaLetter from './kyndaletter.png';
 import cog from './cog69420.png';
-import FotoGalleryImg from './FotoGalleryImg.PNG';
+import FotoGalleryImg from './photolibicon.jpg';
 
 class UserPortalData {
     constructor(id, divs, employeedata) {
@@ -15,7 +15,11 @@ class UserPortalData {
             contact: 'barendballebak@email.nl',
         }; // get from database; is {id: id, name: name, contact: contact}, also can be more than 1 (should we even allow more? idk)
         this.registeredEmployeeList = employeedata; //get from database; is {id: id, name: name}
-        this.importedTemplateList = [6, 8, 21]; // get from database; is [templateId, templateId...]
+        this.importedTemplateList = [
+            { id: 6, name: 'Billboard 1' },
+            { id: 8, name: 'Newspaper 3' },
+            { id: 21, name: 'Website layout 5' },
+        ]; // get from database; is [templateId, templateId...]
         this.designList = [
             { designName: 'Billboard take 1', templateId: 6, downloaded: false },
             { designName: 'NewspaperAd Kompas', templateId: 8, downloaded: true },
@@ -31,8 +35,8 @@ class EmployeeData {
 }
 
 class DownloadData {
-    constructor(id, totalDL, totalEuroDL) {
-        this.id = id;
+    constructor(name, totalDL, totalEuroDL) {
+        this.name = name;
         this.totalDL = totalDL;
         this.totalEuroDL = totalEuroDL;
     }
@@ -116,19 +120,19 @@ export default {
                                     <div
                                         class="mainViewUserDataList"
                                         id="mainViewUserDataList"
-                                    ></div>{' '}
+                                    ></div>
                                 </div>
                                 <div class="mainViewDownloads">
-                                    <div class="mainViewDownloadsHeader">Dowloads</div>
+                                    <div class="mainViewDownloadsHeader">Templates</div>
                                     <div
                                         class="mainViewDownloadsList"
                                         id="mainViewDownloadsList"
                                     ></div>
                                 </div>
-                                <div className="MainViewTemplates">
-                                    <div className="TemplateListHeader">Templates</div>
-                                    <div className="MainViewTemplateList"></div>
-                                </div>
+                                <div
+                                    class="mainViewTemplatePreview"
+                                    id="mainViewTemplatePreview"
+                                ></div>
                             </div>
                         </div>
                         {/*<div class="downloadstatistics">
@@ -160,21 +164,7 @@ export default {
 
 function DrawUserPortals() {
     // function to generate user-portal list-view
-    const names = [
-        'Henkje Geisterbrei',
-        'Sinter Klaas',
-        'Sietske Haarbal',
-        'Saskia Krentenbol',
-        'La Llrona',
-        'Brammetje Bakvet',
-        'Pauline Pisnicht',
-        'Merel Maagzuur',
-    ];
-    let employeedatatemp = [];
-    for (var a = 0; a < names.length; a++) {
-        let employeedata = new EmployeeData(a, names[a]);
-        employeedatatemp.push(employeedata);
-    }
+
     for (let listPos = 1; listPos <= userPortalAmount; listPos++) {
         let id = 'selector ' + listPos;
         let temp = new UserPortalData(
@@ -190,11 +180,31 @@ function DrawUserPortals() {
                     </div>
                 </div>
             ),
-            employeedatatemp
+            employeedata()
         );
         userPortalDivList.push(temp.portalListDivs);
         userPortalList.push(temp);
     }
+}
+
+function employeedata() {
+    const names = [
+        'Henkje Geisterbrei',
+        'Sinter Klaas',
+        'Sietske Haarbal',
+        'Saskia Krentenbol',
+        'La Llrona',
+        'Brammetje Bakvet',
+        'Pauline Pisnicht',
+        'Merel Maagzuur',
+    ];
+    let employeedatatemp = [];
+    for (var a = 0; a < names.length; a++) {
+        let employeedata = new EmployeeData(a, names[a]);
+        employeedatatemp.push(employeedata);
+    }
+
+    return employeedatatemp;
 }
 
 function SelectUser(id) {
@@ -226,7 +236,7 @@ function SelectUser(id) {
     document.getElementById('mainViewUserDataList').appendChild(FillUserDataList(pos - 1));
 
     // sets relevant data for download stats
-    document.getElementById('mainViewDownloadsList').innerHTML = FillDownloadList(pos - 1);
+    document.getElementById('mainViewDownloadsList').appendChild(FillTemplateList(pos - 1));
 
     // continue making selection screen
     /* verhouding a4:
@@ -314,12 +324,11 @@ function DeleteUser(pos, portalPos) {
             userPortalList[portalPos].registeredEmployeeList.push(employeedata);
         }
     }
-    document.getElementById('mainViewLeftUserDataList').innerHTML = '';
-    document.getElementById('mainViewLeftUserDataList').appendChild(FillUserDataList(portalPos));
+    document.getElementById('mainViewUserDataList').innerHTML = '';
+    document.getElementById('mainViewUserDataList').appendChild(FillUserDataList(portalPos));
 }
 
-function FillDownloadList(portalPos) {
-    let tempList = '';
+function FillTemplateList(portalPos) {
     let statsList = [];
 
     for (var a = 0; a < userPortalList[portalPos].importedTemplateList.length; a++) {
@@ -327,7 +336,7 @@ function FillDownloadList(portalPos) {
         let totalEuro = 0;
         for (var b = 0; b < userPortalList[portalPos].designList.length; b++) {
             if (
-                userPortalList[portalPos].importedTemplateList[a] ===
+                userPortalList[portalPos].importedTemplateList[a].id ===
                     userPortalList[portalPos].designList[b].templateId &&
                 userPortalList[portalPos].designList[b].downloaded === true
             ) {
@@ -336,29 +345,46 @@ function FillDownloadList(portalPos) {
             }
         }
         let tempObj = new DownloadData(
-            userPortalList[portalPos].importedTemplateList[a],
+            userPortalList[portalPos].importedTemplateList[a].name,
             total,
             totalEuro
         );
         statsList.push(tempObj);
     }
+    let tempList = document.createDocumentFragment();
     for (var c = 0; c < statsList.length; c++) {
-        tempList =
-            tempList +
-            '<div class="DownloadItemBox">' +
-            '<div class="DownloadItem">' +
-            'Template ID: ' +
-            statsList[c].id +
-            '<br />' +
+        let ShowTemplate = document.createElement('div');
+        ShowTemplate.className = 'ShowTemplate';
+        ShowTemplate.onclick = function () {
+            //DeleteUser(a, portalPos);
+        };
+        ShowTemplate.innerHTML = 'Bekijk Template';
+
+        let TemplateItem = document.createElement('div');
+        TemplateItem.className = 'TemplateItem';
+        TemplateItem.innerHTML =
+            'Naam: ' +
+            statsList[c].name +
+            `<br />` +
             'Aantal Downloads: ' +
             statsList[c].totalDL +
-            '<br />' +
+            `<br />` +
             "Euro's: " +
-            statsList[c].totalEuroDL +
-            '</div>' +
-            '</div>';
+            statsList[c].totalEuroDL;
+
+        TemplateItem.appendChild(ShowTemplate);
+
+        let TemplateItemBox = document.createElement('div');
+        TemplateItemBox.className = 'TemplateItemBox';
+        TemplateItemBox.appendChild(TemplateItem);
+
+        tempList.appendChild(TemplateItemBox);
     }
     return tempList;
+}
+
+function DrawPreview() {
+    document.getElementById('mainViewTemplatePreview').style.display = 'block';
 }
 
 /*function drawstatisticstemplates() {
