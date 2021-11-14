@@ -82,74 +82,52 @@ export default {
                             {userPortalDivList}
                         </div>
                         <div class="mainView" id="mainView">
-                            <div class="mainViewLeft">
-                                <div class="mainViewLeftTop" id="mainViewLeftTop">
-                                    <div class="mainViewHeader" id="mainViewHeader"></div>
-                                    <div class="mainViewCompany" id="mainViewCompany"></div>
-                                </div>
-                                <div class="mainViewLeftUser" id="mainViewLeftUser">
-                                    <div class="mainViewLeftUserHeader" id="mainViewLeftUserHeader">
-                                        Hoofdgebruiker
-                                    </div>
-                                    <div class="mainViewLeftUserData">
-                                        <div
-                                            class="mainViewLeftUserId"
-                                            id="mainViewLeftUserId"
-                                        ></div>
-                                        <div
-                                            class="mainViewLeftUserName"
-                                            id="mainViewLeftUserName"
-                                        ></div>
-                                        <div
-                                            class="mainViewLeftUserContact"
-                                            id="mainViewLeftUserContact"
-                                        ></div>
-                                    </div>
-                                </div>
-                                <div class="mainViewLeftLists">
-                                    {' '}
-                                    {/*Div met lijst uers + header*/}
-                                    <div class="mainViewLeftUserList">
-                                        <div
-                                            class="mainViewLeftUserDataHeader"
-                                            id="mainViewLeftUserDataHeader"
-                                        >
-                                            {' '}
-                                            {/*Div header box*/}
-                                            Geregistreerde gebruikers
+                            <div class="mainViewTop">
+                                <div className="MainViewHeader">
+                                    <div class="mainViewHeaderText" id="mainViewHeaderText"></div>
+                                    <div class="mainViewUser" id="mainViewUser">
+                                        <div class="mainViewUserHeader" id="mainViewUserHeader">
+                                            Hoofdgebruiker
                                         </div>
-                                        <div
-                                            class="mainViewLeftUserDataList"
-                                            id="mainViewLeftUserDataList"
-                                        ></div>{' '}
-                                        {/*Div met lijst alle gebruikers*/}
+                                        <div class="mainViewUserData" id="mainViewUserData"></div>
                                     </div>
-                                    <div class="mainViewLeftDownloads">
-                                        <div class="mainViewLeftDownloadsHeader">Dowloads</div>
-                                        <div
-                                            class="mainViewLeftDownloadsList"
-                                            id="mainViewLeftDownloadsList"
-                                        ></div>
+                                </div>
+                                <img className="FotoGalleryButton" src={FotoGalleryImg} />
+                                <div className="ImportTemplateButon">
+                                    <h3>Import template</h3>
+                                </div>
+                                <div className="DoubleButtons">
+                                    <div className="HoofdgebruikerWijzigen">
+                                        <h3>Hoofdgebruker account wijzigen</h3>
                                     </div>
+                                    <div className="BedrijfnaamWijzigen">
+                                        <h3>Bedrijfnaam wijzigen</h3>
+                                    </div>
+                                </div>
+                                <div className="DeletePortal">
+                                    <h3>Delete user-portal</h3>
                                 </div>
                             </div>
-                            <div className="MainViewRight">
-                                <div className="MainViewTop">
-                                    <img className="FotoGalleryButton" src={FotoGalleryImg} />
-                                    <div className="ImportTemplateButon">
-                                        <h3>Import template</h3>
+                            <div className="MainViewBottom">
+                                <div class="mainViewUserList">
+                                    <div className="mainViewUserDataHeader">
+                                        Geregistreerde gebruikers
                                     </div>
-                                    <div className="DoubleButtons">
-                                        <div className="HoofdgebruikerWijzigen">
-                                            <h3>Hoofdgebruker account wijzigen</h3>
-                                        </div>
-                                        <div className="BedrijfnaamWijzigen">
-                                            <h3>Bedrijfnaam wijzigen</h3>
-                                        </div>
-                                    </div>
-                                    <div className="DeletePortal">
-                                        <h3>Delete user-portal</h3>
-                                    </div>
+                                    <div
+                                        class="mainViewUserDataList"
+                                        id="mainViewUserDataList"
+                                    ></div>{' '}
+                                </div>
+                                <div class="mainViewDownloads">
+                                    <div class="mainViewDownloadsHeader">Dowloads</div>
+                                    <div
+                                        class="mainViewDownloadsList"
+                                        id="mainViewDownloadsList"
+                                    ></div>
+                                </div>
+                                <div className="MainViewTemplates">
+                                    <div className="TemplateListHeader">Templates</div>
+                                    <div className="MainViewTemplateList"></div>
                                 </div>
                             </div>
                         </div>
@@ -224,24 +202,31 @@ function SelectUser(id) {
     document.getElementById('mainView').style.display = 'flex';
 
     // sets relevant data for header (portal id, company name)
-    document.getElementById('mainViewHeader').innerHTML =
-        'User Portal ' + userPortalList[pos - 1].portalId;
-    document.getElementById('mainViewCompany').innerHTML = userPortalList[pos - 1].companyName;
+    document.getElementById('mainViewHeaderText').innerHTML =
+        `<h1>User Portal ` +
+        userPortalList[pos - 1].portalId +
+        `</h1>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<p class="CompanyName">` +
+        userPortalList[pos - 1].companyName +
+        `</p>`;
 
     // sets relevant data for main user display (id, name, e-mail)
-    document.getElementById('mainViewLeftUserId').innerHTML =
-        'ID: ' + userPortalList[pos - 1].mainUserList.id;
-    document.getElementById('mainViewLeftUserName').innerHTML =
-        'Naam: ' + userPortalList[pos - 1].mainUserList.name;
-    document.getElementById('mainViewLeftUserContact').innerHTML =
-        'E-mail: ' + userPortalList[pos - 1].mainUserList.contact;
+    document.getElementById('mainViewUserData').innerHTML =
+        `<p class="mainViewUserDataText">ID: ` +
+        userPortalList[pos - 1].mainUserList.id +
+        `<br/>` +
+        'Naam: ' +
+        userPortalList[pos - 1].mainUserList.name +
+        `<br/>` +
+        'E-mail: ' +
+        userPortalList[pos - 1].mainUserList.contact +
+        `</p>`;
 
     // sets relevant data for users in portal
-    document.getElementById('mainViewLeftUserDataList').innerHTML = '';
-    document.getElementById('mainViewLeftUserDataList').appendChild(FillUserDataList(pos - 1));
+    document.getElementById('mainViewUserDataList').innerHTML = '';
+    document.getElementById('mainViewUserDataList').appendChild(FillUserDataList(pos - 1));
 
     // sets relevant data for download stats
-    document.getElementById('mainViewLeftDownloadsList').innerHTML = FillDownloadList(pos - 1);
+    document.getElementById('mainViewDownloadsList').innerHTML = FillDownloadList(pos - 1);
 
     // continue making selection screen
     /* verhouding a4:
