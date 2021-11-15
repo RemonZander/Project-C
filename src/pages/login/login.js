@@ -10,9 +10,6 @@ export default {
 
         return (
             <React.Fragment>
-                <div className="errors">
-                    {isAuthError === true && <Alert text="Login gegevens kloppen niet!" />}
-                </div>
                 <div className="center">
                     <img src={kynda} alt="Kynda logo" className="image"></img>
                     <h2>
@@ -28,6 +25,9 @@ export default {
                         <div className="txt_field">
                             <input type="password" id="password" name="password" required></input>
                             <label>Wachtwoord</label>
+                        </div>
+                        <div className="Errormsg">
+                            {isAuthError === true && 'Uw login gegevens kloppen niet!'}
                         </div>
                         <input
                             type="submit"
