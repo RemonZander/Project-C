@@ -31,6 +31,11 @@ form .txt_field {
     margin: 30px 0;
 }
 
+.Errormsg {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
 .txt_field input {
     width: 100%;
     padding: 0 5px;

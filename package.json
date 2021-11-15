@@ -20,7 +20,6 @@
         "eject": "react-scripts eject",
         "start-server": "node server/server.js",
         "db-test": "node setupDatabase testDB.sql",
-        "db-test-restore": "node setupDatabase testDB.sql restore",
         "db-prod": "node setupDatabase dbFile.sql",
         "prepare": "husky install"
     },
