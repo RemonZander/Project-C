@@ -280,18 +280,24 @@ h1 {
 }
 
 .mainViewUserList,
-.mainViewDownloads {
+.mainViewTemplates,
+.mainViewDesings {
     border-style: none;
     height: 100%;
     width: 19.75%;
 }
 
-.mainViewDownloads {
+.mainViewDesings {
+    display: none;
+}
+
+.mainViewTemplates {
     margin-left: 2px;
 }
 
 .mainViewUserDataHeader,
-.mainViewDownloadsHeader {
+.mainViewTemplatesHeader,
+.mainViewDesingsHeader {
     height: 7%;
     width: 100%;
     border-right: solid 2px black;
@@ -304,12 +310,22 @@ h1 {
     background: rgb(0, 0, 255);
 }
 
+.mainViewDesingsHeader {
+    border-left: solid 2px black;
+}
+
 .mainViewUserDataList,
-.mainViewDownloadsList {
+.mainViewTemplatesList,
+.mainViewDesingsList {
     border-right: solid 2px black;
     width: 100%;
     height: 92.2%;
     overflow-y: scroll;
+}
+
+.mainViewDesingsList {
+    border-left: solid 2px black;
+    border-right: none;
 }
 
 .userItemBox,
@@ -437,8 +453,7 @@ h1 {
 }
 
 .mainViewTemplatePreview {
-    margin-top: 1%;
-    margin-left: 1.5%;
+    margin: 1% 7%;
     width: 26.1%;
     height: 94%;
     border: solid 2px black;

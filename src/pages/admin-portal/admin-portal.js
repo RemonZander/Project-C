@@ -122,29 +122,23 @@ export default {
                                         id="mainViewUserDataList"
                                     ></div>
                                 </div>
-                                <div class="mainViewDownloads">
-                                    <div class="mainViewDownloadsHeader">Templates</div>
+                                <div class="mainViewTemplates">
+                                    <div class="mainViewTemplatesHeader">Templates</div>
                                     <div
-                                        class="mainViewDownloadsList"
-                                        id="mainViewDownloadsList"
+                                        class="mainViewTemplatesList"
+                                        id="mainViewTemplatesList"
                                     ></div>
                                 </div>
                                 <div
                                     class="mainViewTemplatePreview"
                                     id="mainViewTemplatePreview"
                                 ></div>
+                                <div class="mainViewDesings" id="mainViewDesings">
+                                    <div class="mainViewDesingsHeader">Desings</div>
+                                    <div class="mainViewDesingsList" id="mainViewDesingsList"></div>
+                                </div>
                             </div>
                         </div>
-                        {/*<div class="downloadstatistics">
-                            <div class="templatedownloadsbox">
-                                <div class="statheader">Templates</div>
-                                {drawstatisticstemplates()}
-                            </div>
-                            <div class="designdownloadsbox">
-                                <div class="statheader">Designs</div>
-                                {drawstatisticsdesigns()}
-                            </div>
-                        </div>*/}
                     </div>
                     <div class="listViewTxtBox">
                         <p
@@ -236,7 +230,7 @@ function SelectUser(id) {
     document.getElementById('mainViewUserDataList').appendChild(FillUserDataList(pos - 1));
 
     // sets relevant data for download stats
-    document.getElementById('mainViewDownloadsList').appendChild(FillTemplateList(pos - 1));
+    document.getElementById('mainViewTemplatesList').appendChild(FillTemplateList(pos - 1));
 
     // continue making selection screen
     /* verhouding a4:
@@ -356,7 +350,7 @@ function FillTemplateList(portalPos) {
         let ShowTemplate = document.createElement('div');
         ShowTemplate.className = 'ShowTemplate';
         ShowTemplate.onclick = function () {
-            //DeleteUser(a, portalPos);
+            DrawPreview();
         };
         ShowTemplate.innerHTML = 'Bekijk Template';
 
@@ -385,35 +379,5 @@ function FillTemplateList(portalPos) {
 
 function DrawPreview() {
     document.getElementById('mainViewTemplatePreview').style.display = 'block';
+    document.getElementById('mainViewDesings').style.display = 'block';
 }
-
-/*function drawstatisticstemplates() {
-    let templates = {1: 5, 2: 11, 3: 10, 4: 6, 5: 4, 6: 20, 7: 11, 8: 16, 9: 2, 10: 43}; // temp value, is dictionary with key=templateId & value=downloadamount, get from database (not sure if downloads have to be per template & per user portal or just per template)
-    let stats = [];
-    for (var key in templates) {
-        stats.push(
-            <div class="templatedownloads"> 
-                <div class="templatedownloadstxt">
-                    Template {key} <br/>
-                    Aantal Downloads = {templates[key]}
-                </div>
-            </div>
-        );
-    }
-    return stats;
-}
-
-function drawstatisticsdesigns() {
-    let designs = {1: 22, 2: 3, 3: 741, 4: 9, 5: 20, 6: 14, 7: 10, 8: 41, 9: 7, 10: 89}; // temp value, is dictionary with key=userportalId & value=downloadamount, get from database
-    let stats = [];
-    for (var key in designs) {
-        stats.push(<div class="designdownloads">
-                <div class="designdownloadstxt">
-                    User Portal {key} <br/>
-                    Aantal Downloads = {designs[key]}
-                </div>
-            </div>
-        );
-    }
-    return stats;
-}*/
