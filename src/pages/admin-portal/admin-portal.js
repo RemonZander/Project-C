@@ -133,9 +133,9 @@ export default {
                                     class="mainViewTemplatePreview"
                                     id="mainViewTemplatePreview"
                                 ></div>
-                                <div class="mainViewDesings" id="mainViewDesings">
-                                    <div class="mainViewDesingsHeader">Desings</div>
-                                    <div class="mainViewDesingsList" id="mainViewDesingsList"></div>
+                                <div class="mainViewDesigns" id="mainViewDesigns">
+                                    <div class="mainViewDesignsHeader">Desings</div>
+                                    <div class="mainViewDesignsList" id="mainViewDesignsList"></div>
                                 </div>
                             </div>
                         </div>
@@ -230,6 +230,7 @@ function SelectUser(id) {
     document.getElementById('mainViewUserDataList').appendChild(FillUserDataList(pos - 1));
 
     // sets relevant data for download stats
+    document.getElementById('mainViewTemplatesList').innerHTML = '';
     document.getElementById('mainViewTemplatesList').appendChild(FillTemplateList(pos - 1));
 
     // continue making selection screen
@@ -379,5 +380,6 @@ function FillTemplateList(portalPos) {
 
 function DrawPreview() {
     document.getElementById('mainViewTemplatePreview').style.display = 'block';
-    document.getElementById('mainViewDesings').style.display = 'block';
+    document.getElementById('mainViewDesigns').style.display = 'block';
+    document.getElementById('mainViewDesignsList').innerHTML = '';
 }
