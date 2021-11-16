@@ -12,13 +12,13 @@ import voorbeeld6 from './voorbeeld6.jpg';
 export default {
     url: '/fotogalerij',
     Render: (queryParams) => {
-        const [isAdmin, setIsAdmin] = useState(true);
+        const [isAdmin] = useState(true);
         let fotoStorage = [voorbeeld1, voorbeeld2, voorbeeld3, voorbeeld4, voorbeeld5, voorbeeld6];
         return (
             <div>
                 <div class="menubar">
                     <div class="kyndalogo">
-                        <img src={kyndalogo} width="120" height="40"></img>
+                        <img src={kyndalogo} alt="kynda logo" width="120" height="40"></img>
                     </div>
                     <div class="fotogalerijHeader">Fotogalerij</div>
                     <div class="adminButton">{adminButton(isAdmin)}</div>
@@ -30,7 +30,7 @@ export default {
                     </div>
 
                     <div class="kyndacog">
-                        <img src={settingslogo} width="39" height="39"></img>
+                        <img src={settingslogo} alt="settings" width="39" height="39"></img>
                     </div>
                 </div>
 
@@ -64,9 +64,9 @@ function imageLeave(id) {
 
 function selectedPicture(picture, type) {
     picture.preventDefault();
-    if (type == 'select') {
+    if (type === 'select') {
         alert('Uw foto is geselecteerd!');
-    } else if (type == 'add') {
+    } else if (type === 'add') {
         alert('Hier kan u fotos toevoegen');
         //foto toevoegen
     } else {
@@ -116,6 +116,7 @@ function fotolibrary(fotoStorage, isAdmin) {
                     onMouseEnter={() => imageOnHover(a)}
                     onMouseLeave={() => imageLeave(a)}
                     src={fotoStorage[a - 1]}
+                    alt="fotolibrary"
                 ></img>
             </div>
         );
