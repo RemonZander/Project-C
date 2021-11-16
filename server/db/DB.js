@@ -5,7 +5,7 @@ const sqlite3 = require('sqlite3').verbose();
 const mySqlInstance = require('./MySqlInstance').instance;
 const sqliteInstance = require('./SqliteInstance').instance;
 
-class DBManager {
+class DB {
     startConnection() {
         if (process.env.APP_ENV === 'production') {
             return new mySqlInstance(
@@ -20,8 +20,13 @@ class DBManager {
             return new sqliteInstance(
                 new sqlite3.Database(path.normalize(__dirname + '../../../kyndaDatabase.sqlite3'))
             );
+        } else {
+            console.log(
+                'process.env.APP_ENV is not production or local, is the .env file missing?'
+            );
+            process.exit();
         }
     }
 }
 
-module.exports = { DBManager: DBManager };
+module.exports = DB;
