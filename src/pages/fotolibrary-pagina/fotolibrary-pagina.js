@@ -12,8 +12,7 @@ import voorbeeld6 from './voorbeeld6.jpg';
 export default {
     url: '/fotogalerij',
     Render: (queryParams) => {
-        const [isModerator, setIsModerator] = useState(true);
-        const [isAdmin, setisAdmin] = useState(false);
+        const [isAdmin, setIsAdmin] = useState(true);
         let fotoStorage = [voorbeeld1, voorbeeld2, voorbeeld3, voorbeeld4, voorbeeld5, voorbeeld6];
         return (
             <div>
@@ -22,7 +21,7 @@ export default {
                         <img src={kyndalogo} width="120" height="40"></img>
                     </div>
                     <div class="fotogalerijHeader">Fotogalerij</div>
-                    <div class="adminButton">{adminButton(isModerator, isAdmin)}</div>
+                    <div class="adminButton">{adminButton(isAdmin)}</div>
                     <div class="searchbar">
                         <input type="text" placeholder="Zoeken..."></input>
                     </div>
@@ -67,14 +66,21 @@ function selectedPicture(picture, type) {
     picture.preventDefault();
     if (type == 'select') {
         alert('Uw foto is geselecteerd!');
+    } else if (type == 'add') {
+        alert('Hier kan u fotos toevoegen');
+        //foto toevoegen
     } else {
         alert('De geselecteerde foto is verwijderd!');
     }
 }
 
-function adminButton(isModerator, isAdmin) {
-    if (isModerator || isAdmin) {
-        return <button type="button">Foto's toevoegen</button>;
+function adminButton(isAdmin) {
+    if (isAdmin) {
+        return (
+            <button type="button" onClick={(e) => selectedPicture(e, 'add')}>
+                Foto's toevoegen
+            </button>
+        );
     }
 }
 
