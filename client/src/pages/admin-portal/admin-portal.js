@@ -48,114 +48,116 @@ let userPortalList = []; // array of UserPortalData objects
 
 DrawUserPortals();
 
+function AdminPortal() {
+    const [userPortalList1, SetUserPortalList] = React.useState([]);
+    return (
+        <React.Fragment>
+            {/* menubar bijna tzelfde als die in user-portal.js */}
+            <div class="menuBarAdmin">
+                <div class="kyndaLogo">
+                    <img src={kyndaLetter} width="104" height="55" />
+                </div>
+                <div class="adminPortalHeader">Adminportaal</div>
+                <div class="dropDown">
+                    <label for="menu"> Opties: </label>
+                    <select name="menu" id="menu">
+                        <option value="optie1">optie1</option>
+                        <option value="optie2">optie2</option>
+                        <option value="optie3">optie3</option>
+                        <option value="optie4">optie4</option>
+                    </select>
+                </div>
+                <div class="logOutButton">
+                    <loguitbutton>Uitloggen</loguitbutton>
+                </div>
+                <div class="kyndaCog">
+                    <img src={cog} width="40" height="40" />
+                </div>
+            </div>
+
+            <div class="mainPage">
+                <div class="listViewTxtBox">
+                    <p class="listViewTxt">User Portals</p>
+                </div>
+                <div class="midSection">
+                    <div class="userPortalList" id="userPortalList">
+                        {userPortalDivList}
+                    </div>
+                    <div class="mainView" id="mainView">
+                        <div class="mainViewTop">
+                            <div className="MainViewHeader">
+                                <div class="mainViewHeaderText" id="mainViewHeaderText"></div>
+                                <div class="mainViewUser" id="mainViewUser">
+                                    <div class="mainViewUserHeader" id="mainViewUserHeader">
+                                        Hoofdgebruiker
+                                    </div>
+                                    <div class="mainViewUserData" id="mainViewUserData"></div>
+                                </div>
+                            </div>
+                            <img className="FotoGalleryButton" src={FotoGalleryImg} />
+                            <div className="ImportTemplateButon">
+                                <h3>Import template</h3>
+                            </div>
+                            <div className="DoubleButtons">
+                                <div className="HoofdgebruikerWijzigen">
+                                    <h3>Hoofdgebruker account wijzigen</h3>
+                                </div>
+                                <div className="BedrijfnaamWijzigen">
+                                    <h3>Bedrijfnaam wijzigen</h3>
+                                </div>
+                            </div>
+                            <div className="DeletePortal">
+                                <h3>Delete user-portal</h3>
+                            </div>
+                        </div>
+                        <div className="MainViewBottom">
+                            <div class="mainViewUserList">
+                                <div className="mainViewUserDataHeader">
+                                    Geregistreerde gebruikers
+                                </div>
+                                <div
+                                    class="mainViewUserDataList"
+                                    id="mainViewUserDataList"
+                                ></div>
+                            </div>
+                            <div class="mainViewTemplates">
+                                <div class="mainViewTemplatesHeader">Templates</div>
+                                <div
+                                    class="mainViewTemplatesList"
+                                    id="mainViewTemplatesList"
+                                ></div>
+                            </div>
+                            <div
+                                class="mainViewTemplatePreview"
+                                id="mainViewTemplatePreview"
+                            ></div>
+                            <div class="mainViewDesigns" id="mainViewDesigns">
+                                <div class="mainViewDesignsHeader">Desings</div>
+                                <div class="mainViewDesignsList" id="mainViewDesignsList"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="listViewTxtBox">
+                    <p
+                        class="addUserPortalButton"
+                        onClick={() =>
+                            SetUserPortalList(userPortalDivList.push(AddUserPortal()))
+                        }
+                    >
+                        User Portal Toevoegen
+                    </p>
+                </div>
+            </div>
+        </React.Fragment>
+    );
+}
+
 export default {
     url: '/admin-portal',
     auth: true,
     adminOnly: true,
-    Render: (queryParams) => {
-        const [userPortalList1, SetUserPortalList] = React.useState([]);
-        return (
-            <React.Fragment>
-                {/* menubar bijna tzelfde als die in user-portal.js */}
-                <div class="menuBarAdmin">
-                    <div class="kyndaLogo">
-                        <img src={kyndaLetter} width="104" height="55" />
-                    </div>
-                    <div class="adminPortalHeader">Adminportaal</div>
-                    <div class="dropDown">
-                        <label for="menu"> Opties: </label>
-                        <select name="menu" id="menu">
-                            <option value="optie1">optie1</option>
-                            <option value="optie2">optie2</option>
-                            <option value="optie3">optie3</option>
-                            <option value="optie4">optie4</option>
-                        </select>
-                    </div>
-                    <div class="logOutButton">
-                        <loguitbutton>Uitloggen</loguitbutton>
-                    </div>
-                    <div class="kyndaCog">
-                        <img src={cog} width="40" height="40" />
-                    </div>
-                </div>
-
-                <div class="mainPage">
-                    <div class="listViewTxtBox">
-                        <p class="listViewTxt">User Portals</p>
-                    </div>
-                    <div class="midSection">
-                        <div class="userPortalList" id="userPortalList">
-                            {userPortalDivList}
-                        </div>
-                        <div class="mainView" id="mainView">
-                            <div class="mainViewTop">
-                                <div className="MainViewHeader">
-                                    <div class="mainViewHeaderText" id="mainViewHeaderText"></div>
-                                    <div class="mainViewUser" id="mainViewUser">
-                                        <div class="mainViewUserHeader" id="mainViewUserHeader">
-                                            Hoofdgebruiker
-                                        </div>
-                                        <div class="mainViewUserData" id="mainViewUserData"></div>
-                                    </div>
-                                </div>
-                                <img className="FotoGalleryButton" src={FotoGalleryImg} />
-                                <div className="ImportTemplateButon">
-                                    <h3>Import template</h3>
-                                </div>
-                                <div className="DoubleButtons">
-                                    <div className="HoofdgebruikerWijzigen">
-                                        <h3>Hoofdgebruker account wijzigen</h3>
-                                    </div>
-                                    <div className="BedrijfnaamWijzigen">
-                                        <h3>Bedrijfnaam wijzigen</h3>
-                                    </div>
-                                </div>
-                                <div className="DeletePortal">
-                                    <h3>Delete user-portal</h3>
-                                </div>
-                            </div>
-                            <div className="MainViewBottom">
-                                <div class="mainViewUserList">
-                                    <div className="mainViewUserDataHeader">
-                                        Geregistreerde gebruikers
-                                    </div>
-                                    <div
-                                        class="mainViewUserDataList"
-                                        id="mainViewUserDataList"
-                                    ></div>
-                                </div>
-                                <div class="mainViewTemplates">
-                                    <div class="mainViewTemplatesHeader">Templates</div>
-                                    <div
-                                        class="mainViewTemplatesList"
-                                        id="mainViewTemplatesList"
-                                    ></div>
-                                </div>
-                                <div
-                                    class="mainViewTemplatePreview"
-                                    id="mainViewTemplatePreview"
-                                ></div>
-                                <div class="mainViewDesigns" id="mainViewDesigns">
-                                    <div class="mainViewDesignsHeader">Desings</div>
-                                    <div class="mainViewDesignsList" id="mainViewDesignsList"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="listViewTxtBox">
-                        <p
-                            class="addUserPortalButton"
-                            onClick={() =>
-                                SetUserPortalList(userPortalDivList.push(AddUserPortal()))
-                            }
-                        >
-                            User Portal Toevoegen
-                        </p>
-                    </div>
-                </div>
-            </React.Fragment>
-        );
-    },
+    component: AdminPortal,
 };
 
 function DrawUserPortals() {

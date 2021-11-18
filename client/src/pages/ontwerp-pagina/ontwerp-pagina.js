@@ -6,102 +6,104 @@ import kleurletterknop from './kleurletterknop.PNG';
 import pijllinks from './pijllinks.PNG';
 import pijlrechts from './pijlrechts.png';
 
+function DesignPage() {
+    return (
+        <React.Fragment>
+            <div className="menubar">
+                <div className="kyndalogo">
+                    <img src={kyndaletter} width="104" height="55" />
+                </div>
+                <div className="klantenportaalHeader">Design portal</div>
+                <div className="dropdown">
+                    <label for="menu"> Opties: </label>
+                    <select name="menu" id="menu">
+                        <option value="optie1">optie1</option>
+                        <option value="optie2">optie2</option>
+                        <option value="optie3">optie3</option>
+                        <option value="optie4">optie4</option>
+                    </select>
+                </div>
+                <div className="logoutbutton">
+                    <loguitbutton>Uitloggen</loguitbutton>
+                </div>
+                <div className="kyndacog">
+                    <img src={cog} width="40" height="40" />
+                </div>
+            </div>
+            <div className="optiebar">
+                <button
+                    className="bewerkopties"
+                    onClick={() => bewerkopties('bestand')}
+                >
+                    Bestand
+                </button>
+                <button
+                    className="bewerkopties"
+                    onClick={() => bewerkopties('start')}
+                >
+                    Start
+                </button>
+                <button
+                    className="bewerkopties"
+                    onClick={() => bewerkopties('invoegen')}
+                >
+                    Invoegen
+                </button>
+            </div>
+            <div id="message" className="optionmenu">
+                {optiemenuarray}
+            </div>
+
+            <div
+                className="designnaam"
+                onClick={() => bewerkoptiessluiten()}
+            >
+                Design naam
+            </div>
+            <div className="designpage">
+                <img
+                    className="pijlen"
+                    src={pijllinks}
+                    width="100"
+                    height="44"
+                />
+                <div
+                    className="innerdesignpage"
+                    onClick={() => bewerkoptiessluiten()}
+                >
+                    <div>
+                        <iframe
+                            id="templatepage1"
+                            className="templatepage"
+                        ></iframe>
+                        <br />
+                        <h5 className="pagenum">Pagina nummer: 1</h5>
+                    </div>
+                    <div>
+                        <iframe
+                            id="templatepage2"
+                            className="templatepage"
+                        ></iframe>
+                        <br />
+                        <h5 className="pagenum">Pagina nummer: 2</h5>
+                    </div>
+                </div>
+                <img
+                    className="pijlen"
+                    src={pijlrechts}
+                    width="100"
+                    height="44"
+                />
+            </div>
+        </React.Fragment>
+    );
+}
+
 export default {
     url: '/designer',
     auth: true,
     adminOnly: true,
-    Render: (queryParams) => {
-        return (
-            <React.Fragment>
-                <div className="menubar">
-                    <div className="kyndalogo">
-                        <img src={kyndaletter} width="104" height="55" />
-                    </div>
-                    <div className="klantenportaalHeader">Design portal</div>
-                    <div className="dropdown">
-                        <label for="menu"> Opties: </label>
-                        <select name="menu" id="menu">
-                            <option value="optie1">optie1</option>
-                            <option value="optie2">optie2</option>
-                            <option value="optie3">optie3</option>
-                            <option value="optie4">optie4</option>
-                        </select>
-                    </div>
-                    <div className="logoutbutton">
-                        <loguitbutton>Uitloggen</loguitbutton>
-                    </div>
-                    <div className="kyndacog">
-                        <img src={cog} width="40" height="40" />
-                    </div>
-                </div>
-                <div className="optiebar">
-                    <button
-                        className="bewerkopties"
-                        onClick={() => bewerkopties('bestand')}
-                    >
-                        Bestand
-                    </button>
-                    <button
-                        className="bewerkopties"
-                        onClick={() => bewerkopties('start')}
-                    >
-                        Start
-                    </button>
-                    <button
-                        className="bewerkopties"
-                        onClick={() => bewerkopties('invoegen')}
-                    >
-                        Invoegen
-                    </button>
-                </div>
-                <div id="message" className="optionmenu">
-                    {optiemenuarray}
-                </div>
-
-                <div
-                    className="designnaam"
-                    onClick={() => bewerkoptiessluiten()}
-                >
-                    Design naam
-                </div>
-                <div className="designpage">
-                    <img
-                        className="pijlen"
-                        src={pijllinks}
-                        width="100"
-                        height="44"
-                    />
-                    <div
-                        className="innerdesignpage"
-                        onClick={() => bewerkoptiessluiten()}
-                    >
-                        <div>
-                            <iframe
-                                id="templatepage1"
-                                className="templatepage"
-                            ></iframe>
-                            <br />
-                            <h5 className="pagenum">Pagina nummer: 1</h5>
-                        </div>
-                        <div>
-                            <iframe
-                                id="templatepage2"
-                                className="templatepage"
-                            ></iframe>
-                            <br />
-                            <h5 className="pagenum">Pagina nummer: 2</h5>
-                        </div>
-                    </div>
-                    <img
-                        className="pijlen"
-                        src={pijlrechts}
-                        width="100"
-                        height="44"
-                    />
-                </div>
-            </React.Fragment>
-        );
-    },
+    component: DesignPage,
 };
 
 function bewerkopties(choice) {

@@ -6,6 +6,7 @@ import LoginPage from './pages/login/login';
 import ForgotPasswordPage from './pages/forgot password/forgot_pass';
 import TemplateEngine from './pages/template-engine/templateEngine';
 import ontwerp_pagina from './pages/ontwerp-pagina/ontwerp-pagina';
+import { useEffect, useState } from 'react';
 
 const pages = [
     LoginPage,
@@ -18,6 +19,34 @@ const pages = [
 
 function App() {
     const pathName = window.location.pathname;
+
+    const [isUserAuth, setIsUserAuth] = useState(false);
+    const [isUserAdmin, setIsUserAdmin] = useState(false);
+
+    useEffect(() => {
+        const cookieString = document.cookie;
+
+        if (cookieString !== '') {
+            const token = document.cookie.split(';').find(row => row.startsWith('token=')).split('=')[1];
+    
+            fetch(process.env.REACT_APP_SERVER_URL + '/auth', { method: 'GET', headers: { 'Authorization': 'Bear ' + token } })
+                .then(res => res.json())
+                .then(data => {
+                    const payload = JSON.parse(Buffer.from(data.content.token.split('.')[1], 'base64').toString());
+
+
+                    if (token === data.content.token) {
+                        setIsUserAuth(true)
+
+                        if (payload.admin) {
+                            setIsUserAdmin(true);
+                        }
+                    }
+                    
+                })
+                .catch(err => console.error(err));
+        }
+    })
 
     for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
@@ -51,22 +80,12 @@ function App() {
                 }
             }
 
-            if (page.auth) {
-                const isLoggedIn = (async () => {
-                    const token = document.cookie.split(';').find(row => row.startsWith('token=')).split('=')[1];
-                    fetch(process.env.REACT_APP_SERVER_URL + '/auth', {method: 'GET', headers: {'Authorization': 'Bear ' + token}})
-                    .then(res => res.json())
-                    .then(data => console.log(data))
-                    .catch(err => console.error(err));
-                })();
-
-                if (true) {
-                    return page.Render(queryParamsObject);
-                } else {
-                    return <h1>403 Not Authorized</h1>;
-                }
+            if (page.auth && page.adminOnly) {
+                return isUserAuth && isUserAdmin ? <page.component queryParams={queryParamsObject} /> : <h1>403 Not Authorized</h1>;
+            } else if (page.auth) {
+                return isUserAuth ? <page.component queryParams={queryParamsObject} /> : <h1>403 Not Authorized</h1>;
             } else {
-                return page.Render(queryParamsObject);
+                return <page.component queryParams={queryParamsObject} />;
             }
         }
     }
