@@ -1,0 +1,75 @@
+.fotogalerijHeader {
+    font-family: Arial, Helvetica, sans-serif;
+    margin-left: 1.5%;
+    margin-right: 45%;
+    font-size: 35px;
+}
+
+.searchbar input[type='text'] {
+    float: right;
+    padding: 6px;
+    border: none;
+    margin: 8px 16px 16px;
+    font-size: 17px;
+    position: relative;
+}
+
+.fotogallery {
+    position: relative;
+    line-height: 0;
+    -webkit-column-count: 5;
+    -webkit-column-gap: 0px;
+    -moz-column-count: 5;
+    -moz-column-gap: 0px;
+    column-count: 5;
+    column-gap: 0px;
+    display: flex;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.picture img {
+    width: 100%;
+}
+
+.picture {
+    width: 300px;
+    height: 250px;
+    margin: 0px 20px;
+    text-align: center;
+}
+
+.picture h3 {
+    position: absolute;
+}
+
+.picture button[type='button'] {
+    position: relative;
+    padding: 15px 32px;
+    color: white;
+    text-align: center;
+    align-self: center;
+    opacity: 0;
+    transition: 1s;
+    font-size: 16px;
+    border-style: solid;
+    z-index: 1000;
+    border-radius: 25px;
+    border: solid blue;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.adminButton button[type='button'] {
+    background-color: rgb(255, 174, 0);
+    padding: 5px 30px;
+    color: white;
+    text-align: center;
+    display: block;
+    font-size: 16px;
+    border-style: solid;
+    border-radius: 25px;
+    border: solid rgb(255, 174, 0);
+    box-sizing: border-box;
+    cursor: pointer;
+}

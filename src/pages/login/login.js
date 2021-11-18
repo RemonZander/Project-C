@@ -1,7 +1,6 @@
 import './login.css';
 import kynda from './kynda.png';
 import React, { useEffect, useState } from 'react';
-import Alert from '../../components/Alert';
 
 export default {
     url: '/',
