@@ -1,5 +1,6 @@
 import './App.css';
 import user_portal from './pages/user-portal/user-portal';
+import admin_portal from './pages/admin-portal/admin-portal';
 import LoginPage from './pages/login/login';
 import ForgotPasswordPage from './pages/forgot password/forgot_pass';
 import TemplateEngine from './pages/template-engine/templateEngine';
@@ -10,6 +11,7 @@ const pages = [
     LoginPage,
     ForgotPasswordPage,
     user_portal,
+    admin_portal,
     TemplateEngine,
     ontwerp_pagina,
     fotolibraryPagina,
