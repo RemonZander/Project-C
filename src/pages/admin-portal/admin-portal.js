@@ -205,7 +205,7 @@ function DrawUserPortals() {
                         </div>
                         <div
                             class="userPortalItemCompany"
-                            id={'userPortalItemCompany' + listPos - 1}
+                            id={'userPortalItemCompany' + id}
                         >
                             {'S.T.D. Wines & Liquors inc.'}
                         </div>
@@ -251,7 +251,7 @@ function SelectUser(id) {
         `<h1>User Portal ` +
         userPortalList[pos - 1].portalId +
         `</h1>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<p class="CompanyName">` +
-        userPortalList[pos - 1].companyName +
+        document.getElementById('userPortalItemCompanyselector ' + pos).innerHTML +
         `</p>`;
 
     // sets relevant data for main user display (id, name, e-mail)
@@ -274,10 +274,14 @@ function SelectUser(id) {
     document.getElementById('mainViewTemplatesList').innerHTML = '';
     document.getElementById('mainViewTemplatesList').appendChild(FillTemplateList(pos - 1));
 
+    // unloads template preview & designslist when selecting a different user-portal
+    document.getElementById('mainViewTemplatePreview').style.display = 'none';
+    document.getElementById('mainViewDesigns').style.display = 'none';
+
     // adds onclick to bedrijfnaam wijzigen
-    document.getElementById('BedrijfnaamWijzigen').onClick = function () {
-        ChangeCompanyName(pos - 1);
-    };
+    document.getElementById('BedrijfnaamWijzigen').onclick = function () {
+        ChangeCompanyName(pos);
+    }
 
     // continue making selection screen
     /* verhouding a4:
@@ -403,7 +407,6 @@ function FillTemplateList(portalPos) {
         );
         statsList.push(tempObj);
     }
-    console.log(statsList);
     let tempList = document.createDocumentFragment();
     for (var c = 0; c < statsList.length; c++) {
         let ShowTemplate = document.createElement('div');
@@ -499,5 +502,11 @@ function ChangeCompanyName(portalPos) {
     while (companyInput === '') {
         companyInput = prompt('Voer opnieuw de nieuwe bedrijfsnaam in. (mag niet leeg zijn)');
     }
-    document.getElementById('userPortalItemCompany' + portalPos).innerHTML = companyInput;
+    document.getElementById('userPortalItemCompanyselector ' + portalPos).innerHTML = companyInput;
+    document.getElementById('mainViewHeaderText').innerHTML =
+        `<h1>User Portal ` +
+        userPortalList[portalPos - 1].portalId +
+        `</h1>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<p class="CompanyName">` +
+        document.getElementById('userPortalItemCompanyselector ' + portalPos).innerHTML +
+        `</p>`;
 }
