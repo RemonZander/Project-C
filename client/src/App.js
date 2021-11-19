@@ -21,8 +21,8 @@ const pages = [
 function App() {
     const pathName = window.location.pathname;
 
-    const [isUserAuth, setIsUserAuth] = useState(false);
-    const [isUserAdmin, setIsUserAdmin] = useState(false);
+    const [isUserAuth, setIsUserAuth] = useState(null);
+    const [isUserAdmin, setIsUserAdmin] = useState(null);
 
     useEffect(() => {
         const cookieString = document.cookie;
@@ -81,10 +81,23 @@ function App() {
                 }
             }
 
+            const renderOnAuth = (cond) => {
+                // If the first condition is met then return the page
+                // If the second condition is met it means that the fetching isn't done
+                // If the last condition is met it means the user is not authorized
+                if (cond) {
+                    return <page.component queryParams={queryParamsObject} />;
+                } else if (isUserAuth === null && isUserAdmin === null) {
+                    return null;
+                } else {
+                    return <h1>403 Not Authorized</h1>;
+                }
+            }
+
             if (page.auth && page.adminOnly) {
-                return isUserAuth && isUserAdmin ? <page.component queryParams={queryParamsObject} /> : <h1>403 Not Authorized</h1>;
+                return renderOnAuth(isUserAuth && isUserAdmin)
             } else if (page.auth) {
-                return isUserAuth ? <page.component queryParams={queryParamsObject} /> : <h1>403 Not Authorized</h1>;
+                return renderOnAuth(isUserAuth);
             } else {
                 return <page.component queryParams={queryParamsObject} />;
             }
