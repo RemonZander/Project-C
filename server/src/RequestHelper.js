@@ -5,7 +5,11 @@ class RequestHelper
         this.request = request;
     }
 
-    getDataFromRequest() {
+    getRequestToken() {
+        return this.request.headers.authorization.split(' ')[1];
+    }
+
+    getRequestData() {
         return new Promise((resolve, reject) => {
             let stringData = '';
 
@@ -18,7 +22,7 @@ class RequestHelper
                     reject(error)
                 }
             });
-        });
+        })
     }
 }
 
