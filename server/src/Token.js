@@ -1,24 +1,43 @@
 const crypto = require('crypto');
 
 class Token {
+    _encodeObjectToJson(object) {
+        try {
+            const jsonString = JSON.stringify(object);
+
+            return Buffer.from(jsonString).toString('base64').replaceAll('=', '')
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    _createSignature(alg, encodedHeader, encodedPayload) {
+        if (alg === "HS256") {
+            const hmac = crypto.createHmac('sha256', process.env.SECRET_KEY);
+            hmac.update(`${encodedHeader}.${encodedPayload}`);
+
+            return hmac.digest('base64').replaceAll('=', '');
+        }
+
+        throw Error("No valid algorithm specified");
+    }
+
     createJWT(payload) {
-        const encodedHeader = Buffer.from(JSON.stringify({ alg: "HS256" })).toString('base64').replaceAll('=', '');
+        const encodedHeader = this._encodeObjectToJson({alg: "HS256"});
 
-        const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64').replaceAll('=', '');
+        const encodedPayload = this._encodeObjectToJson(payload);
 
-        const hmac = crypto.createHmac('sha256', process.env.SECRET_KEY);
-        hmac.update(`${encodedHeader}.${encodedPayload}`);
+        const signature = this._createSignature("HS256", encodedHeader, encodedPayload);
 
-        return `${encodedHeader}.${encodedPayload}.${hmac.digest('base64').replaceAll('=', '')}`;
+        return `${encodedHeader}.${encodedPayload}.${signature}`;
     }
 
     verifyJWT(token) {
         const tokenParts = token.split('.');
 
-        const hmac = crypto.createHmac('sha256', process.env.SECRET_KEY);
-        hmac.update(`${tokenParts[0]}.${tokenParts[1]}`);
+        const signature = this._createSignature("HS256", tokenParts[0], tokenParts[1]);
 
-        return tokenParts[2] === hmac.digest('base64').replaceAll('=', '');
+        return tokenParts[2] === signature;
     }
 }
 
