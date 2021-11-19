@@ -3,6 +3,7 @@ import './admin-portal.css';
 import kyndaLetter from './kyndaletter.png';
 import cog from './cog69420.png';
 import FotoGalleryImg from './photolibicon.jpg';
+import { doc } from 'prettier';
 
 class UserPortalData {
     constructor(id, divs, employeedata) {
@@ -21,8 +22,18 @@ class UserPortalData {
             { id: 21, name: 'Website layout 5' },
         ]; // get from database; is [templateId, templateId...]
         this.designList = [
-            { designName: 'Billboard take 1', templateId: 6, downloaded: false },
-            { designName: 'NewspaperAd Kompas', templateId: 8, downloaded: true },
+            {
+                designName: 'Billboard take 1',
+                templateId: 6,
+                templateName: 'Billboard 1',
+                downloaded: false,
+            },
+            {
+                designName: 'NewspaperAd Kompas',
+                templateId: 8,
+                templateName: 'Newspaper 3',
+                downloaded: true,
+            },
         ]; // get from database; is [{designName: string, templateId: int, downloaded: bool}, ...]
     }
 }
@@ -31,14 +42,25 @@ class EmployeeData {
     constructor(id, name) {
         this.id = id;
         this.name = name;
+        this.contact = 'bakvet@jemoeder.nl';
     }
 }
 
 class DownloadData {
-    constructor(name, totalDL, totalEuroDL) {
+    constructor(id, name, totalDL, totalEuroDL) {
+        this.id = id;
         this.name = name;
         this.totalDL = totalDL;
         this.totalEuroDL = totalEuroDL;
+    }
+}
+
+class DesignData {
+    constructor(templateId, templateName, designName, wasDL) {
+        this.templateId = templateId;
+        this.templateName = templateName;
+        this.designName = designName;
+        this.wasDL = wasDL;
     }
 }
 
@@ -57,7 +79,7 @@ export default {
                 {/* menubar bijna tzelfde als die in user-portal.js */}
                 <div class="menuBarAdmin">
                     <div class="kyndaLogo">
-                        <img src={kyndaLetter} width="104" height="55" />
+                        <img src={kyndaLetter} width="104" height="55" alt="letters" />
                     </div>
                     <div class="adminPortalHeader">Adminportaal</div>
                     <div class="dropDown">
@@ -73,82 +95,94 @@ export default {
                         <loguitbutton>Uitloggen</loguitbutton>
                     </div>
                     <div class="kyndaCog">
-                        <img src={cog} width="40" height="40" />
+                        <img src={cog} width="40" height="40" alt="cog" />
                     </div>
                 </div>
 
                 <div class="mainPage">
-                    <div class="listViewTxtBox">
-                        <p class="listViewTxt">User Portals</p>
-                    </div>
-                    <div class="midSection">
+                    <div class="userPortals">
+                        <div class="listViewTxtBox">
+                            <p class="listViewTxt">User Portals</p>
+                        </div>
                         <div class="userPortalList" id="userPortalList">
                             {userPortalDivList}
                         </div>
-                        <div class="mainView" id="mainView">
-                            <div class="mainViewTop">
-                                <div className="MainViewHeader">
-                                    <div class="mainViewHeaderText" id="mainViewHeaderText"></div>
-                                    <div class="mainViewUser" id="mainViewUser">
-                                        <div class="mainViewUserHeader" id="mainViewUserHeader">
-                                            Hoofdgebruiker
-                                        </div>
-                                        <div class="mainViewUserData" id="mainViewUserData"></div>
-                                    </div>
-                                </div>
-                                <img className="FotoGalleryButton" src={FotoGalleryImg} />
-                                <div className="ImportTemplateButon">
-                                    <h3>Import template</h3>
-                                </div>
-                                <div className="DoubleButtons">
-                                    <div className="HoofdgebruikerWijzigen">
-                                        <h3>Hoofdgebruker account wijzigen</h3>
-                                    </div>
-                                    <div className="BedrijfnaamWijzigen">
-                                        <h3>Bedrijfnaam wijzigen</h3>
-                                    </div>
-                                </div>
-                                <div className="DeletePortal">
-                                    <h3>Delete user-portal</h3>
-                                </div>
-                            </div>
-                            <div className="MainViewBottom">
-                                <div class="mainViewUserList">
-                                    <div className="mainViewUserDataHeader">
-                                        Geregistreerde gebruikers
-                                    </div>
-                                    <div
-                                        class="mainViewUserDataList"
-                                        id="mainViewUserDataList"
-                                    ></div>
-                                </div>
-                                <div class="mainViewTemplates">
-                                    <div class="mainViewTemplatesHeader">Templates</div>
-                                    <div
-                                        class="mainViewTemplatesList"
-                                        id="mainViewTemplatesList"
-                                    ></div>
-                                </div>
-                                <div
-                                    class="mainViewTemplatePreview"
-                                    id="mainViewTemplatePreview"
-                                ></div>
-                                <div class="mainViewDesigns" id="mainViewDesigns">
-                                    <div class="mainViewDesignsHeader">Desings</div>
-                                    <div class="mainViewDesignsList" id="mainViewDesignsList"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="listViewTxtBox">
-                        <p
+                        <div
                             class="addUserPortalButton"
                             onClick={() =>
                                 SetUserPortalList(userPortalDivList.push(AddUserPortal()))
                             }
                         >
                             User Portal Toevoegen
-                        </p>
+                        </div>
+                    </div>
+                    <div class="mainView" id="mainView">
+                        <div class="mainViewTop">
+                            <div className="MainViewHeader">
+                                <div class="mainViewHeaderText" id="mainViewHeaderText"></div>
+                                <div class="mainViewUser" id="mainViewUser">
+                                    <div class="mainViewUserHeader" id="mainViewUserHeader">
+                                        Hoofdgebruiker
+                                    </div>
+                                    <div class="mainViewUserData" id="mainViewUserData"></div>
+                                </div>
+                            </div>
+                            <img className="FotoGalleryButton" src={FotoGalleryImg} alt="gallery" />
+                            <div className="DoubleButtons">
+                                <div
+                                    className="ImportTemplateButton"
+                                    onClick={function () {
+                                        window.open('/template-engine', '_blank').focus();
+                                    }}
+                                >
+                                    <h3>Import template</h3>
+                                </div>
+                                <div className="GebruikerToevoegen" onClick={() => GbrToevoegen()}>
+                                    <h3>Gebruiker toevoegen</h3>
+                                </div>
+                            </div>
+                            <div className="DoubleButtons">
+                                <div className="HoofdgebruikerWijzigen">
+                                    <h3>Hoofdgebruiker account wijzigen</h3>
+                                </div>
+                                <div className="BedrijfnaamWijzigen" id="BedrijfnaamWijzigen">
+                                    <h3>Bedrijfnaam wijzigen</h3>
+                                </div>
+                            </div>
+                            <div className="DeletePortal">
+                                <h3>Delete user-portal</h3>
+                            </div>
+                        </div>
+                        <div className="MainViewBottom">
+                            <div class="mainViewUserList">
+                                <div className="mainViewUserDataHeader">
+                                    Geregistreerde gebruikers
+                                </div>
+                                <div class="mainViewUserDataList" id="mainViewUserDataList"></div>
+                            </div>
+                            <div class="mainViewTemplates">
+                                <div class="mainViewTemplatesHeader">Templates</div>
+                                <div class="mainViewTemplatesList" id="mainViewTemplatesList"></div>
+                            </div>
+                            <div class="mainViewTemplatePreview" id="mainViewTemplatePreview"></div>
+                            <div className="Gbrtoevoegen" id="Gbrtoevoegen">
+                                <div className="GbrToevoegenHeader">Gebruiker toevoegen</div>
+                                <div className="GbrInvoer">
+                                    Naam: <input type="text" />
+                                </div>
+                                <div className="GbrInvoer">
+                                    Email: <input type="text" />
+                                </div>
+                                <div className="GbrInvoer">
+                                    Wachtwoord: <input type="text" />
+                                </div>
+                                <div className="GbrToevoegenbutton">Gebruiker toevoegen</div>
+                            </div>
+                            <div class="mainViewDesigns" id="mainViewDesigns">
+                                <div class="mainViewDesignsHeader">Designs</div>
+                                <div class="mainViewDesignsList" id="mainViewDesignsList"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </React.Fragment>
@@ -166,8 +200,15 @@ function DrawUserPortals() {
             (
                 <div class="userPortalItemBox">
                     <div class="userPortalItem">
-                        {'User Portal ' + listPos} <br />
-                        {'S.T.D. Wines & Liquors inc.'} {/* get company name from method call */}
+                        <div class="userPortalItemName">
+                            {'User Portal' + (userPortalList.length + 1)} <br />
+                        </div>
+                        <div
+                            class="userPortalItemCompany"
+                            id={'userPortalItemCompany' + listPos - 1}
+                        >
+                            {'S.T.D. Wines & Liquors inc.'}
+                        </div>
                         <div class="selectUserPortalButton" id={id} onClick={() => SelectUser(id)}>
                             Selecteren
                         </div>
@@ -233,6 +274,11 @@ function SelectUser(id) {
     document.getElementById('mainViewTemplatesList').innerHTML = '';
     document.getElementById('mainViewTemplatesList').appendChild(FillTemplateList(pos - 1));
 
+    // adds onclick to bedrijfnaam wijzigen
+    document.getElementById('BedrijfnaamWijzigen').onClick = function () {
+        ChangeCompanyName(pos - 1);
+    };
+
     // continue making selection screen
     /* verhouding a4:
         element.style.width = '459px'; 
@@ -264,8 +310,15 @@ function AddUserPortal() {
         (
             <div class="userPortalItemBox">
                 <div class="userPortalItem">
-                    {'User Portal ' + (userPortalList.length + 1)} <br />
-                    {'S.T.D. Wines & Liquors inc.'}
+                    <div class="userPortalItemName">
+                        {'User Portal' + (userPortalList.length + 1)} <br />
+                    </div>
+                    <div
+                        class="userPortalItemCompany"
+                        id={'userPortalItemCompany' + userPortalList.length + 1}
+                    >
+                        {'S.T.D. Wines & Liquors inc.'}
+                    </div>
                     <div class="selectUserPortalButton" id={id} onClick={() => SelectUser(id)}>
                         Selecteren
                     </div>
@@ -296,7 +349,10 @@ function FillUserDataList(portalPos) {
             userPortalList[portalPos].registeredEmployeeList[a].id +
             `<br />` +
             'Naam: ' +
-            userPortalList[portalPos].registeredEmployeeList[a].name;
+            userPortalList[portalPos].registeredEmployeeList[a].name +
+            '<br />' +
+            'E-mail: ' +
+            userPortalList[portalPos].registeredEmployeeList[a].contact;
         userItem.appendChild(deleteUser);
 
         let userItemBox = document.createElement('div');
@@ -340,18 +396,21 @@ function FillTemplateList(portalPos) {
             }
         }
         let tempObj = new DownloadData(
+            userPortalList[portalPos].importedTemplateList[a].id,
             userPortalList[portalPos].importedTemplateList[a].name,
             total,
             totalEuro
         );
         statsList.push(tempObj);
     }
+    console.log(statsList);
     let tempList = document.createDocumentFragment();
     for (var c = 0; c < statsList.length; c++) {
         let ShowTemplate = document.createElement('div');
         ShowTemplate.className = 'ShowTemplate';
+        let TempPos = statsList[c].id;
         ShowTemplate.onclick = function () {
-            DrawPreview();
+            DrawPreview(portalPos, TempPos);
         };
         ShowTemplate.innerHTML = 'Bekijk Template';
 
@@ -378,8 +437,67 @@ function FillTemplateList(portalPos) {
     return tempList;
 }
 
-function DrawPreview() {
+function FillDesignList(portalPos, selectedTemplateId) {
+    let tempDesignList = [];
+    for (let a = 0; a < userPortalList[portalPos].designList.length; a++) {
+        if (selectedTemplateId === userPortalList[portalPos].designList[a].templateId) {
+            let tempObj = new DesignData(
+                selectedTemplateId,
+                userPortalList[portalPos].designList[a].templateName,
+                userPortalList[portalPos].designList[a].designName,
+                userPortalList[portalPos].designList[a].downloaded
+            );
+            tempDesignList.push(tempObj);
+        }
+    }
+    let tempList = document.createDocumentFragment();
+    for (let b = 0; b < tempDesignList.length; b++) {
+        let DesignItem = document.createElement('div');
+        DesignItem.className = 'DesignItem';
+        DesignItem.innerHTML =
+            'Naam: ' +
+            tempDesignList[b].designName +
+            '<br />' +
+            'Gebruikte Template: <br />' +
+            tempDesignList[b].templateName +
+            '<br />' +
+            'Gedownload: ';
+        DesignItem.innerHTML += tempDesignList[b].wasDL ? 'Ja' : 'Nee';
+
+        let DesignItemBox = document.createElement('div');
+        DesignItemBox.className = 'DesignItemBox';
+        DesignItemBox.appendChild(DesignItem);
+        tempList.appendChild(DesignItemBox);
+    }
+    return tempList;
+}
+
+function DrawPreview(portalPos, selectedTemplateId) {
+    document.getElementById('Gbrtoevoegen').style.display = 'none';
     document.getElementById('mainViewTemplatePreview').style.display = 'block';
     document.getElementById('mainViewDesigns').style.display = 'block';
     document.getElementById('mainViewDesignsList').innerHTML = '';
+    document
+        .getElementById('mainViewDesignsList')
+        .appendChild(FillDesignList(portalPos, selectedTemplateId));
+}
+
+function GbrToevoegen() {
+    document.getElementById('mainViewTemplatePreview').style.display = 'none';
+    document.getElementById('mainViewDesigns').style.display = 'none';
+    let GbrWindow = document.getElementById('Gbrtoevoegen');
+    GbrWindow.style.display = 'block';
+    GbrWindow.style.borderStyle = 'solid';
+    GbrWindow.style.width = '25%';
+    GbrWindow.style.height = '30%';
+    GbrWindow.style.alignSelf = 'center';
+    GbrWindow.style.marginLeft = '18%';
+}
+
+function ChangeCompanyName(portalPos) {
+    let companyInput = prompt('Voer de nieuwe bedrijfsnaam in.');
+    while (companyInput === '') {
+        companyInput = prompt('Voer opnieuw de nieuwe bedrijfsnaam in. (mag niet leeg zijn)');
+    }
+    document.getElementById('userPortalItemCompany' + portalPos).innerHTML = companyInput;
 }
