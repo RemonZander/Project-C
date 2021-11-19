@@ -15,6 +15,7 @@ const routes = fs.readdirSync(routesFolder);
 server.on('request', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', process.env.APP_URL);
     res.setHeader('Access-Control-Allow-Headers', 'Authorization');
+    res.setHeader('Access-Control-Allow-Methods', ['GET', 'POST', 'PUT', 'DELETE']);
 
     if (req.headers.origin === process.env.APP_URL) {
         req.setEncoding('utf-8');
@@ -25,7 +26,6 @@ server.on('request', (req, res) => {
             const routeFileName = routes[i];
 
             const routeFileContent = require(path.normalize(routesFolder + '/' + routeFileName));
-
             if (firstPartOfUrl === routeFileContent.name) {
                 routeFileContent.action(req, res);
                 break;
