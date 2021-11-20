@@ -420,9 +420,30 @@ h1 {
     height: 100%;
     border-bottom: solid 2px black;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     cursor: pointer;
+}
+
+.DeletePortalTxt {
+    display: none;
+    font-size: 20px;
+    margin-bottom: 5%;
+}
+
+.DeletePortalConfirm {
+    display: none;
+    border: solid 2px black;
+    justify-content: center;
+    align-items: center;
+    height: 12.5%;
+    width: 75%;
+    font-size: 20px;
+    color: white;
+    background: -moz-linear-gradient(left, #0000ff 0%, #fe04ff 56%, #db0000 100%);
+    background: -webkit-linear-gradient(left, #0000ff 0%, #fe04ff 56%, #db0000 100%);
+    background: linear-gradient(to right, #0000ff 0%, #fe04ff 56%, #db0000 100%);
 }
 
 .MainViewBottom {

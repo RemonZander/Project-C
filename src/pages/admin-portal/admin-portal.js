@@ -149,8 +149,10 @@ export default {
                                     <h3>Bedrijfnaam wijzigen</h3>
                                 </div>
                             </div>
-                            <div className="DeletePortal">
+                            <div className="DeletePortal" id="DeletePortal">
                                 <h3>Delete user-portal</h3>
+                                <div className="DeletePortalTxt" id="DeletePortalTxt">Bevestig uw keuze</div>
+                                <div className="DeletePortalConfirm" id="DeletePortalConfirm">Verwijderen</div>
                             </div>
                         </div>
                         <div className="MainViewBottom">
@@ -201,7 +203,7 @@ function DrawUserPortals() {
                 <div class="userPortalItemBox">
                     <div class="userPortalItem">
                         <div class="userPortalItemName">
-                            {'User Portal' + (userPortalList.length + 1)} <br />
+                            {'User Portal ' + (userPortalList.length + 1)} <br />
                         </div>
                         <div
                             class="userPortalItemCompany"
@@ -246,6 +248,12 @@ function SelectUser(id) {
     const pos = id.replace('selector ', '');
     document.getElementById('mainView').style.display = 'flex';
 
+    // unloads any menu's from a previously selected user-portal
+    document.getElementById('mainViewTemplatePreview').style.display = 'none';
+    document.getElementById('mainViewDesigns').style.display = 'none';
+    document.getElementById('DeletePortalTxt').style.display = 'none';
+    document.getElementById('DeletePortalConfirm').style.display = 'none';
+
     // sets relevant data for header (portal id, company name)
     document.getElementById('mainViewHeaderText').innerHTML =
         `<h1>User Portal ` +
@@ -274,13 +282,15 @@ function SelectUser(id) {
     document.getElementById('mainViewTemplatesList').innerHTML = '';
     document.getElementById('mainViewTemplatesList').appendChild(FillTemplateList(pos - 1));
 
-    // unloads template preview & designslist when selecting a different user-portal
-    document.getElementById('mainViewTemplatePreview').style.display = 'none';
-    document.getElementById('mainViewDesigns').style.display = 'none';
-
-    // adds onclick to bedrijfnaam wijzigen
+    // adds onclick to bedrijfnaam wijzigen & delete user-portal buttons
     document.getElementById('BedrijfnaamWijzigen').onclick = function () {
         ChangeCompanyName(pos);
+    }
+    document.getElementById('DeletePortal').onclick = function () {
+        DeleteUserPortalStep1();
+    }
+    document.getElementById('DeletePortalConfirm').onclick = function () {
+        DeleteUserPortalStep2(pos);
     }
 
     // continue making selection screen
@@ -315,11 +325,11 @@ function AddUserPortal() {
             <div class="userPortalItemBox">
                 <div class="userPortalItem">
                     <div class="userPortalItemName">
-                        {'User Portal' + (userPortalList.length + 1)} <br />
+                        {'User Portal ' + (userPortalList.length + 1)} <br />
                     </div>
                     <div
                         class="userPortalItemCompany"
-                        id={'userPortalItemCompany' + userPortalList.length + 1}
+                        id={'userPortalItemCompany' + id}
                     >
                         {'S.T.D. Wines & Liquors inc.'}
                     </div>
@@ -509,4 +519,15 @@ function ChangeCompanyName(portalPos) {
         `</h1>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<p class="CompanyName">` +
         document.getElementById('userPortalItemCompanyselector ' + portalPos).innerHTML +
         `</p>`;
+}
+
+function DeleteUserPortalStep1() {
+    document.getElementById('DeletePortalTxt').style.display = 'block';
+    document.getElementById('DeletePortalConfirm').style.display = 'flex';
+}
+
+function DeleteUserPortalStep2(portalPos) {
+    document.getElementById('mainView').style.display = 'none';
+    userPortalList.splice(portalPos, 1);
+    userPortalDivList.splice(portalPos, 1);
 }
