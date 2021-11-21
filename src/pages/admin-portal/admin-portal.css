@@ -255,11 +255,12 @@ h1 {
 }
 
 .GbrToevoegenHeader {
-    height: 10%;
+    height: 15%;
 }
 
 .GbrInvoer {
     margin-top: 10px;
+    margin-left: 10px;
     display: flex;
     justify-content: space-between;
     width: 81%;
@@ -335,7 +336,7 @@ h1 {
 .GbrToevoegenbutton {
     width: auto;
     display: block;
-    margin-top: 7%;
+    margin-top: 3%;
     margin-left: 10%;
     margin-right: 10%;
     border-style: solid;
@@ -413,6 +414,11 @@ h1 {
 
 .Gbrtoevoegen {
     display: none;
+    border-style: solid;
+    width: 25%;
+    height: 30%;
+    align-self: center;
+    margin-left: 18%;
 }
 
 .DeletePortal {
