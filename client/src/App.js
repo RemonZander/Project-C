@@ -22,32 +22,27 @@ function App() {
     const pathName = window.location.pathname;
 
     const [isUserAuth, setIsUserAuth] = useState(null);
-    const [isUserAdmin, setIsUserAdmin] = useState(null);
+    const [userType, setUserType] = useState(null);
 
     useEffect(() => {
         const cookieString = document.cookie;
 
         if (cookieString !== '') {
             const token = document.cookie.split(';').find(row => row.startsWith('token=')).split('=')[1];
-    
+            
             fetch(process.env.REACT_APP_SERVER_URL + '/auth', { method: 'GET', headers: { 'Authorization': 'Bear ' + token } })
-                .then(res => res.json())
+            .then(res => res.json())
                 .then(data => {
                     const payload = JSON.parse(Buffer.from(data.content.token.split('.')[1], 'base64').toString());
-
-
+                    
                     if (token === data.content.token) {
                         setIsUserAuth(true)
-
-                        if (payload.admin) {
-                            setIsUserAdmin(true);
-                        }
+                        setUserType(payload.type);
                     }
-                    
                 })
                 .catch(err => console.error(err));
         }
-    })
+    }, [isUserAuth, userType])
 
     for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
@@ -81,23 +76,16 @@ function App() {
                 }
             }
 
-            const renderOnAuth = (cond) => {
-                // If the first condition is met then return the page
-                // If the second condition is met it means that the fetching isn't done
-                // If the last condition is met it means the user is not authorized
-                if (cond) {
-                    return <page.component queryParams={queryParamsObject} />;
-                } else if (isUserAuth === null && isUserAdmin === null) {
+            const isLoaded = isUserAuth !== null && userType !== null;
+
+            if (page.auth) {
+                if (!isLoaded) {
                     return null;
+                } else if (isUserAuth && page.allowedUsers.includes(userType)) {
+                    return <page.component queryParams={queryParamsObject} />;
                 } else {
                     return <h1>403 Not Authorized</h1>;
                 }
-            }
-
-            if (page.auth && page.adminOnly) {
-                return renderOnAuth(isUserAuth && isUserAdmin)
-            } else if (page.auth) {
-                return renderOnAuth(isUserAuth);
             } else {
                 return <page.component queryParams={queryParamsObject} />;
             }
