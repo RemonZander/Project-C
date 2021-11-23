@@ -1,15 +1,14 @@
 require('dotenv').config();
 
 const http = require('http');
-const fs = require('fs');
-const path = require('path');
-
-const routesFolder = path.normalize(process.cwd() + "/routes");
+const RequestHelper = require('./src/RequestHelper');
+const ResponseHelper = require('./src/ResponseHelper');
+const Token = new (require('./src/Token'))();
 
 // Create a local server to receive data from
 const server = http.createServer();
 
-const routes = fs.readdirSync(routesFolder);
+const routes = require('./routes');
 
 // Listen to the request event
 server.on('request', (req, res) => {
@@ -17,18 +16,39 @@ server.on('request', (req, res) => {
     res.setHeader('Access-Control-Allow-Headers', 'Authorization');
     res.setHeader('Access-Control-Allow-Methods', ['GET', 'POST', 'PUT', 'DELETE']);
 
+    const resHelper = new ResponseHelper(res)
+    const reqHelper = new RequestHelper(req)
+    // console.log(routes);
     if (req.headers.origin === process.env.APP_URL) {
         req.setEncoding('utf-8');
 
-        const firstPartOfUrl = req.url.split('/')[1];
-
         for (let i = 0; i < routes.length; i++) {
-            const routeFileName = routes[i];
+            const route = routes[i];
 
-            const routeFileContent = require(path.normalize(routesFolder + '/' + routeFileName));
-            if (firstPartOfUrl === routeFileContent.name) {
-                routeFileContent.action(req, res);
-                break;
+            if (req.url === route.url) {
+                if (req.url !== "/auth" && (!reqHelper.authorizationHeaderExists() || !Token.verifyJWT(reqHelper.getRequestToken()))) {
+                    resHelper.responseInvalidToken();
+                    break;
+                }
+
+                (async () => {
+                    try {
+                        const result = await route.action(reqHelper, resHelper);
+
+                        if (result instanceof Error) throw result;
+                    } catch (error) {
+                        if (error instanceof SyntaxError) {
+                            console.error(error);
+                            resHelper.responseInvalidJson();
+                        } else if (error instanceof Error && 'code' in error && error.code === "SQLITE_ERROR") {
+                            console.error(error);
+                            resHelper.responseInvalidCrudData();
+                        } else {
+                            console.error(error);
+                            resHelper.responseError(error.message)
+                        }
+                    }
+                })();
             }
         }
     }
