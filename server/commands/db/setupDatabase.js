@@ -4,12 +4,14 @@ const args = process.argv.slice(2);
 const fs = require('fs');
 const path = require('path');
 const DB = new (require('../../src/db/DB'))();
+const Storage = new (require('../../src/Storage'))();
 
 const dbPath = path.normalize(process.cwd() + '\\kyndaDatabase.sqlite3');
 
 if (args[0].toLowerCase() === 'testdb.sql' && fs.existsSync(dbPath)) {
     try {
         fs.unlinkSync(dbPath);
+        fs.rmSync(Storage.storagePath, {recursive: true, force: true})
         console.log('Succesfully deleted database');
     } catch (err) {
         console.error(err);
@@ -52,18 +54,18 @@ conn.runStatements();
 // Hierin kan je functies maken die testdata aanmaken.
 // Het is de bedoeling dat je alle statements in dit bestand toevoeg net als erboven.
 
-conn.runStatement(`INSERT INTO role (Name) VALUES ('admin'), ('hoofdgbr'), ('gbr')`);
+conn.runStatement(`INSERT INTO role (Name) VALUES ('Admin'), ('Moderator'), ('Employee')`);
 
 conn.runStatement(
     `INSERT INTO user
      (Email, Password, Role_Id, Company_Id, Is_logged_on) VALUES
      ('admin@gmail.com', 'Admin1!', 1, -1, FALSE),
-     ('hoofdgbr1@gmail.com', 'Hoofdgbr1!', 2, 1, FALSE),
-     ('hoofdgbr2@gmail.com', 'Hoofdgbr1!', 2, 2, FALSE),
-     ('hoofdgbr3@gmail.com', 'Hoofdgbr1!', 2, 3, FALSE),
-     ('gbr@gmail.com', 'Gbr1!', 3, 1, FALSE),
-     ('gbr1@gmail.com', 'Gbr1!', 3, 2, FALSE),
-     ('gbr2@gmail.com', 'Gbr1!', 3, 3, FALSE)
+     ('moderator1@gmail.com', 'Moderator1!', 2, 1, FALSE),
+     ('moderator2@gmail.com', 'Moderator1!', 2, 2, FALSE),
+     ('moderator3@gmail.com', 'Moderator1!', 2, 3, FALSE),
+     ('user1@gmail.com', 'User1!', 3, 1, FALSE),
+     ('user2@gmail.com', 'User1!', 3, 2, FALSE),
+     ('user3@gmail.com', 'User1!', 3, 3, FALSE)
      `
 );
 
@@ -101,6 +103,10 @@ conn.runStatement(
      ('filepath_to_design', '15-8-2021', '1-1-2000', '10', TRUE, 7, 'design6_template7'),
      ('filepath_to_design', '28-5-2021', '7-6-5432', '1000', TRUE, 8, 'design1_template8')`
 );
+
+Storage.addCompany(0);
+Storage.addCompany(1);
+Storage.addCompany(2);
 
 // DB CONNECTION END
 conn.endConnection();
