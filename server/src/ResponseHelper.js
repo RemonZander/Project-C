@@ -6,6 +6,7 @@ class ResponseHelper {
     responseSuccess(content = {}) {
         this.response.writeHead(200);
         this.response.end(JSON.stringify({
+            status: "SUCCESS",
             err: null,
             content: content
         }));
@@ -14,6 +15,7 @@ class ResponseHelper {
     responseError(errorMessage) {
         this.response.writeHead(200);
         this.response.end(JSON.stringify({
+            status: "FAIL",
             err: errorMessage,
             content: {}
         }));

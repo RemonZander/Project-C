@@ -5,8 +5,16 @@ class RequestHelper
         this.request = request;
     }
 
+    authorizationHeaderExists() {
+        return 'authorization' in this.request.headers;
+    }
+
     getRequestToken() {
         return this.request.headers.authorization.split(' ')[1];
+    }
+
+    getPayload = () => {
+        return JSON.parse(Buffer.from(this.getRequestToken().split('.')[1], 'base64').toString());
     }
 
     getRequestData() {
@@ -17,7 +25,7 @@ class RequestHelper
 
             this.request.on('end', () => {
                 try {
-                    resolve(JSON.parse(stringData));
+                    stringData === '' ? resolve({}) : resolve(JSON.parse(stringData));
                 } catch (error) {
                     reject(error)
                 }
