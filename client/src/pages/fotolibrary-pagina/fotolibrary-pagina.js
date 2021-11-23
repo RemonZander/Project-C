@@ -8,6 +8,7 @@ import voorbeeld3 from './voorbeeld3.jpg';
 import voorbeeld4 from './voorbeeld4.jpg';
 import voorbeeld5 from './voorbeeld5.jpg';
 import voorbeeld6 from './voorbeeld6.jpg';
+import { CreateExport } from '../../helpers/Export';
 
 function Gallery() {
     const [isAdmin] = useState(true);
@@ -38,13 +39,7 @@ function Gallery() {
         </div>
     );
 }
-
-export default {
-    url: '/fotogalerij',
-    auth: true,
-    adminOnly: false,
-    component: Gallery,
-};
+export default CreateExport('/fotogalerij', Gallery);
 
 function imageOnHover(id) {
     const imgId = 'img' + id;

@@ -5,6 +5,7 @@ import cog from './cog69420.png';
 import kleurletterknop from './kleurletterknop.PNG';
 import pijllinks from './pijllinks.PNG';
 import pijlrechts from './pijlrechts.png';
+import { CreateExport } from '../../helpers/Export';
 
 function DesignPage() {
     return (
@@ -99,12 +100,7 @@ function DesignPage() {
     );
 }
 
-export default {
-    url: '/designer',
-    auth: true,
-    adminOnly: true,
-    component: DesignPage,
-};
+export default CreateExport('/designer', DesignPage, true, ["Admin", "Moderator"])
 
 function bewerkopties(choice) {
     const message = document.getElementById('message');

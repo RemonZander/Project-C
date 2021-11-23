@@ -1,3 +1,4 @@
+import { CreateExport } from '../../helpers/Export';
 import './forgot_pass.css';
 import kynda from './kynda.png';
 
@@ -17,10 +18,4 @@ function ForgotPassword() {
         </div>
     );
 }
-
-export default {
-    url: '/forgot_password',
-    auth: false,
-    adminOnly: false,
-    component: ForgotPassword,
-};
+export default CreateExport('/forgot_password', ForgotPassword, false, []);

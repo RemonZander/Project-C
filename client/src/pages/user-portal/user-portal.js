@@ -3,6 +3,7 @@ import './user-portal.css';
 import kyndaletter from './kyndaletter.png';
 import cog from './cog69420.png';
 import plus from './plusafbeelding.png';
+import { CreateExport } from '../../helpers/Export';
 
 function UserPortal() {
     return (
@@ -44,12 +45,7 @@ function UserPortal() {
     );
 }
 
-export default {
-    url: '/user-portal',
-    auth: true,
-    adminOnly: false,
-    component: UserPortal,
-}
+export default CreateExport('/user-portal', UserPortal);
 
 //Functie voor het aantal vakjes voor design preview. Dit gaat nog verder aangepast worden wanneer het systeem meer opgezet is
 //Er mogen max 5 vakjes zijn + vakje voor alle designs + plus teken

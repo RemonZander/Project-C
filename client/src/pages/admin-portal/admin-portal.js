@@ -3,7 +3,7 @@ import './admin-portal.css';
 import kyndaLetter from './kyndaletter.png';
 import cog from './cog69420.png';
 import FotoGalleryImg from './photolibicon.jpg';
-import { doc } from 'prettier';
+import { CreateExport } from '../../helpers/Export';
 
 class UserPortalData {
     constructor(id, divs, employeedata) {
@@ -183,7 +183,7 @@ function AdminPortal() {
                         </div>
                     </div>
                 </div>
-                <div class="listViewTxtBox">
+                {/* <div class="listViewTxtBox">
                     <p
                         class="addUserPortalButton"
                         onClick={() =>
@@ -192,17 +192,11 @@ function AdminPortal() {
                     >
                         User Portal Toevoegen
                     </p>
-                </div>
+                </div> */}
         </React.Fragment>
     );
 }
-
-export default {
-    url: '/admin-portal',
-    auth: true,
-    adminOnly: true,
-    component: AdminPortal,
-};
+export default CreateExport('/admin-portal', AdminPortal, true, ["Admin"]);
 
 function DrawUserPortals() {
     // function to generate user-portal list-view
