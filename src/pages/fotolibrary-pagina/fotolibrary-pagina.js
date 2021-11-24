@@ -1,4 +1,5 @@
 import './fotolibrary-pagina.css';
+import { Typography } from '@material-ui/core';
 import kyndalogo from './kynda.png';
 import settingslogo from './tandwiel.png';
 import { useState } from 'react';
