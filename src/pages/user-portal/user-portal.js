@@ -11,7 +11,7 @@ export default {
             <React.Fragment>
                 <div class="menubar">
                     <div class="kyndalogo">
-                        <img src={kyndaletter} width="104" height="55" />
+                        <img src={kyndaletter} alt="kynda logo" width="104" height="55" />
                     </div>
                     <div class="klantenportaalHeader">Klantenportaal</div>
                     <div class="dropdown">
@@ -28,7 +28,7 @@ export default {
                     </div>
 
                     <div class="kyndacog">
-                        <img src={cog} width="40" height="40" />
+                        <img src={cog} alt="settings" width="40" height="40" />
                     </div>
                 </div>
 
@@ -59,9 +59,7 @@ function designs() {
     if (max >= 5) {
         list.push(<div class="lastitem"> Alle designs </div>);
     }
-    list.push(
-        <img class="plusimage" src={plus} width="130" height="130"></img>
-    );
+    list.push(<img class="plusimage" src={plus} alt="plus" width="130" height="130"></img>);
     return list;
 }
 
@@ -76,8 +74,6 @@ function fotos() {
     if (max >= 5) {
         list.push(<div class="lastitem"> Alle foto's </div>);
     }
-    list.push(
-        <img class="plusimage" src={plus} width="130" height="130"></img>
-    );
+    list.push(<img class="plusimage" src={plus} alt="plus" width="130" height="130"></img>);
     return list;
 }

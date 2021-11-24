@@ -13,7 +13,7 @@ export default {
             <React.Fragment>
                 <div className="menubar">
                     <div className="kyndalogo">
-                        <img src={kyndaletter} width="104" height="55" />
+                        <img src={kyndaletter} alt="kyndalogo" width="104" height="55" />
                     </div>
                     <div className="klantenportaalHeader">Design portal</div>
                     <div className="dropdown">
@@ -29,26 +29,17 @@ export default {
                         <loguitbutton>Uitloggen</loguitbutton>
                     </div>
                     <div className="kyndacog">
-                        <img src={cog} width="40" height="40" />
+                        <img src={cog} alt="settings" width="40" height="40" />
                     </div>
                 </div>
                 <div className="optiebar">
-                    <button
-                        className="bewerkopties"
-                        onClick={() => bewerkopties('bestand')}
-                    >
+                    <button className="bewerkopties" onClick={() => bewerkopties('bestand')}>
                         Bestand
                     </button>
-                    <button
-                        className="bewerkopties"
-                        onClick={() => bewerkopties('start')}
-                    >
+                    <button className="bewerkopties" onClick={() => bewerkopties('start')}>
                         Start
                     </button>
-                    <button
-                        className="bewerkopties"
-                        onClick={() => bewerkopties('invoegen')}
-                    >
+                    <button className="bewerkopties" onClick={() => bewerkopties('invoegen')}>
                         Invoegen
                     </button>
                 </div>
@@ -56,36 +47,25 @@ export default {
                     {optiemenuarray}
                 </div>
 
-                <div
-                    className="designnaam"
-                    onClick={() => bewerkoptiessluiten()}
-                >
+                <div className="designnaam" onClick={() => bewerkoptiessluiten()}>
                     Design naam
                 </div>
                 <div className="designpage">
                     <img
                         className="pijlen"
                         src={pijllinks}
+                        alt="arrow left"
                         width="100"
                         height="44"
                     />
-                    <div
-                        className="innerdesignpage"
-                        onClick={() => bewerkoptiessluiten()}
-                    >
+                    <div className="innerdesignpage" onClick={() => bewerkoptiessluiten()}>
                         <div>
-                            <iframe
-                                id="templatepage1"
-                                className="templatepage"
-                            ></iframe>
+                            <iframe id="templatepage1" className="templatepage"></iframe>
                             <br />
                             <h5 className="pagenum">Pagina nummer: 1</h5>
                         </div>
                         <div>
-                            <iframe
-                                id="templatepage2"
-                                className="templatepage"
-                            ></iframe>
+                            <iframe id="templatepage2" className="templatepage"></iframe>
                             <br />
                             <h5 className="pagenum">Pagina nummer: 2</h5>
                         </div>
@@ -93,6 +73,7 @@ export default {
                     <img
                         className="pijlen"
                         src={pijlrechts}
+                        alt="arrow right"
                         width="100"
                         height="44"
                     />
@@ -105,16 +86,13 @@ export default {
 function bewerkopties(choice) {
     const message = document.getElementById('message');
     if (
-        (message.style.display == 'block' &&
-            (choice == 'bestand') &
-                (document.getElementById('bestandoptiemenu').style.display ==
-                    'flex')) ||
-        (choice == 'start') &
-            (document.getElementById('startoptiemenu').style.display ==
-                'flex') ||
-        (choice == 'invoegen') &
-            (document.getElementById('invoegenoptiemenu').style.display ==
-                'flex')
+        (message.style.display === 'block' &&
+            (choice === 'bestand') &
+                (document.getElementById('bestandoptiemenu').style.display === 'flex')) ||
+        (choice === 'start') &
+            (document.getElementById('startoptiemenu').style.display === 'flex') ||
+        (choice === 'invoegen') &
+            (document.getElementById('invoegenoptiemenu').style.display === 'flex')
     ) {
         bewerkoptiessluiten();
         return;
@@ -130,11 +108,11 @@ function bewerkopties(choice) {
         element.style.height = '650px';
     }
 
-    if (choice == 'bestand') {
+    if (choice === 'bestand') {
         document.getElementById('bestandoptiemenu').style.display = 'flex';
         document.getElementById('startoptiemenu').style.display = 'none';
         document.getElementById('invoegenoptiemenu').style.display = 'none';
-    } else if (choice == 'start') {
+    } else if (choice === 'start') {
         document.getElementById('bestandoptiemenu').style.display = 'none';
         document.getElementById('startoptiemenu').style.display = 'flex';
         document.getElementById('invoegenoptiemenu').style.display = 'none';
@@ -186,10 +164,7 @@ const optiemenuarray = [
                     <option value="lettertype3">lettertype3</option>
                     <option value="lettertype4">lettertype4</option>
                 </select>
-                <label
-                    for="lettertypegrootte"
-                    className="lettertypegrootte"
-                ></label>
+                <label for="lettertypegrootte" className="lettertypegrootte"></label>
                 <select name="lettertypegrootte" id="lettertypegrootte">
                     <option value="10">10</option>
                     <option value="11">11</option>
@@ -201,27 +176,18 @@ const optiemenuarray = [
                 <h3 className="devider">|</h3>
             </div>
             <div className="flex">
-                <button
-                    className="butttongeneralsmall"
-                    style={{ fontWeight: 'bold' }}
-                >
+                <button className="butttongeneralsmall" style={{ fontWeight: 'bold' }}>
                     B
                 </button>
-                <button
-                    className="butttongeneralsmall"
-                    style={{ fontStyle: 'italic' }}
-                >
+                <button className="butttongeneralsmall" style={{ fontStyle: 'italic' }}>
                     i
                 </button>
-                <button
-                    className="butttongeneralsmall"
-                    style={{ textDecorationLine: 'underline' }}
-                >
+                <button className="butttongeneralsmall" style={{ textDecorationLine: 'underline' }}>
                     U
                 </button>
                 <h3 className="devider">|</h3>
                 <button className="butttongeneralsmall">
-                    <img src={kleurletterknop} width="16" height="14" />
+                    <img src={kleurletterknop} alt="kleurletterknop" width="16" height="14" />
                 </button>
             </div>
         </div>
