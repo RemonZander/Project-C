@@ -149,8 +149,14 @@ export default {
                                     <h3>Bedrijfnaam wijzigen</h3>
                                 </div>
                             </div>
-                            <div className="DeletePortal">
+                            <div className="DeletePortal" id="DeletePortal">
                                 <h3>Delete user-portal</h3>
+                                <div className="DeletePortalTxt" id="DeletePortalTxt">
+                                    Bevestig uw keuze
+                                </div>
+                                <div className="DeletePortalConfirm" id="DeletePortalConfirm">
+                                    Verwijderen
+                                </div>
                             </div>
                         </div>
                         <div className="MainViewBottom">
@@ -168,15 +174,17 @@ export default {
                             <div className="Gbrtoevoegen" id="Gbrtoevoegen">
                                 <div className="GbrToevoegenHeader">Gebruiker toevoegen</div>
                                 <div className="GbrInvoer">
-                                    Naam: <input type="text" />
+                                    Naam: <input type="text" id="GbrNaamInvoer" />
                                 </div>
                                 <div className="GbrInvoer">
-                                    Email: <input type="text" />
+                                    Email: <input type="text" id="GbrEmailInvoer" />
                                 </div>
                                 <div className="GbrInvoer">
-                                    Wachtwoord: <input type="text" />
+                                    Wachtwoord: <input type="text" id="GbrPassInvoer" />
                                 </div>
-                                <div className="GbrToevoegenbutton">Gebruiker toevoegen</div>
+                                <div className="GbrToevoegenbutton" id="GbrToevoegenbutton">
+                                    Gebruiker toevoegen
+                                </div>
                             </div>
                             <div class="mainViewDesigns" id="mainViewDesigns">
                                 <div class="mainViewDesignsHeader">Designs</div>
@@ -201,12 +209,9 @@ function DrawUserPortals() {
                 <div class="userPortalItemBox">
                     <div class="userPortalItem">
                         <div class="userPortalItemName">
-                            {'User Portal' + (userPortalList.length + 1)} <br />
+                            {'User Portal ' + (userPortalList.length + 1)} <br />
                         </div>
-                        <div
-                            class="userPortalItemCompany"
-                            id={'userPortalItemCompany' + listPos - 1}
-                        >
+                        <div class="userPortalItemCompany" id={'userPortalItemCompany' + id}>
                             {'S.T.D. Wines & Liquors inc.'}
                         </div>
                         <div class="selectUserPortalButton" id={id} onClick={() => SelectUser(id)}>
@@ -246,12 +251,18 @@ function SelectUser(id) {
     const pos = id.replace('selector ', '');
     document.getElementById('mainView').style.display = 'flex';
 
+    // unloads any menu's from a previously selected user-portal
+    document.getElementById('mainViewTemplatePreview').style.display = 'none';
+    document.getElementById('mainViewDesigns').style.display = 'none';
+    document.getElementById('DeletePortalTxt').style.display = 'none';
+    document.getElementById('DeletePortalConfirm').style.display = 'none';
+
     // sets relevant data for header (portal id, company name)
     document.getElementById('mainViewHeaderText').innerHTML =
         `<h1>User Portal ` +
         userPortalList[pos - 1].portalId +
         `</h1>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<p class="CompanyName">` +
-        userPortalList[pos - 1].companyName +
+        document.getElementById('userPortalItemCompanyselector ' + pos).innerHTML +
         `</p>`;
 
     // sets relevant data for main user display (id, name, e-mail)
@@ -274,9 +285,15 @@ function SelectUser(id) {
     document.getElementById('mainViewTemplatesList').innerHTML = '';
     document.getElementById('mainViewTemplatesList').appendChild(FillTemplateList(pos - 1));
 
-    // adds onclick to bedrijfnaam wijzigen
-    document.getElementById('BedrijfnaamWijzigen').onClick = function () {
-        ChangeCompanyName(pos - 1);
+    // adds onclick to bedrijfnaam wijzigen & delete user-portal buttons
+    document.getElementById('BedrijfnaamWijzigen').onclick = function () {
+        ChangeCompanyName(pos);
+    };
+    document.getElementById('DeletePortal').onclick = function () {
+        DeleteUserPortalStep(pos, false);
+    };
+    document.getElementById('DeletePortalConfirm').onclick = function () {
+        DeleteUserPortalStep(pos, true);
     };
 
     // continue making selection screen
@@ -311,12 +328,9 @@ function AddUserPortal() {
             <div class="userPortalItemBox">
                 <div class="userPortalItem">
                     <div class="userPortalItemName">
-                        {'User Portal' + (userPortalList.length + 1)} <br />
+                        {'User Portal ' + (userPortalList.length + 1)} <br />
                     </div>
-                    <div
-                        class="userPortalItemCompany"
-                        id={'userPortalItemCompany' + userPortalList.length + 1}
-                    >
+                    <div class="userPortalItemCompany" id={'userPortalItemCompany' + id}>
                         {'S.T.D. Wines & Liquors inc.'}
                     </div>
                     <div class="selectUserPortalButton" id={id} onClick={() => SelectUser(id)}>
@@ -361,6 +375,57 @@ function FillUserDataList(portalPos) {
 
         tempList.appendChild(userItemBox);
     }
+
+    document.getElementById('GbrToevoegenbutton').onclick = function () {
+        if (
+            document.getElementById('GbrNaamInvoer').value === '' ||
+            document.getElementById('GbrEmailInvoer').value === '' ||
+            document.getElementById('GbrPassInvoer').value === ''
+        ) {
+            document.getElementById('GbrNaamInvoer').value = '';
+            document.getElementById('GbrEmailInvoer').value = '';
+            document.getElementById('GbrPassInvoer').value = '';
+            document.getElementById('Gbrtoevoegen').style.display = 'none';
+            return;
+        }
+        let temp = new EmployeeData(
+            userPortalList[portalPos].registeredEmployeeList.length,
+            document.getElementById('GbrNaamInvoer').value
+        );
+        temp.contact = document.getElementById('GbrEmailInvoer').value;
+
+        userPortalList[portalPos].registeredEmployeeList.push(temp);
+        let deleteUser = document.createElement('div');
+        deleteUser.className = 'deleteUser';
+        deleteUser.onclick = function () {
+            DeleteUser(userPortalList[portalPos].registeredEmployeeList.length - 1, portalPos);
+        };
+        deleteUser.innerHTML = 'Verwijderen';
+
+        let userItem = document.createElement('div');
+        userItem.className = 'userItem';
+        userItem.innerHTML =
+            'ID: ' +
+            (userPortalList[portalPos].registeredEmployeeList.length - 1) +
+            `<br />` +
+            'Naam: ' +
+            document.getElementById('GbrNaamInvoer').value +
+            '<br />' +
+            'E-mail: ' +
+            document.getElementById('GbrEmailInvoer').value;
+        userItem.appendChild(deleteUser);
+
+        let userItemBox = document.createElement('div');
+        userItemBox.className = 'userItemBox';
+        userItemBox.appendChild(userItem);
+        document.getElementById('mainViewUserDataList').appendChild(userItemBox);
+
+        document.getElementById('GbrNaamInvoer').value = '';
+        document.getElementById('GbrEmailInvoer').value = '';
+        document.getElementById('GbrPassInvoer').value = '';
+        document.getElementById('Gbrtoevoegen').style.display = 'none';
+    };
+
     return tempList;
 }
 
@@ -403,7 +468,6 @@ function FillTemplateList(portalPos) {
         );
         statsList.push(tempObj);
     }
-    console.log(statsList);
     let tempList = document.createDocumentFragment();
     for (var c = 0; c < statsList.length; c++) {
         let ShowTemplate = document.createElement('div');
@@ -485,13 +549,7 @@ function DrawPreview(portalPos, selectedTemplateId) {
 function GbrToevoegen() {
     document.getElementById('mainViewTemplatePreview').style.display = 'none';
     document.getElementById('mainViewDesigns').style.display = 'none';
-    let GbrWindow = document.getElementById('Gbrtoevoegen');
-    GbrWindow.style.display = 'block';
-    GbrWindow.style.borderStyle = 'solid';
-    GbrWindow.style.width = '25%';
-    GbrWindow.style.height = '30%';
-    GbrWindow.style.alignSelf = 'center';
-    GbrWindow.style.marginLeft = '18%';
+    document.getElementById('Gbrtoevoegen').style.display = 'block';
 }
 
 function ChangeCompanyName(portalPos) {
@@ -499,5 +557,22 @@ function ChangeCompanyName(portalPos) {
     while (companyInput === '') {
         companyInput = prompt('Voer opnieuw de nieuwe bedrijfsnaam in. (mag niet leeg zijn)');
     }
-    document.getElementById('userPortalItemCompany' + portalPos).innerHTML = companyInput;
+    document.getElementById('userPortalItemCompanyselector ' + portalPos).innerHTML = companyInput;
+    document.getElementById('mainViewHeaderText').innerHTML =
+        `<h1>User Portal ` +
+        userPortalList[portalPos - 1].portalId +
+        `</h1>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<p class="CompanyName">` +
+        document.getElementById('userPortalItemCompanyselector ' + portalPos).innerHTML +
+        `</p>`;
+}
+
+function DeleteUserPortalStep(portalPos, deletePortal) {
+    if (!deletePortal) {
+        document.getElementById('DeletePortalTxt').style.display = 'block';
+        document.getElementById('DeletePortalConfirm').style.display = 'flex';
+        return;
+    }
+    document.getElementById('mainView').style.display = 'none';
+    userPortalList.splice(portalPos, 1);
+    userPortalDivList.splice(portalPos, 1);
 }
