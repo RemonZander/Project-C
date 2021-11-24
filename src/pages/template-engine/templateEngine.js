@@ -77,41 +77,23 @@ export default {
                         const file = exportFiles[i];
 
                         if (file.type === 'text/html') {
-                            files['html'].push(
-                                createObj(file, await readFile(file))
-                            );
+                            files['html'].push(createObj(file, await readFile(file)));
                         } else if (file.type === 'text/css') {
-                            files['css'].push(
-                                createObj(file, await readFile(file))
-                            );
-                        } else if (
-                            ['image/png', 'image/jpg', 'image/jpeg'].includes(
-                                file.type
-                            )
-                        ) {
-                            files['images'].push(
-                                createObj(file, await readFileAsDataUrl(file))
-                            );
+                            files['css'].push(createObj(file, await readFile(file)));
+                        } else if (['image/png', 'image/jpg', 'image/jpeg'].includes(file.type)) {
+                            files['images'].push(createObj(file, await readFileAsDataUrl(file)));
                         }
                     }
 
                     for (let i = 0; i < files['html'].length; i++) {
                         const htmlObj = files['html'][i];
 
-                        const htmlDoc = new DOMParser().parseFromString(
-                            htmlObj.data,
-                            'text/html'
-                        );
+                        const htmlDoc = new DOMParser().parseFromString(htmlObj.data, 'text/html');
 
                         for (let i = 0; i < files['css'].length; i++) {
                             const node = document.createElement('style');
-                            node.innerText = files['css'][i]['data'].replace(
-                                /\r?\n|\r/g,
-                                ''
-                            );
-                            htmlDoc
-                                .getElementsByTagName('head')[0]
-                                .appendChild(node);
+                            node.innerText = files['css'][i]['data'].replace(/\r?\n|\r/g, '');
+                            htmlDoc.getElementsByTagName('head')[0].appendChild(node);
                         }
 
                         const imgTags = htmlDoc.getElementsByTagName('img');
@@ -130,8 +112,7 @@ export default {
                             }
                         }
 
-                        files['html'][i]['data'] =
-                            new XMLSerializer().serializeToString(htmlDoc);
+                        files['html'][i]['data'] = new XMLSerializer().serializeToString(htmlDoc);
                     }
 
                     setTemplateFiles(files['html']);
@@ -146,9 +127,7 @@ export default {
                     templatePos >= 0 &&
                     templatePos <= templateFiles.length - 1
                 ) {
-                    const wrapper = document.querySelector(
-                        '.templateEngineWrapper'
-                    );
+                    const wrapper = document.querySelector('.templateEngineWrapper');
                     const frame = document.createElement('iframe');
                     frame.id = 'templateEngineFrame';
                     frame.style.display = 'block';
@@ -156,9 +135,7 @@ export default {
                     frame.style.height = '842px';
                     frame.style.margin = '0 auto';
                     wrapper.appendChild(frame);
-                    frame.contentDocument.write(
-                        templateFiles[templatePos]['data']
-                    );
+                    frame.contentDocument.write(templateFiles[templatePos]['data']);
                     console.log(templateFiles[templatePos]);
                 }
             }
@@ -180,12 +157,14 @@ export default {
                     <button
                         className="previous"
                         onClick={() => setTemplatePos(templatePos - 1)}
+                        style={buttonHandler('previous', templatePos, templateFiles)}
                     >
                         Previous
                     </button>
                     <button
                         className="next"
                         onClick={() => setTemplatePos(templatePos + 1)}
+                        style={buttonHandler('next', templatePos, templateFiles)}
                     >
                         Next
                     </button>
@@ -195,3 +174,15 @@ export default {
         );
     },
 };
+
+function buttonHandler(buttonName, templatePosition, templateFiles) {
+    if (buttonName === 'previous') {
+        if (templatePosition === 0) {
+            return { display: 'none' };
+        }
+    } else {
+        if (templatePosition === templateFiles.length - 1) {
+            return { display: 'none' };
+        }
+    }
+}
