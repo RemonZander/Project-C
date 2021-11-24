@@ -195,12 +195,14 @@ function TemplateEngine() {
                 <button
                     className="previous"
                     onClick={() => setTemplatePos(templatePos - 1)}
+                    style={buttonHandler('previous', templatePos, templateFiles)}
                 >
                     Previous
                 </button>
                 <button
                     className="next"
                     onClick={() => setTemplatePos(templatePos + 1)}
+                    style={buttonHandler('next', templatePos, templateFiles)}
                 >
                     Next
                 </button>
@@ -208,6 +210,18 @@ function TemplateEngine() {
             <div className="templateEngineWrapper"></div>
         </div>
     );
+}
+
+function buttonHandler(buttonName, templatePosition, templateFiles) {
+    if (buttonName === 'previous') {
+        if (templatePosition === 0) {
+            return { display: 'none' };
+        }
+    } else {
+        if (templatePosition === templateFiles.length - 1) {
+            return { display: 'none' };
+        }
+    }
 }
 
 export default CreateExport('/template-engine', TemplateEngine);
