@@ -40,6 +40,7 @@ function Gallery() {
         </div>
     );
 }
+
 export default CreateExport('/fotogalerij', Gallery);
 
 function imageOnHover(id) {

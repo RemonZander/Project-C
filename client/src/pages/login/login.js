@@ -11,11 +11,9 @@ function Login(props) {
     if (tokenExists()) {
         const payload = JSON.parse(Buffer.from(getToken().split('.')[1], 'base64').toString());
 
-        payload.type === "Admin"
-            ? (window.location.href =
-                window.location.href + 'admin-portal')
-            : (window.location.href =
-                window.location.href + 'user-portal');
+        payload.type === 'Admin'
+            ? (window.location.href = window.location.href + 'admin-portal')
+            : (window.location.href = window.location.href + 'user-portal');
     } else {
         return (
             <React.Fragment>
@@ -43,7 +41,7 @@ function Login(props) {
                             value="Inloggen"
                             onClick={(e) => {
                                 e.preventDefault();
-    
+
                                 // Hier maken wij gebruik van de fetch method om een post request
                                 // te sturen naar de url die wordt meegegeven.
                                 // Voor meer informatie over fetch kan je naar deze url gaan
@@ -51,23 +49,30 @@ function Login(props) {
                                 fetch(process.env.REACT_APP_SERVER_URL + '/auth', {
                                     method: 'POST',
                                     body: JSON.stringify({
-                                        type: "AUTH",
                                         email: document.getElementById('email').value,
                                         password: document.getElementById('password').value,
                                     }),
                                 })
                                     .then((res) => res.json())
                                     .then((data) => {
-                                        if ('token' in data.content && data.content.token !== null) {
-                                            document.cookie = "token=" + data.content.token + ";";
-    
-                                            const payload = JSON.parse(Buffer.from(data.content.token.split('.')[1], 'base64').toString());
-    
-                                            payload.type === "Admin"
+                                        if (
+                                            'token' in data.content &&
+                                            data.content.token !== null
+                                        ) {
+                                            document.cookie = 'token=' + data.content.token + ';';
+
+                                            const payload = JSON.parse(
+                                                Buffer.from(
+                                                    data.content.token.split('.')[1],
+                                                    'base64'
+                                                ).toString()
+                                            );
+
+                                            payload.type === 'Admin'
                                                 ? (window.location.href =
-                                                    window.location.href + 'admin-portal')
+                                                      window.location.href + 'admin-portal')
                                                 : (window.location.href =
-                                                    window.location.href + 'user-portal');
+                                                      window.location.href + 'user-portal');
                                         } else {
                                             setIsAuthError(true);
                                         }
@@ -82,7 +87,6 @@ function Login(props) {
             </React.Fragment>
         );
     }
-
 }
 
 export default CreateExport('/', Login, false, []);

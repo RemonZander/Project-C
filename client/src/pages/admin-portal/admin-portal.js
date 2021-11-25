@@ -97,101 +97,97 @@ function AdminPortal() {
                 </div>
             </div>
 
-                <div class="mainPage">
-                    <div class="userPortals">
-                        <div class="listViewTxtBox">
-                            <p class="listViewTxt">User Portals</p>
+            <div class="mainPage">
+                <div class="userPortals">
+                    <div class="listViewTxtBox">
+                        <p class="listViewTxt">User Portals</p>
+                    </div>
+                    <div class="userPortalList" id="userPortalList">
+                        {userPortalDivList}
+                    </div>
+                    <div
+                        class="addUserPortalButton"
+                        onClick={() => SetUserPortalList(userPortalDivList.push(AddUserPortal()))}
+                    >
+                        User Portal Toevoegen
+                    </div>
+                </div>
+                <div class="mainView" id="mainView">
+                    <div class="mainViewTop">
+                        <div className="MainViewHeader">
+                            <div class="mainViewHeaderText" id="mainViewHeaderText"></div>
+                            <div class="mainViewUser" id="mainViewUser">
+                                <div class="mainViewUserHeader" id="mainViewUserHeader">
+                                    Hoofdgebruiker
+                                </div>
+                                <div class="mainViewUserData" id="mainViewUserData"></div>
+                            </div>
                         </div>
-                        <div class="userPortalList" id="userPortalList">
-                            {userPortalDivList}
+                        <img className="FotoGalleryButton" src={FotoGalleryImg} alt="gallery" />
+                        <div className="DoubleButtons">
+                            <div
+                                className="ImportTemplateButton"
+                                onClick={function () {
+                                    window.open('/template-engine', '_blank').focus();
+                                }}
+                            >
+                                <h3>Import template</h3>
+                            </div>
+                            <div className="GebruikerToevoegen" onClick={() => GbrToevoegen()}>
+                                <h3>Gebruiker toevoegen</h3>
+                            </div>
                         </div>
-                        <div
-                            class="addUserPortalButton"
-                            onClick={() =>
-                                SetUserPortalList(userPortalDivList.push(AddUserPortal()))
-                            }
-                        >
-                            User Portal Toevoegen
+                        <div className="DoubleButtons">
+                            <div className="HoofdgebruikerWijzigen">
+                                <h3>Hoofdgebruiker account wijzigen</h3>
+                            </div>
+                            <div className="BedrijfnaamWijzigen" id="BedrijfnaamWijzigen">
+                                <h3>Bedrijfnaam wijzigen</h3>
+                            </div>
+                        </div>
+                        <div className="DeletePortal" id="DeletePortal">
+                            <h3>Delete user-portal</h3>
+                            <div className="DeletePortalTxt" id="DeletePortalTxt">
+                                Bevestig uw keuze
+                            </div>
+                            <div className="DeletePortalConfirm" id="DeletePortalConfirm">
+                                Verwijderen
+                            </div>
                         </div>
                     </div>
-                    <div class="mainView" id="mainView">
-                        <div class="mainViewTop">
-                            <div className="MainViewHeader">
-                                <div class="mainViewHeaderText" id="mainViewHeaderText"></div>
-                                <div class="mainViewUser" id="mainViewUser">
-                                    <div class="mainViewUserHeader" id="mainViewUserHeader">
-                                        Hoofdgebruiker
-                                    </div>
-                                    <div class="mainViewUserData" id="mainViewUserData"></div>
-                                </div>
+                    <div className="MainViewBottom">
+                        <div class="mainViewUserList">
+                            <div className="mainViewUserDataHeader">Geregistreerde gebruikers</div>
+                            <div class="mainViewUserDataList" id="mainViewUserDataList"></div>
+                        </div>
+                        <div class="mainViewTemplates">
+                            <div class="mainViewTemplatesHeader">Templates</div>
+                            <div class="mainViewTemplatesList" id="mainViewTemplatesList"></div>
+                        </div>
+                        <div class="mainViewTemplatePreview" id="mainViewTemplatePreview"></div>
+                        <div className="Gbrtoevoegen" id="Gbrtoevoegen">
+                            <div className="GbrToevoegenHeader">Gebruiker toevoegen</div>
+                            <div className="GbrInvoer">
+                                Naam: <input type="text" id="GbrNaamInvoer" />
                             </div>
-                            <img className="FotoGalleryButton" src={FotoGalleryImg} alt="gallery" />
-                            <div className="DoubleButtons">
-                                <div
-                                    className="ImportTemplateButton"
-                                    onClick={function () {
-                                        window.open('/template-engine', '_blank').focus();
-                                    }}
-                                >
-                                    <h3>Import template</h3>
-                                </div>
-                                <div className="GebruikerToevoegen" onClick={() => GbrToevoegen()}>
-                                    <h3>Gebruiker toevoegen</h3>
-                                </div>
+                            <div className="GbrInvoer">
+                                Email: <input type="text" id="GbrEmailInvoer" />
                             </div>
-                            <div className="DoubleButtons">
-                                <div className="HoofdgebruikerWijzigen">
-                                    <h3>Hoofdgebruiker account wijzigen</h3>
-                                </div>
-                                <div className="BedrijfnaamWijzigen" id="BedrijfnaamWijzigen">
-                                    <h3>Bedrijfnaam wijzigen</h3>
-                                </div>
+                            <div className="GbrInvoer">
+                                Wachtwoord: <input type="text" id="GbrPassInvoer" />
                             </div>
-                            <div className="DeletePortal" id="DeletePortal">
-                                <h3>Delete user-portal</h3>
-                                <div className="DeletePortalTxt" id="DeletePortalTxt">
-                                    Bevestig uw keuze
-                                </div>
-                                <div className="DeletePortalConfirm" id="DeletePortalConfirm">
-                                    Verwijderen
-                                </div>
+                            <div className="GbrToevoegenbutton" id="GbrToevoegenbutton">
+                                Gebruiker toevoegen
                             </div>
                         </div>
-                        <div className="MainViewBottom">
-                            <div class="mainViewUserList">
-                                <div className="mainViewUserDataHeader">
-                                    Geregistreerde gebruikers
-                                </div>
-                                <div class="mainViewUserDataList" id="mainViewUserDataList"></div>
-                            </div>
-                            <div class="mainViewTemplates">
-                                <div class="mainViewTemplatesHeader">Templates</div>
-                                <div class="mainViewTemplatesList" id="mainViewTemplatesList"></div>
-                            </div>
-                            <div class="mainViewTemplatePreview" id="mainViewTemplatePreview"></div>
-                            <div className="Gbrtoevoegen" id="Gbrtoevoegen">
-                                <div className="GbrToevoegenHeader">Gebruiker toevoegen</div>
-                                <div className="GbrInvoer">
-                                    Naam: <input type="text" id="GbrNaamInvoer" />
-                                </div>
-                                <div className="GbrInvoer">
-                                    Email: <input type="text" id="GbrEmailInvoer" />
-                                </div>
-                                <div className="GbrInvoer">
-                                    Wachtwoord: <input type="text" id="GbrPassInvoer" />
-                                </div>
-                                <div className="GbrToevoegenbutton" id="GbrToevoegenbutton">
-                                    Gebruiker toevoegen
-                                </div>
-                            </div>
-                            <div class="mainViewDesigns" id="mainViewDesigns">
-                                <div class="mainViewDesignsHeader">Designs</div>
-                                <div class="mainViewDesignsList" id="mainViewDesignsList"></div>
-                            </div>
+                        <div class="mainViewDesigns" id="mainViewDesigns">
+                            <div class="mainViewDesignsHeader">Designs</div>
+                            <div class="mainViewDesignsList" id="mainViewDesignsList"></div>
                         </div>
                     </div>
                 </div>
-                {/* <div class="listViewTxtBox">
+            </div>
+            {/* <div class="listViewTxtBox">
                     <p
                         class="addUserPortalButton"
                         onClick={() =>
@@ -204,7 +200,6 @@ function AdminPortal() {
         </React.Fragment>
     );
 }
-export default CreateExport('/admin-portal', AdminPortal, true, ["Admin"]);
 
 function DrawUserPortals() {
     // function to generate user-portal list-view
@@ -584,3 +579,5 @@ function DeleteUserPortalStep(portalPos, deletePortal) {
     userPortalList.splice(portalPos, 1);
     userPortalDivList.splice(portalPos, 1);
 }
+
+export default CreateExport('/admin-portal', AdminPortal, true, ['Admin']);

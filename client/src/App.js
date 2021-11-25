@@ -28,21 +28,29 @@ function App() {
         const cookieString = document.cookie;
 
         if (cookieString !== '') {
-            const token = document.cookie.split(';').find(row => row.startsWith('token=')).split('=')[1];
-            
-            fetch(process.env.REACT_APP_SERVER_URL + '/auth', { method: 'GET', headers: { 'Authorization': 'Bear ' + token } })
-            .then(res => res.json())
-                .then(data => {
-                    const payload = JSON.parse(Buffer.from(data.content.token.split('.')[1], 'base64').toString());
-                    
+            const token = cookieString
+                .split(';')
+                .find((row) => row.startsWith('token='))
+                .split('=')[1];
+
+            fetch(process.env.REACT_APP_SERVER_URL + '/auth', {
+                method: 'GET',
+                headers: { Authorization: 'Bear ' + token },
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    const payload = JSON.parse(
+                        Buffer.from(data.content.token.split('.')[1], 'base64').toString()
+                    );
+
                     if (token === data.content.token) {
-                        setIsUserAuth(true)
+                        setIsUserAuth(true);
                         setUserType(payload.type);
                     }
                 })
-                .catch(err => console.error(err));
+                .catch((err) => console.error(err));
         }
-    }, [isUserAuth, userType])
+    }, [isUserAuth, userType]);
 
     for (let i = 0; i < pages.length; i++) {
         const page = pages[i];

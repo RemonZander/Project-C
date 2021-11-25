@@ -1,11 +1,21 @@
+import { createTheme, ThemeProvider } from '@material-ui/core';
+import '@fontsource/raleway';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+const theme = createTheme({
+    typography: {
+        fontFamily: 'Raleway, Arial',
+    },
+});
+
 ReactDOM.render(
     <React.StrictMode>
-        <App />
+        <ThemeProvider theme={theme}>
+            <App />
+        </ThemeProvider>
     </React.StrictMode>,
     document.getElementById('root')
 );

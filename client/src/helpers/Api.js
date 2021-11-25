@@ -1,34 +1,52 @@
+import { readFileAsDataUrl } from './FileReader';
+
 export default class Api {
     constructor(token, serverUrl = process.env.REACT_APP_SERVER_URL) {
         this.token = token;
         this.serverUrl = serverUrl;
     }
 
-    async _doFetch(url, method, tableName = "", data = {}) {
+    async _doFetch(url, method, body) {
         return await fetch(url, {
-            method: method, 
-            body: method === "GET" || method === "DELETE" ? null : {type: "API", name: tableName, data: data},
-            headers: { 'Authorization': 'Bear ' + token }
+            method: method,
+            body: JSON.stringify(body),
+            headers: { Authorization: 'Bear ' + token },
         })
-        .then(res => res.json())
-        .catch(err => console.error(err));
+            .then((res) => res.json())
+            .catch((err) => console.error(err));
     }
 
-    create(tableName, data) {
-        return this._doFetch(this.serverUrl + '/create', "POST", tableName, data);
+    async all(tableName) {
+        return await this._doFetch(this.serverUrl + `/${tableName}`, 'GET', {});
     }
 
-    read(tableName, col, val) {
-        return this._doFetch(this.serverUrl + '/read', "GET", tableName, { "Id": id });
+    async create(tableName, values) {
+        return await this._doFetch(this.serverUrl + `/${tableName}/create`, 'POST', {
+            values: values,
+        });
     }
 
-    update(tableName, data) {
-        if (!"Id" in data) throw Error("Update method needs an id in the body");
+    async createImage(file) {
+        const result = await readFileAsDataUrl(file);
 
-        return this._doFetch(this.serverUrl + '/update', "PUT", tableName, data);
+        return await this._doFetch(this.serverUrl + `/image/create`, 'POST', {
+            name: file.name,
+            image: result,
+        });
     }
 
-    delete(tableName, id) {
-        return this._doFetch(this.serverUrl + '/delete', "DELETE", tableName, {"Id": id});
+    async read(tableName, id) {
+        return await this._doFetch(this.serverUrl + `/${tableName}/read`, 'GET', { id: id });
+    }
+
+    async update(tableName, id, values) {
+        return await this._doFetch(this.serverUrl + `/${tableName}/update`, 'PUT', {
+            id: id,
+            values: values,
+        });
+    }
+
+    async delete(tableName, id) {
+        return await this._doFetch(this.serverUrl + `/${tableName}/delete`, 'DELETE', { id: id });
     }
 }

@@ -1,33 +1,33 @@
 export const readFile = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
 
-            reader.onload = (e) => resolve(e.target.result);
+        reader.onload = (e) => resolve(e.target.result);
 
-            reader.onerror = (e) => reject(e.target);
+        reader.onerror = (e) => reject(e.target);
 
-            reader.readAsText(file);
-        });
-    };
+        reader.readAsText(file);
+    });
+};
 
 export const readFileAsDataUrl = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
 
-            reader.onload = (e) => resolve(e.target.result);
+        reader.onload = (e) => resolve(e.target.result);
 
-            reader.onerror = (e) => reject(e.target);
+        reader.onerror = (e) => reject(e.target);
 
-            reader.readAsDataURL(file);
-        });
-    };
+        reader.readAsDataURL(file);
+    });
+};
 
 export const readFiles = (files, func) => {
-        let promises = [];
+    let promises = [];
 
-        for (let i = 0; i < files.length; i++) {
-            promises.push(func(files[i]));
-        }
+    for (let i = 0; i < files.length; i++) {
+        promises.push(func(files[i]));
+    }
 
-        return Promise.all(promises);
-    };
+    return Promise.all(promises);
+};
