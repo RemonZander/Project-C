@@ -1,54 +1,75 @@
-require('dotenv').config();
+require("dotenv").config();
 
-const http = require('http');
-const DBManager = new (require('./db/DB'))();
+const http = require("http");
+const RequestHelper = require("./src/RequestHelper");
+const ResponseHelper = require("./src/ResponseHelper");
+const Token = new (require("./src/Token"))();
 
 // Create a local server to receive data from
 const server = http.createServer();
 
-function getDataFromRequest(req) {
-    return new Promise((resolve, reject) => {
-        let stringData = '';
-
-        req.on('data', (chunk) => (stringData += chunk));
-
-        req.on('end', () => {
-            resolve(JSON.parse(stringData));
-        });
-    });
-}
+const routes = require("./routes");
 
 // Listen to the request event
-server.on('request', (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', process.env.APP_URL);
+server.on("request", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", process.env.APP_URL);
+  res.setHeader("Access-Control-Allow-Headers", "Authorization");
+  res.setHeader("Access-Control-Allow-Methods", [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+  ]);
 
-    if (req.headers.origin === process.env.APP_URL) {
-        req.setEncoding('utf-8');
+  const reqHelper = new RequestHelper(req);
+  const resHelper = new ResponseHelper(res);
 
-        if (req.url === '/auth') {
-            getDataFromRequest(req).then((data) => {
-                const conn = DBManager.startConnection();
-                conn.runStatement('SELECT * FROM user WHERE Email = ? AND Password = ?', [
-                    data.email,
-                    data.password,
-                ]).then((result) => {
-                    if (result.length === 0) {
-                        res.writeHead(200);
-                        res.end(JSON.stringify({ content: { auth: false } }));
-                    } else {
-                        res.writeHead(200);
-                        res.end(
-                            JSON.stringify({
-                                content: { auth: true, isAdmin: result[0].Role_Id === 1 },
-                            })
-                        );
-                    }
-                });
+  if (req.headers.origin === process.env.APP_URL) {
+    req.setEncoding("utf-8");
 
-                conn.endConnection();
-            });
+    for (let i = 0; i < routes.length; i++) {
+      const route = routes[i];
+
+      if (req.url === route.url) {
+        if (
+          req.url !== "/auth" &&
+          (!reqHelper.authorizationHeaderExists() ||
+            !Token.verifyJWT(reqHelper.getRequestToken()))
+        ) {
+          resHelper.responseInvalidToken();
+          break;
         }
+
+        (async () => {
+          try {
+            const result = await route.action(reqHelper, resHelper);
+
+            if (result instanceof Error) throw result;
+          } catch (error) {
+            if (error instanceof SyntaxError) {
+              console.error(error);
+              resHelper.responseInvalidJson();
+            } else if (
+              error instanceof Error &&
+              "code" in error &&
+              error.code === "SQLITE_ERROR"
+            ) {
+              console.error(error);
+              resHelper.responseInvalidCrudData();
+            } else {
+              console.error(error);
+              resHelper.responseError(error.message);
+            }
+          }
+        })();
+
+        break;
+      }
     }
+  } else {
+    res.writeHead(404);
+    res.end();
+  }
 });
 
 server.listen(8080);
