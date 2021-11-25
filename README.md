@@ -8,8 +8,10 @@ Omdat de .env file vooral sensitive data bevat in meeste gevallen wordt er een .
 Om gebruik te maken van de test database verander de APP_ENV waarde naar local.
 Om de productie script te draaien verander APP_ENV naar production. (Dit gaan we niet vaak gebruiken dus dit kan je voor nu vergeten)
 
-Commands:
+Dit process geldt ook voor de client kant alleen zijn er andere properties en waardes.
 
--   npm run db-test: Run de database script.
--   npm run db-prod: Run de database script in een productie connectie (via een server).
--   npm run start-server: Run de server die de http requests ontvangt voor de database.
+Commands (Server):
+
+- npm run db-test: Run de database script.
+- npm run db-prod: Run de database script in een productie connectie (via een server).
+- npm run start: Run de server die de http requests ontvangt voor de database.
