@@ -4,6 +4,8 @@
 Voor de backend is node versie 16.10.0 minimaal nodig.
 Het beste is om 16.10.0 te installeren sinds dat al is getest.
 
+Om je versie te bekijken open een cmd en type in "node -v"
+
 Je kan de bijbehorende node versie vinden in de link hieronder.
 https://nodejs.org/de/blog/release/v16.10.0/
 
