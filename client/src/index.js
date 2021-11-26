@@ -1,4 +1,4 @@
-import { createTheme, ThemeProvider } from '@material-ui/core';
+import { AppBar, createTheme, ThemeProvider, Toolbar } from '@material-ui/core';
 import '@fontsource/raleway';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -14,6 +14,9 @@ const theme = createTheme({
 ReactDOM.render(
     <React.StrictMode>
         <ThemeProvider theme={theme}>
+            <AppBar position="static">
+                <Toolbar></Toolbar>
+            </AppBar>
             <App />
         </ThemeProvider>
     </React.StrictMode>,

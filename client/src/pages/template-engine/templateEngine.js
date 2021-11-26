@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
 import './templateEngine.css';
+import { useEffect, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
-import { getToken } from '../../helpers/Token';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
-import { AppBar, Toolbar, Typography } from '@material-ui/core';
+import { AppBar, Button, styled, Toolbar, Typography } from '@material-ui/core';
 
 /*
 Uitleg:
@@ -13,6 +12,10 @@ arrow function.
 Dus als wij dit importeren met de naam Example1 kunnen wij render aanroepen door Example1.render() te doen.
 In de render method doe je dan je react gedoe dus hoe je dat normaal zou gebruiken.
 */
+
+const Input = styled('input')({
+    display: 'none',
+});
 
 function TemplateEngine() {
     const [templatePos, setTemplatePos] = useState(0);
@@ -102,51 +105,28 @@ function TemplateEngine() {
                 frame.style.margin = '0 auto';
                 wrapper.appendChild(frame);
                 frame.contentDocument.write(templateFiles[templatePos]['data']);
-                console.log(templateFiles[templatePos]);
             }
         }
     }, [templatePos, exportFiles, templateFiles]);
 
     return (
         <div className="templateEngineContainer">
-            <AppBar position="static">
-                <Toolbar>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        Template
-                    </Typography>
-                </Toolbar>
-            </AppBar>
-            <h1>Template engine prototype</h1>
-            <label>Export</label>
-            <br />
-            <input
-                className="templateEngineInput"
-                type="file"
-                onChange={(e) => {
-                    setExportFiles(e.target.files);
-                }}
-                webkitdirectory="true"
-                multiple
-            />
-            <br />
-            <label>Image</label>
-            <br />
-            <input
-                type="file"
-                accept="image/png, image/jpeg"
-                onChange={async (e) => {
-                    const result = await readFileAsDataUrl(e.target.files[0]);
-                    await fetch(process.env.REACT_APP_SERVER_URL + '/image/create', {
-                        method: 'POST',
-                        headers: { Authorization: 'Bear ' + getToken() },
-                        body: JSON.stringify({
-                            name: e.target.files[0].name,
-                            image: Buffer.from(result).toString(),
-                        }),
-                    }).then((res) => console.log(res.json()));
-                }}
-            />
-            <div className="controls-wrapper">
+            <label htmlFor="contained-button-file">
+                <Input
+                    id="contained-button-file"
+                    multiple
+                    webkitdirectory="true"
+                    directory="true"
+                    type="file"
+                    onChange={(e) => {
+                        setExportFiles(e.target.files);
+                    }}
+                />
+                <Button variant="contained" component="span">
+                    Load Export Files
+                </Button>
+            </label>
+            {/* <div className="controls-wrapper">
                 <button
                     className="previous"
                     onClick={() => setTemplatePos(templatePos - 1)}
@@ -162,7 +142,7 @@ function TemplateEngine() {
                     Next
                 </button>
             </div>
-            <div className="templateEngineWrapper"></div>
+            <div className="templateEngineWrapper"></div> */}
         </div>
     );
 }
@@ -179,4 +159,4 @@ function buttonHandler(buttonName, templatePosition, templateFiles) {
     }
 }
 
-export default CreateExport('/template-engine', TemplateEngine);
+export default CreateExport('/template-editor', TemplateEngine);
