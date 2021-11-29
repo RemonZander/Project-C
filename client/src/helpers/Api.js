@@ -1,8 +1,9 @@
 import { readFileAsDataUrl } from './FileReader';
+import { getToken } from './Token';
 
 export default class Api {
-    constructor(token, serverUrl = process.env.REACT_APP_SERVER_URL) {
-        this.token = token;
+    constructor(serverUrl = process.env.REACT_APP_SERVER_URL) {
+        this.token = getToken();
         this.serverUrl = serverUrl;
     }
 
@@ -10,7 +11,7 @@ export default class Api {
         return await fetch(url, {
             method: method,
             body: JSON.stringify(body),
-            headers: { Authorization: 'Bear ' + token },
+            headers: { Authorization: 'Bear ' + this.token },
         })
             .then((res) => res.json())
             .catch((err) => console.error(err));
