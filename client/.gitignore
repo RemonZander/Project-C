@@ -6,9 +6,6 @@
 .env
 .vscode
 
-# Server
-server/storage/*
-
 # User-specific files
 *.rsuser
 *.suo

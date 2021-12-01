@@ -17,12 +17,12 @@ export default class Api {
             .catch((err) => console.error(err));
     }
 
-    async all(tableName) {
-        return await this._doFetch(this.serverUrl + `/${tableName}`, 'GET', {});
+    async all(resource) {
+        return await this._doFetch(this.serverUrl + `/${resource}`, 'GET', {});
     }
 
-    async create(tableName, values) {
-        return await this._doFetch(this.serverUrl + `/${tableName}/create`, 'POST', {
+    async create(resource, values) {
+        return await this._doFetch(this.serverUrl + `/${resource}/create`, 'POST', {
             values: values,
         });
     }
@@ -36,18 +36,24 @@ export default class Api {
         });
     }
 
-    async read(tableName, id) {
-        return await this._doFetch(this.serverUrl + `/${tableName}/read`, 'GET', { id: id });
+    async removeImage(id) {
+        return await this._doFetch(this.serverUrl + `/image/delete`, 'DELETE', {
+            id: id,
+        });
     }
 
-    async update(tableName, id, values) {
-        return await this._doFetch(this.serverUrl + `/${tableName}/update`, 'PUT', {
+    async read(resource, id) {
+        return await this._doFetch(this.serverUrl + `/${resource}/read`, 'GET', { id: id });
+    }
+
+    async update(resource, id, values) {
+        return await this._doFetch(this.serverUrl + `/${resource}/update`, 'PUT', {
             id: id,
             values: values,
         });
     }
 
-    async delete(tableName, id) {
-        return await this._doFetch(this.serverUrl + `/${tableName}/delete`, 'DELETE', { id: id });
+    async delete(resource, id) {
+        return await this._doFetch(this.serverUrl + `/${resource}/delete`, 'DELETE', { id: id });
     }
 }
