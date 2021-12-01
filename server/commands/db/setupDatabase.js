@@ -119,7 +119,7 @@ for (let i = 0; i < sqlData.length; i++) {
   await conn.runStatement(
     `INSERT INTO image (Filepath, Created_at, Updated_at, Company_id) VALUES
         ('${path.normalize(
-          Storage.storagePath + "/0/images/test.gif"
+          Storage.storagePathRelative + "/0/images/test.gif"
         )}', '6-11-2021', '8-11-2021', 0)`
   );
 

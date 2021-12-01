@@ -3,14 +3,16 @@ const fs = require("fs/promises");
 
 class Storage {
   constructor(path = null) {
-    this.storagePath =
+    this.storagePathAbsolute =
       path === null ? pathLib.normalize(process.cwd() + "/storage") : path;
+    this.storagePathRelative =
+      path === null ? pathLib.normalize("/storage") : path;
   }
 
   async addCompany(companyName, sync = false) {
     if (!sync) {
       fs.mkdir(
-        pathLib.normalize(this.storagePath + `/${companyName}/images`),
+        pathLib.normalize(this.storagePathAbsolute + `/${companyName}/images`),
         { recursive: true },
         (err) => {
           if (err) throw err;
@@ -18,7 +20,9 @@ class Storage {
       );
 
       fs.mkdir(
-        pathLib.normalize(this.storagePath + `/${companyName}/templates`),
+        pathLib.normalize(
+          this.storagePathAbsolute + `/${companyName}/templates`
+        ),
         { recursive: true },
         (err) => {
           if (err) throw err;
@@ -26,7 +30,7 @@ class Storage {
       );
 
       fs.mkdir(
-        pathLib.normalize(this.storagePath + `/${companyName}/designs`),
+        pathLib.normalize(this.storagePathAbsolute + `/${companyName}/designs`),
         { recursive: true },
         (err) => {
           if (err) throw err;
@@ -34,7 +38,7 @@ class Storage {
       );
     } else {
       await fs.mkdir(
-        pathLib.normalize(this.storagePath + `/${companyName}/images`),
+        pathLib.normalize(this.storagePathAbsolute + `/${companyName}/images`),
         { recursive: true },
         (err) => {
           if (err) throw err;
@@ -42,7 +46,9 @@ class Storage {
       );
 
       await fs.mkdir(
-        pathLib.normalize(this.storagePath + `/${companyName}/templates`),
+        pathLib.normalize(
+          this.storagePathAbsolute + `/${companyName}/templates`
+        ),
         { recursive: true },
         (err) => {
           if (err) throw err;
@@ -50,7 +56,7 @@ class Storage {
       );
 
       await fs.mkdir(
-        pathLib.normalize(this.storagePath + `/${companyName}/designs`),
+        pathLib.normalize(this.storagePathAbsolute + `/${companyName}/designs`),
         { recursive: true },
         (err) => {
           if (err) throw err;
@@ -61,7 +67,7 @@ class Storage {
 
   removeCompany(companyId) {
     fs.rm(
-      pathLib.normalize(this.storagePath + `/${companyId}`),
+      pathLib.normalize(this.storagePathAbsolute + `/${companyId}`),
       { recursive: true, force: true },
       (err) => {
         if (err) throw err;
@@ -71,7 +77,9 @@ class Storage {
 
   addImage(fileName, companyId, dataUrl) {
     fs.appendFile(
-      pathLib.normalize(this.storagePath + `/${companyId}/images/${fileName}`),
+      pathLib.normalize(
+        this.storagePathAbsolute + `/${companyId}/images/${fileName}`
+      ),
       Buffer.from(dataUrl.split(",")[1], "base64"),
       (err) => {
         if (err) throw err;

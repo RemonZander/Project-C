@@ -71,7 +71,14 @@ for (let i = 0; i < TableStructure.length; i++) {
           `
                             INSERT INTO ${table.name} (${table.columns.join()})
                             VALUES (${table.columns.map((val) => "?").join()})`,
-          [pathToFile, date, date, payload.company]
+          [
+            pathLib.normalize(
+              Storage.storagePathAbsolute + `/${companyId}/images/${fileName}`
+            ),
+            date,
+            date,
+            payload.company,
+          ]
         );
 
         res.responseSuccess();
