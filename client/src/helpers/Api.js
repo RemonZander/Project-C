@@ -35,6 +35,12 @@ export default class Api {
         });
     }
 
+    async removeImage(id) {
+        return await this._doFetch(this.serverUrl + `/image/delete`, 'DELETE', {
+            id: id,
+        });
+    }
+
     async read(tableName, id) {
         return await this._doFetch(this.serverUrl + `/${tableName}/read`, 'GET', { id: id });
     }
