@@ -24,6 +24,7 @@ import voorbeeld5 from './voorbeeld5.jpg';
 import voorbeeld6 from './voorbeeld6.jpg';
 import { CreateExport } from '../../helpers/Export';
 import Api from '../../helpers/Api';
+import { getToken } from '../../helpers/Token';
 
 //===========MATERIAL DESIGN styles===========
 const Input = styled('input')({
@@ -53,7 +54,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 //===========MATERIAL DESIGN styles===========
 
-const ApiInstance = new Api();
+const ApiInstance = new Api(getToken());
 
 function Gallery() {
     const [isAdmin] = useState(true);
@@ -152,6 +153,7 @@ function adminButton(isAdmin) {
                         for (let i = 0; i < e.target.files.length; i++) {
                             ApiInstance.createImage(e.target.files[i]);
                         }
+                        alert('Uw foto is toegevoegd!');
                     }}
                 />
                 <Button variant="contained" component="span" color="primary">
@@ -172,6 +174,12 @@ function deleteButton(isAdmin) {
 
 function fotolibrary(fotoStorage, isAdmin, styles) {
     let fotolibrary = [];
+    (async () => {
+        const imagesFromDatabase = await ApiInstance.all('image');
+        console.log(imagesFromDatabase);
+        //const listOfImages = imagesFromDatabase.content;
+        //const imageURL = process.env.REACT_APP_SERVER_URL + listOfImages;
+    })();
 
     if (ApiInstance.all('image').length === 0) {
         fotolibrary.push(
@@ -179,8 +187,9 @@ function fotolibrary(fotoStorage, isAdmin, styles) {
                 Geen foto's
             </Typography>
         );
+        return fotolibrary;
     } else {
-        for (let a = 0; a <= ApiInstance.all('image').length; a++) {
+        for (let a = 0; a < 6; a++) {
             fotolibrary.push(
                 <Grid item xs={12} sm={6} md={4}>
                     <Card className={styles.card}>
@@ -198,8 +207,6 @@ function fotolibrary(fotoStorage, isAdmin, styles) {
                             id={'img' + a}
                             className={styles.cardMedia}
                             image={ApiInstance.read('image', a)}
-                            //ApiInstance.read("image", a)
-                            //fotoStorage[a - 1]
                             title="imageTitle"
                             onMouseEnter={() => imageOnHover(a, styles)}
                             onMouseLeave={() => imageLeave(a, styles)}
