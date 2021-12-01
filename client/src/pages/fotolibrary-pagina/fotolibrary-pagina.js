@@ -131,12 +131,12 @@ function imageLeave(id) {
     document.getElementById(buttonId).style.opacity = '0';
 }
 
-function selectedPicture(picture, type) {
+function selectedPicture(picture, type, id) {
     picture.preventDefault();
     if (type === 'select') {
         alert('Uw foto is geselecteerd!');
     } else {
-        alert('De geselecteerde foto is verwijderd!');
+        ApiInstance.delete('image', id);
     }
 }
 
@@ -173,36 +173,46 @@ function deleteButton(isAdmin) {
 function fotolibrary(fotoStorage, isAdmin, styles) {
     let fotolibrary = [];
 
-    for (let a = 1; a <= fotoStorage.length; a++) {
+    if (ApiInstance.all('image').length === 0) {
         fotolibrary.push(
-            <Grid item xs={12} sm={6} md={4}>
-                <Card className={styles.card}>
-                    <Button
-                        id={'btn' + a}
-                        variant="contained"
-                        style={deleteButton(isAdmin)}
-                        onMouseEnter={() => imageOnHover(a, styles)}
-                        onMouseLeave={() => imageLeave(a, styles)}
-                        onClick={(e) => selectedPicture(e, isAdmin ? 'delete' : 'select')}
-                    >
-                        {isAdmin ? 'Verwijderen' : 'Selecteren'}
-                    </Button>
-                    <CardMedia
-                        id={'img' + a}
-                        className={styles.cardMedia}
-                        image={fotoStorage[a - 1]}
-                        title="imageTitle"
-                        onMouseEnter={() => imageOnHover(a, styles)}
-                        onMouseLeave={() => imageLeave(a, styles)}
-                    />
-                    <CardContent className={styles.cardContent}>
-                        <Typography gutterBottom variant="h6" align="center">
-                            Naam van foto
-                        </Typography>
-                    </CardContent>
-                </Card>
-            </Grid>
+            <Typography gutterBottom variant="h6" align="center">
+                Geen foto's
+            </Typography>
         );
+    } else {
+        for (let a = 0; a <= ApiInstance.all('image').length; a++) {
+            fotolibrary.push(
+                <Grid item xs={12} sm={6} md={4}>
+                    <Card className={styles.card}>
+                        <Button
+                            id={'btn' + a}
+                            variant="contained"
+                            style={deleteButton(isAdmin)}
+                            onMouseEnter={() => imageOnHover(a, styles)}
+                            onMouseLeave={() => imageLeave(a, styles)}
+                            onClick={(e) => selectedPicture(e, isAdmin ? 'delete' : 'select', a)}
+                        >
+                            {isAdmin ? 'Verwijderen' : 'Selecteren'}
+                        </Button>
+                        <CardMedia
+                            id={'img' + a}
+                            className={styles.cardMedia}
+                            image={ApiInstance.read('image', a)}
+                            //ApiInstance.read("image", a)
+                            //fotoStorage[a - 1]
+                            title="imageTitle"
+                            onMouseEnter={() => imageOnHover(a, styles)}
+                            onMouseLeave={() => imageLeave(a, styles)}
+                        />
+                        <CardContent className={styles.cardContent}>
+                            <Typography gutterBottom variant="h6" align="center">
+                                Naam van foto
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+            );
+        }
+        return fotolibrary;
     }
-    return fotolibrary;
 }
