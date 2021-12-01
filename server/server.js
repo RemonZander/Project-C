@@ -4,6 +4,7 @@ const http = require("http");
 const RequestHelper = require("./src/RequestHelper");
 const ResponseHelper = require("./src/ResponseHelper");
 const Token = new (require("./src/Token"))();
+const fs = require("fs");
 
 // Create a local server to receive data from
 const server = http.createServer();
@@ -26,6 +27,20 @@ server.on("request", (req, res) => {
 
   if (req.headers.origin === process.env.APP_URL) {
     req.setEncoding("utf-8");
+
+    if (req.url.startsWith("/storage")) {
+      fs.readFile(__dirname + req.url, function (err, data) {
+        if (err) {
+          resHelper.responseError(err);
+          return;
+        }
+
+        res.writeHead(200);
+        res.end(data);
+      });
+
+      return;
+    }
 
     for (let i = 0; i < routes.length; i++) {
       const route = routes[i];
