@@ -9,6 +9,10 @@ export const getToken = () => {
     }
 };
 
+export const getPayloadAsJson = () => {
+    return JSON.parse(Buffer.from(getToken().split('.')[1], 'base64').toString());
+};
+
 export const tokenExists = () => {
     return getToken() instanceof String;
 };
