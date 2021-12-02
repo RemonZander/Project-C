@@ -2,8 +2,8 @@ import { readFileAsDataUrl } from './FileReader';
 import { getToken } from './Token';
 
 export default class Api {
-    constructor(serverUrl = process.env.REACT_APP_SERVER_URL) {
-        this.token = getToken();
+    constructor(token, serverUrl = process.env.REACT_APP_SERVER_URL) {
+        this.token = token;
         this.serverUrl = serverUrl;
     }
 

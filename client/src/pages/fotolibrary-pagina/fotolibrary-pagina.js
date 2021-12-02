@@ -181,7 +181,7 @@ function fotolibrary(fotoStorage, isAdmin, styles) {
         //const imageURL = process.env.REACT_APP_SERVER_URL + listOfImages;
     })();
 
-    if (ApiInstance.all('image').length === 0) {
+    if (false) {
         fotolibrary.push(
             <Typography gutterBottom variant="h6" align="center">
                 Geen foto's
@@ -206,7 +206,6 @@ function fotolibrary(fotoStorage, isAdmin, styles) {
                         <CardMedia
                             id={'img' + a}
                             className={styles.cardMedia}
-                            image={ApiInstance.read('image', a)}
                             title="imageTitle"
                             onMouseEnter={() => imageOnHover(a, styles)}
                             onMouseLeave={() => imageLeave(a, styles)}
