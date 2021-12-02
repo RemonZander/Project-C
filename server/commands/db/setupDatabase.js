@@ -68,12 +68,12 @@ for (let i = 0; i < sqlData.length; i++) {
     `INSERT INTO user
         (Email, Password, Role_Id, Company_Id, Is_logged_on) VALUES
         ('admin@gmail.com', 'Admin1!', 1, -1, FALSE),
-        ('moderator1@gmail.com', 'Moderator1!', 2, 1, FALSE),
-        ('moderator2@gmail.com', 'Moderator1!', 2, 2, FALSE),
-        ('moderator3@gmail.com', 'Moderator1!', 2, 3, FALSE),
-        ('user1@gmail.com', 'User1!', 3, 1, FALSE),
-        ('user2@gmail.com', 'User1!', 3, 2, FALSE),
-        ('user3@gmail.com', 'User1!', 3, 3, FALSE)
+        ('moderator1@gmail.com', 'Moderator1!', 2, 0, FALSE),
+        ('moderator2@gmail.com', 'Moderator1!', 2, 1, FALSE),
+        ('moderator3@gmail.com', 'Moderator1!', 2, 2, FALSE),
+        ('user1@gmail.com', 'User1!', 3, 0, FALSE),
+        ('user2@gmail.com', 'User1!', 3, 1, FALSE),
+        ('user3@gmail.com', 'User1!', 3, 2, FALSE)
         `
   );
 
