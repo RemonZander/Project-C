@@ -16,12 +16,6 @@ import { Settings } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 import kyndalogo from './kynda.png';
 import { useState } from 'react';
-import voorbeeld1 from './voorbeeld1.jpg';
-import voorbeeld2 from './voorbeeld2.jpg';
-import voorbeeld3 from './voorbeeld3.jpg';
-import voorbeeld4 from './voorbeeld4.jpg';
-import voorbeeld5 from './voorbeeld5.jpg';
-import voorbeeld6 from './voorbeeld6.jpg';
 import { CreateExport } from '../../helpers/Export';
 import Api from '../../helpers/Api';
 import { getToken } from '../../helpers/Token';
@@ -58,8 +52,8 @@ const ApiInstance = new Api(getToken());
 
 function Gallery() {
     const [isAdmin] = useState(true);
+    const [fotolibrary, updateFotolibrary] = useState([]);
     const styles = useStyles();
-    let fotoStorage = [voorbeeld1, voorbeeld2, voorbeeld3, voorbeeld4, voorbeeld5, voorbeeld6];
     return (
         <>
             <CssBaseline />
@@ -101,7 +95,7 @@ function Gallery() {
                 <div>
                     <Container maxWidth="md" className={styles.cardGrid}>
                         <Grid container spacing={4}>
-                            {fotolibrary(fotoStorage, isAdmin, styles)}
+                            {fotolibrary}
                         </Grid>
                     </Container>
                 </div>
@@ -172,53 +166,59 @@ function deleteButton(isAdmin) {
     }
 }
 
-function fotolibrary(fotoStorage, isAdmin, styles) {
-    let fotolibrary = [];
-    (async () => {
-        const imagesFromDatabase = await ApiInstance.all('image');
-        console.log(imagesFromDatabase);
-        //const listOfImages = imagesFromDatabase.content;
-        //const imageURL = process.env.REACT_APP_SERVER_URL + listOfImages;
-    })();
+async function getImagesFromDatabase() {
+    const imagesFromDatabase = await ApiInstance.all('image');
+    const images = imagesFromDatabase.content;
+    return images;
+}
 
-    if (false) {
-        fotolibrary.push(
-            <Typography gutterBottom variant="h6" align="center">
-                Geen foto's
-            </Typography>
-        );
-        return fotolibrary;
-    } else {
-        for (let a = 0; a < 6; a++) {
-            fotolibrary.push(
-                <Grid item xs={12} sm={6} md={4}>
-                    <Card className={styles.card}>
-                        <Button
-                            id={'btn' + a}
-                            variant="contained"
-                            style={deleteButton(isAdmin)}
-                            onMouseEnter={() => imageOnHover(a, styles)}
-                            onMouseLeave={() => imageLeave(a, styles)}
-                            onClick={(e) => selectedPicture(e, isAdmin ? 'delete' : 'select', a)}
-                        >
-                            {isAdmin ? 'Verwijderen' : 'Selecteren'}
-                        </Button>
-                        <CardMedia
-                            id={'img' + a}
-                            className={styles.cardMedia}
-                            title="imageTitle"
-                            onMouseEnter={() => imageOnHover(a, styles)}
-                            onMouseLeave={() => imageLeave(a, styles)}
-                        />
-                        <CardContent className={styles.cardContent}>
-                            <Typography gutterBottom variant="h6" align="center">
-                                Naam van foto
-                            </Typography>
-                        </CardContent>
-                    </Card>
-                </Grid>
-            );
+function gallery(isAdmin, styles, fotolibrary, updateFotolibrary) {
+    getImagesFromDatabase().then((listOfImages) => {
+        console.log(listOfImages);
+        if (listOfImages.length === 0) {
+            updateFotolibrary((fotolibrary) => [
+                ...fotolibrary,
+                <Typography gutterBottom variant="h6" align="center">
+                    Geen foto's
+                </Typography>,
+            ]);
+        } else {
+            for (let a = 0; a < listOfImages.length; a++) {
+                // if (listOfImages[a].Company_id == )
+                const imageURL = process.env.REACT_APP_SERVER_URL + listOfImages[a].Filepath;
+                updateFotolibrary((fotolibrary) => [
+                    ...fotolibrary,
+                    <Grid item xs={12} sm={6} md={4}>
+                        <Card className={styles.card}>
+                            <Button
+                                id={'btn' + a}
+                                variant="contained"
+                                style={deleteButton(isAdmin)}
+                                onMouseEnter={() => imageOnHover(a, styles)}
+                                onMouseLeave={() => imageLeave(a, styles)}
+                                onClick={(e) =>
+                                    selectedPicture(e, isAdmin ? 'delete' : 'select', a)
+                                }
+                            >
+                                {isAdmin ? 'Verwijderen' : 'Selecteren'}
+                            </Button>
+                            <CardMedia
+                                id={'img' + a}
+                                className={styles.cardMedia}
+                                title="imageTitle"
+                                image={imageURL}
+                                onMouseEnter={() => imageOnHover(a, styles)}
+                                onMouseLeave={() => imageLeave(a, styles)}
+                            />
+                            <CardContent className={styles.cardContent}>
+                                <Typography gutterBottom variant="h6" align="center">
+                                    Naam van foto
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>,
+                ]);
+            }
         }
-        return fotolibrary;
-    }
+    });
 }
