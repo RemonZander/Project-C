@@ -4,80 +4,100 @@ import kyndaLetter from './kyndaletter.png';
 import cog from './cog69420.png';
 import FotoGalleryImg from './photolibicon.jpg';
 import { CreateExport } from '../../helpers/Export';
+import Api from '../../helpers/Api';
+import { getToken } from '../../helpers/Token';
+import Enumerable from 'linq';
+
+async function getData() {
+    const ApiInstance = new Api(getToken());
+
+    // sets the arrays w data in them from the database
+    let companyListDb = await ApiInstance.all('company');
+    let companyList = Enumerable.from(companyListDb.content).toArray();
+    let userListDb = await ApiInstance.all('user');
+    let userList = Enumerable.from(userListDb.content).toArray();
+    let templateListDb = await ApiInstance.all('template');
+    var templateList = Enumerable.from(templateListDb.content).toArray();
+    let designListDb = await ApiInstance.all('design');
+    let designList = Enumerable.from(designListDb.content).toArray();
+
+    for (let listPos = 0; listPos < companyList.length; listPos++) {
+        let id = 'selector ' + listPos;
+
+        let templateListTemp = Enumerable.from(templateList)
+            .where((t) => t.Company_id === companyList[listPos].Id)
+            .toArray();
+
+        // gets list of designs in user-portal
+        const templateIdList = templateListTemp.map((i) => i.Id);
+
+        let designListTemp = Enumerable.from(designList)
+            .where((d) => templateIdList.includes(d.Template_id))
+            .toArray();
+
+        // finds user-portal admin
+        let adminUser = Enumerable.from(userList)
+            .where((a) => a.Company_Id === companyList[listPos].Id && a.Role_Id === 2)
+            .toArray()[0];
+
+        let userListTemp = Enumerable.from(userList)
+            .where((u) => u.Company_Id === companyList[listPos].Id && u.Role_Id === 1)
+            .toArray();
+        // makes new user-portal w cool new data
+        let temp = new UserPortalData(
+            listPos,
+            (
+                <div class="userPortalItemBox">
+                    <div class="userPortalItem">
+                        <div class="userPortalItemName">
+                            {'User Portal ' + (userPortalList.length + 1)} {/* also get from db */}{' '}
+                            <br />
+                        </div>
+                        <div class="userPortalItemCompany" id={'userPortalItemCompany' + id}>
+                            {companyList[listPos].Name} {/* get this from db */}
+                        </div>
+                        <div class="selectUserPortalButton" id={id} onClick={() => SelectUser(id)}>
+                            Selecteren
+                        </div>
+                    </div>
+                </div>
+            ),
+            companyList[listPos].Name,
+            adminUser,
+            userListTemp,
+            templateListTemp,
+            designListTemp
+        );
+        userPortalDivList.push(temp.portalListDivs);
+        userPortalList.push(temp);
+        console.log(temp);
+    }
+}
 
 class UserPortalData {
-    constructor(id, divs, employeedata) {
+    constructor(id, divs, companyName, mainUser, employeeList, templateList, designList) {
         this.portalId = id;
         this.portalListDivs = divs; // are the divs that appear in the userportal list on the side
-        this.companyName = 'S.T.D. Wines & Liquors inc.'; // get from database
-        this.mainUserList = {
-            id: 69420,
-            name: 'Barend Ballebak',
-            contact: 'barendballebak@email.nl',
-        }; // get from database; is {id: id, name: name, contact: contact}, also can be more than 1 (should we even allow more? idk)
-        this.registeredEmployeeList = employeedata; //get from database; is {id: id, name: name}
-        this.importedTemplateList = [
-            { id: 6, name: 'Billboard 1' },
-            { id: 8, name: 'Newspaper 3' },
-            { id: 21, name: 'Website layout 5' },
-        ]; // get from database; is [templateId, templateId...]
-        this.designList = [
-            {
-                designName: 'Billboard take 1',
-                templateId: 6,
-                templateName: 'Billboard 1',
-                downloaded: false,
-            },
-            {
-                designName: 'NewspaperAd Kompas',
-                templateId: 8,
-                templateName: 'Newspaper 3',
-                downloaded: true,
-            },
-        ]; // get from database; is [{designName: string, templateId: int, downloaded: bool}, ...]
+        this.companyName = companyName; // get from database
+        this.mainUserList = mainUser;
+        this.registeredEmployeeList = employeeList; //get from database; is {id: id, name: name}
+        this.importedTemplateList = templateList;
+        this.designList = designList;
     }
 }
 
-class EmployeeData {
-    constructor(id, name) {
-        this.id = id;
-        this.name = name;
-        this.contact = 'bakvet@jemoeder.nl';
-    }
-}
-
-class DownloadData {
-    constructor(id, name, totalDL, totalEuroDL) {
-        this.id = id;
-        this.name = name;
-        this.totalDL = totalDL;
-        this.totalEuroDL = totalEuroDL;
-    }
-}
-
-class DesignData {
-    constructor(templateId, templateName, designName, wasDL) {
-        this.templateId = templateId;
-        this.templateName = templateName;
-        this.designName = designName;
-        this.wasDL = wasDL;
-    }
-}
-
-const userPortalAmount = 10; // temp value, should be amount of user-portals, get from database
 let userPortalDivList = []; // array for divs
 let userPortalList = []; // array of UserPortalData objects
 
-DrawUserPortals();
-
 function AdminPortal() {
     const [userPortalList1, SetUserPortalList] = React.useState([]);
+    getData();
     return (
         <React.Fragment>
             {/* menubar bijna tzelfde als die in user-portal.js */}
             <div class="menuBarAdmin">
                 <div class="kyndaLogo">
-                    <img src={kyndaLetter} width="104" height="55" />
+                    <img src={kyndaLetter} width="104" height="55" alt="kyndaLogoImg" />
                 </div>
                 <div class="adminPortalHeader">Adminportaal</div>
                 <div class="dropDown">
@@ -90,10 +110,10 @@ function AdminPortal() {
                     </select>
                 </div>
                 <div class="logOutButton">
-                    <loguitbutton>Uitloggen</loguitbutton>
+                    <div className="logUitButton">Uitloggen</div>
                 </div>
                 <div class="kyndaCog">
-                    <img src={cog} width="40" height="40" />
+                    <img src={cog} width="40" height="40" alt="settingsImg" />
                 </div>
             </div>
 
@@ -187,21 +207,11 @@ function AdminPortal() {
                     </div>
                 </div>
             </div>
-            {/* <div class="listViewTxtBox">
-                    <p
-                        class="addUserPortalButton"
-                        onClick={() =>
-                            SetUserPortalList(userPortalDivList.push(AddUserPortal()))
-                        }
-                    >
-                        User Portal Toevoegen
-                    </p>
-                </div> */}
         </React.Fragment>
     );
 }
 
-function DrawUserPortals() {
+/*function DrawUserPortals() {
     // function to generate user-portal list-view
 
     for (let listPos = 1; listPos <= userPortalAmount; listPos++) {
@@ -212,10 +222,10 @@ function DrawUserPortals() {
                 <div class="userPortalItemBox">
                     <div class="userPortalItem">
                         <div class="userPortalItemName">
-                            {'User Portal ' + (userPortalList.length + 1)} <br />
+                            {'User Portal ' + (userPortalList.length + 1)} {*/ /* also get from db */ /*} <br />
                         </div>
                         <div class="userPortalItemCompany" id={'userPortalItemCompany' + id}>
-                            {'S.T.D. Wines & Liquors inc.'}
+                            {'S.T.D. Wines & Liquors inc.' } {*/ /* get this from db */ /*}
                         </div>
                         <div class="selectUserPortalButton" id={id} onClick={() => SelectUser(id)}>
                             Selecteren
@@ -240,7 +250,7 @@ function employeedata() {
         'Brammetje Bakvet',
         'Pauline Pisnicht',
         'Merel Maagzuur',
-    ];
+    ]; // is temp
     let employeedatatemp = [];
     for (var a = 0; a < names.length; a++) {
         let employeedata = new EmployeeData(a, names[a]);
@@ -249,7 +259,7 @@ function employeedata() {
 
     return employeedatatemp;
 }
-
+*/
 function SelectUser(id) {
     const pos = id.replace('selector ', '');
     document.getElementById('mainView').style.display = 'flex';
@@ -307,7 +317,8 @@ function SelectUser(id) {
     */
 }
 
-function AddUserPortal() {
+function AddUserPortal() {}
+/*function AddUserPortal() {
     // gives functionality to "User Portal Toevoegen" button; ID incrementally increases by 1
     let id = 'selector ' + (userPortalList.length + 1);
     const names = [
@@ -319,9 +330,9 @@ function AddUserPortal() {
         'Brammetje Bakvet',
         'Pauline Pisnicht',
         'Merel Maagzuur',
-    ];
+    ]; also temp
     let employeedatatemp = [];
-    for (var a = 0; a < names.length; a++) {
+   for (var a = 0; a < names.length; a++) {
         let employeedata = new EmployeeData(a, names[a]);
         employeedatatemp.push(employeedata);
     }
@@ -331,10 +342,10 @@ function AddUserPortal() {
             <div class="userPortalItemBox">
                 <div class="userPortalItem">
                     <div class="userPortalItemName">
-                        {'User Portal ' + (userPortalList.length + 1)} <br />
+                        {'User Portal ' + (userPortalList.length + 1)} {/* get from db */ /* <br />
                     </div>
                     <div class="userPortalItemCompany" id={'userPortalItemCompany' + id}>
-                        {'S.T.D. Wines & Liquors inc.'}
+                        {'S.T.D. Wines & Liquors inc.'} {/* get from db */ /*
                     </div>
                     <div class="selectUserPortalButton" id={id} onClick={() => SelectUser(id)}>
                         Selecteren
@@ -346,7 +357,7 @@ function AddUserPortal() {
     );
     userPortalDivList.push(temp.portalListDivs);
     userPortalList.push(temp);
-}
+}*/
 
 function FillUserDataList(portalPos) {
     // fills the list of registered users in mainView
@@ -391,13 +402,20 @@ function FillUserDataList(portalPos) {
             document.getElementById('Gbrtoevoegen').style.display = 'none';
             return;
         }
-        let temp = new EmployeeData(
+        /*        let temp = new EmployeeData(
             userPortalList[portalPos].registeredEmployeeList.length,
             document.getElementById('GbrNaamInvoer').value
         );
         temp.contact = document.getElementById('GbrEmailInvoer').value;
 
-        userPortalList[portalPos].registeredEmployeeList.push(temp);
+        userPortalList[portalPos].registeredEmployeeList.push(temp);*/
+        userPortalList[portalPos].registeredEmployeeList.push(
+            // user-ID
+            document.getElementById('GbrEmailInvoer').value,
+            1, // 1 is Role_Id
+            document.getElementById('GbrNaamInvoer').value
+        );
+
         let deleteUser = document.createElement('div');
         deleteUser.className = 'deleteUser';
         deleteUser.onclick = function () {
@@ -463,13 +481,13 @@ function FillTemplateList(portalPos) {
                 totalEuro = totalEuro + 4.99;
             }
         }
-        let tempObj = new DownloadData(
+        /*        let tempObj = new DownloadData(
             userPortalList[portalPos].importedTemplateList[a].id,
             userPortalList[portalPos].importedTemplateList[a].name,
             total,
             totalEuro
         );
-        statsList.push(tempObj);
+        statsList.push(tempObj);*/
     }
     let tempList = document.createDocumentFragment();
     for (var c = 0; c < statsList.length; c++) {
@@ -506,7 +524,7 @@ function FillTemplateList(portalPos) {
 
 function FillDesignList(portalPos, selectedTemplateId) {
     let tempDesignList = [];
-    for (let a = 0; a < userPortalList[portalPos].designList.length; a++) {
+    /*    for (let a = 0; a < userPortalList[portalPos].designList.length; a++) {
         if (selectedTemplateId === userPortalList[portalPos].designList[a].templateId) {
             let tempObj = new DesignData(
                 selectedTemplateId,
@@ -516,7 +534,7 @@ function FillDesignList(portalPos, selectedTemplateId) {
             );
             tempDesignList.push(tempObj);
         }
-    }
+    }*/
     let tempList = document.createDocumentFragment();
     for (let b = 0; b < tempDesignList.length; b++) {
         let DesignItem = document.createElement('div');
