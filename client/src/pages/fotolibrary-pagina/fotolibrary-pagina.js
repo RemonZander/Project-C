@@ -96,6 +96,7 @@ function Gallery() {
                     <Container maxWidth="md" className={styles.cardGrid}>
                         <Grid container spacing={4}>
                             {fotolibrary}
+                            {/* De state-update vind plaats in de gallery functie maar waar moet ik die aanroepen? */}
                         </Grid>
                     </Container>
                 </div>
