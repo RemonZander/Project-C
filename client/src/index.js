@@ -14,9 +14,6 @@ const theme = createTheme({
 ReactDOM.render(
     <React.StrictMode>
         <ThemeProvider theme={theme}>
-            <AppBar position="static">
-                <Toolbar></Toolbar>
-            </AppBar>
             <App />
         </ThemeProvider>
     </React.StrictMode>,

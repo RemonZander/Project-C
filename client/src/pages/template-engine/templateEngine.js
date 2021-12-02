@@ -2,7 +2,7 @@ import './templateEngine.css';
 import { useEffect, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
-import { AppBar, Button, styled, Toolbar, Typography } from '@material-ui/core';
+import { Button, styled } from '@material-ui/core';
 
 /*
 Uitleg:
@@ -30,7 +30,7 @@ function TemplateEngine() {
             // Dit zorgt ervoor dat alle promises worden voldaan in sync.
 
             // Needs some refinement in some areas (mainly lessen the amount of for loops if possible)
-            (async function doPromises() {
+            (async () => {
                 let files = {
                     html: [],
                     css: [],
@@ -86,28 +86,36 @@ function TemplateEngine() {
 
                 setTemplateFiles(files['html']);
             })();
-        } else {
-            const el = document.getElementById('templateEngineFrame');
-
-            if (el !== null) el.remove();
-
-            if (
-                templateFiles.length > 0 &&
-                templatePos >= 0 &&
-                templatePos <= templateFiles.length - 1
-            ) {
-                const wrapper = document.querySelector('.templateEngineWrapper');
-                const frame = document.createElement('iframe');
-                frame.id = 'templateEngineFrame';
-                frame.style.display = 'block';
-                frame.style.width = '595px';
-                frame.style.height = '842px';
-                frame.style.margin = '0 auto';
-                wrapper.appendChild(frame);
-                frame.contentDocument.write(templateFiles[templatePos]['data']);
-            }
         }
     }, [templatePos, exportFiles, templateFiles]);
+
+    const handleOnLoad = (e) => {
+        const doc = e.target.contentDocument;
+
+        const style = doc.getElementsByTagName('style')[1];
+        style.innerHTML += `
+            .selectable:hover {
+                border: 1px solid black;
+                border-radius: 3px;
+                cursor: pointer;
+            }
+        `;
+        const editableElements = Array.from(doc.getElementsByClassName('Basic-Text-Frame'));
+
+        editableElements.forEach((el) => el.classList.add('selectable'));
+    };
+
+    function buttonHandler(buttonName, templatePosition, templateFiles) {
+        if (buttonName === 'previous') {
+            if (templatePosition === 0) {
+                return { display: 'none' };
+            }
+        } else {
+            if (templatePosition === templateFiles.length - 1) {
+                return { display: 'none' };
+            }
+        }
+    }
 
     return (
         <div className="templateEngineContainer">
@@ -126,7 +134,7 @@ function TemplateEngine() {
                     Load Export Files
                 </Button>
             </label>
-            {/* <div className="controls-wrapper">
+            <div className="controls-wrapper">
                 <button
                     className="previous"
                     onClick={() => setTemplatePos(templatePos - 1)}
@@ -142,21 +150,19 @@ function TemplateEngine() {
                     Next
                 </button>
             </div>
-            <div className="templateEngineWrapper"></div> */}
+            <div className="templateEngineWrapper">
+                {templateFiles.length > 0 &&
+                    templatePos >= 0 &&
+                    templatePos <= templateFiles.length - 1 && (
+                        <iframe
+                            className="templateEngineFrame"
+                            srcDoc={templateFiles[templatePos]['data']}
+                            onLoad={handleOnLoad}
+                        ></iframe>
+                    )}
+            </div>
         </div>
     );
-}
-
-function buttonHandler(buttonName, templatePosition, templateFiles) {
-    if (buttonName === 'previous') {
-        if (templatePosition === 0) {
-            return { display: 'none' };
-        }
-    } else {
-        if (templatePosition === templateFiles.length - 1) {
-            return { display: 'none' };
-        }
-    }
 }
 
 export default CreateExport('/template-editor', TemplateEngine);
