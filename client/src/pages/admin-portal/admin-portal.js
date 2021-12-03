@@ -10,7 +10,7 @@ import Enumerable from 'linq';
 
 async function getData(userPortalList) {
     const ApiInstance = new Api(getToken());
-    let postalArray = [];
+    let portalArray = [];
     // sets the arrays w data in them from the database
     let companyListDb = await ApiInstance.all('company');
     let companyList = Enumerable.from(companyListDb.content).toArray();
@@ -22,8 +22,6 @@ async function getData(userPortalList) {
     let designList = Enumerable.from(designListDb.content).toArray();
 
     for (let listPos = 0; listPos < companyList.length; listPos++) {
-        let id = 'selector ' + listPos;
-
         let templateListTemp = Enumerable.from(templateList)
             .where((t) => t.Company_id === companyList[listPos].Id)
             .toArray();
@@ -46,6 +44,7 @@ async function getData(userPortalList) {
 
         // makes new user-portal w cool new data
         let temp = new UserPortalData(
+            companyList[listPos].Id,
             listPos,
             companyList[listPos].Name,
             adminUser,
@@ -54,14 +53,15 @@ async function getData(userPortalList) {
             designListTemp
         );
 
-        postalArray.push(temp);
+        portalArray.push(temp);
     }
-
-    return postalArray;
+    console.log(portalArray);
+    return portalArray;
 }
 
 class UserPortalData {
-    constructor(id, companyName, mainUser, employeeList, templateList, designList) {
+    constructor(DbId, id, companyName, mainUser, employeeList, templateList, designList) {
+        this.DbId = DbId;
         this.portalId = id;
         this.companyName = companyName; // get from database
         this.mainUserList = mainUser;
@@ -71,11 +71,7 @@ class UserPortalData {
     }
 }
 
-let userPortalDivList = []; // array for divs
-
 function AdminPortal() {
-    //const [userPortalList1, SetUserPortalList] = React.useState([]);
-    let userPortalDivList = [];
     const [userPortalList, SetUserPortalList] = React.useState([]);
 
     React.useEffect(() => {
@@ -136,12 +132,16 @@ function AdminPortal() {
                                         <div
                                             class="selectUserPortalButton"
                                             id={'selector ' + data.portalId}
-                                            onClick={() =>
+                                            onClick={() => {
+                                                document.getElementById(
+                                                    'addUserPortal'
+                                                ).style.display = 'none';
                                                 SelectUser(
                                                     'selector ' + data.portalId,
-                                                    userPortalList
-                                                )
-                                            }
+                                                    userPortalList,
+                                                    SetUserPortalList
+                                                );
+                                            }}
                                         >
                                             Selecteren
                                         </div>
@@ -152,7 +152,10 @@ function AdminPortal() {
                     </div>
                     <div
                         class="addUserPortalButton"
-                        onClick={() => SetUserPortalList(userPortalDivList.push(AddUserPortal()))}
+                        onClick={() => {
+                            document.getElementById('mainView').style.display = 'none';
+                            document.getElementById('addUserPortal').style.display = 'flex';
+                        }}
                     >
                         User Portal Toevoegen
                     </div>
@@ -168,7 +171,14 @@ function AdminPortal() {
                                 <div class="mainViewUserData" id="mainViewUserData"></div>
                             </div>
                         </div>
-                        <img className="FotoGalleryButton" src={FotoGalleryImg} alt="gallery" />
+                        <img
+                            className="FotoGalleryButton"
+                            src={FotoGalleryImg}
+                            alt="gallery"
+                            onClick={function () {
+                                window.open('/fotogalerij', '_blank').focus();
+                            }}
+                        />
                         <div className="DoubleButtons">
                             <div
                                 className="ImportTemplateButton"
@@ -219,7 +229,7 @@ function AdminPortal() {
                                 Email: <input type="text" id="GbrEmailInvoer" />
                             </div>
                             <div className="GbrInvoer">
-                                Wachtwoord: <input type="text" id="GbrPassInvoer" />
+                                Wachtwoord: <input type="password" id="GbrPassInvoer" />
                             </div>
                             <div className="GbrToevoegenbutton" id="GbrToevoegenbutton">
                                 Gebruiker toevoegen
@@ -231,63 +241,111 @@ function AdminPortal() {
                         </div>
                     </div>
                 </div>
+                <div className="addUserPortal" id="addUserPortal">
+                    <div className="newUserPortalHeaders">
+                        <div className="newCompanyHeader">Bedrijf gegevens</div>
+                        <div className="newMainUserHeader">Hoofdgebruiker</div>
+                    </div>
+                    <div className="newCompanyData">
+                        <div className="CompanyInput">
+                            Naam:{' '}
+                            <input
+                                style={{ marginLeft: '25px', width: '75.6%' }}
+                                type="text"
+                                id="newCompanyName"
+                            />
+                        </div>
+                        <div className="CompanyInput">
+                            Telefoon:{' '}
+                            <input
+                                style={{ marginLeft: '5px', width: '75.6%' }}
+                                type="text"
+                                id="newCompanyPhone"
+                            />
+                        </div>
+                        <div className="CompanyInput">
+                            Email:{' '}
+                            <input
+                                style={{ marginLeft: '28px', width: '75.6%' }}
+                                type="text"
+                                id="newCompanyEmail"
+                            />
+                        </div>
+                        <div className="CompanyInput">
+                            Land:{' '}
+                            <input
+                                style={{ marginLeft: '32px', width: '75.6%' }}
+                                type="text"
+                                id="newCompanyCountry"
+                            />
+                        </div>
+                        <div className="CompanyInput">
+                            Plaats + postcode:{' '}
+                            <input
+                                style={{ marginLeft: '5px', width: '40.8%' }}
+                                type="text"
+                                id="newCompanyCity"
+                            />
+                            <input
+                                style={{ marginLeft: '5px', width: '13.5%' }}
+                                type="text"
+                                id="newCompanyPostcode"
+                            />
+                        </div>
+                        <div className="CompanyInput">
+                            Straat + huisnummer:{' '}
+                            <input
+                                style={{ marginLeft: '5px', width: '35%' }}
+                                type="text"
+                                id="newCompanyStreet"
+                            />
+                            <input
+                                style={{ marginLeft: '5px', width: '13.5%' }}
+                                type="text"
+                                id="newCompanyHouseNumer"
+                            />
+                        </div>
+                    </div>
+                    <div className="newMainUserData">
+                        <div className="CompanyInput">
+                            Naam:{' '}
+                            <input
+                                style={{ marginLeft: '25px', width: '75.6%' }}
+                                type="text"
+                                id="newMainUserName"
+                            />
+                        </div>
+                        <div className="CompanyInput">
+                            Email:{' '}
+                            <input
+                                style={{ marginLeft: '29px', width: '75.6%' }}
+                                type="text"
+                                id="newMainUserEmail"
+                            />
+                        </div>
+                        <div className="CompanyInput">
+                            Wachtwoord:{' '}
+                            <input
+                                style={{ marginLeft: '29px', width: '61.3%' }}
+                                type="password"
+                                id="newMainUserPassword"
+                            />
+                        </div>
+                    </div>
+                    <div
+                        className="AddNewUserPortalButton"
+                        onClick={() => portalToevoegen(SetUserPortalList)}
+                    >
+                        Nieuwe user portal toevoegen
+                    </div>
+                </div>
             </div>
         </div>
     );
 }
 
-/*function DrawUserPortals() {
-    // function to generate user-portal list-view
-
-    for (let listPos = 1; listPos <= userPortalAmount; listPos++) {
-        let id = 'selector ' + listPos;
-        let temp = new UserPortalData(
-            listPos,
-            (
-                <div class="userPortalItemBox">
-                    <div class="userPortalItem">
-                        <div class="userPortalItemName">
-                            {'User Portal ' + (userPortalList.length + 1)} {*/ /* also get from db */ /*} <br />
-                        </div>
-                        <div class="userPortalItemCompany" id={'userPortalItemCompany' + id}>
-                            {'S.T.D. Wines & Liquors inc.' } {*/ /* get this from db */ /*}
-                        </div>
-                        <div class="selectUserPortalButton" id={id} onClick={() => SelectUser(id)}>
-                            Selecteren
-                        </div>
-                    </div>
-                </div>
-            ),
-            employeedata()
-        );
-        userPortalDivList.push(temp.portalListDivs);
-        userPortalList.push(temp);
-    }
-}
-
-function employeedata() {
-    const names = [
-        'Henkje Geisterbrei',
-        'Sinter Klaas',
-        'Sietske Haarbal',
-        'Saskia Krentenbol',
-        'La Llrona',
-        'Brammetje Bakvet',
-        'Pauline Pisnicht',
-        'Merel Maagzuur',
-    ]; // is temp
-    let employeedatatemp = [];
-    for (var a = 0; a < names.length; a++) {
-        let employeedata = new EmployeeData(a, names[a]);
-        employeedatatemp.push(employeedata);
-    }
-
-    return employeedatatemp;
-}
-*/
-function SelectUser(id, userPortalList) {
+function SelectUser(id, userPortalList, SetUserPortalList) {
     const pos = id.replace('selector ', '');
-    console.log(pos);
     document.getElementById('mainView').style.display = 'flex';
 
     // unloads any menu's from a previously selected user-portal
@@ -305,16 +363,18 @@ function SelectUser(id, userPortalList) {
         `</p>`;
 
     // sets relevant data for main user display (id, name, e-mail)
-    document.getElementById('mainViewUserData').innerHTML =
-        `<p class="mainViewUserDataText">ID: ` +
-        userPortalList[pos].mainUserList.Id +
-        `<br/>` +
-        'Naam: ' +
-        userPortalList[pos].mainUserList.Name +
-        `<br/>` +
-        'E-mail: ' +
-        userPortalList[pos].mainUserList.Email +
-        `</p>`;
+    if (userPortalList[pos].mainUserList) {
+        document.getElementById('mainViewUserData').innerHTML =
+            `<p class="mainViewUserDataText">ID: ` +
+            userPortalList[pos].mainUserList.Id +
+            `<br/>` +
+            'Naam: ' +
+            userPortalList[pos].mainUserList.Name +
+            `<br/>` +
+            'E-mail: ' +
+            userPortalList[pos].mainUserList.Email +
+            `</p>`;
+    }
 
     // sets relevant data for users in portal
     document.getElementById('mainViewUserDataList').innerHTML = '';
@@ -330,13 +390,13 @@ function SelectUser(id, userPortalList) {
 
     // adds onclick to bedrijfnaam wijzigen & delete user-portal buttons
     document.getElementById('BedrijfnaamWijzigen').onclick = function () {
-        ChangeCompanyName(pos);
+        ChangeCompanyName(pos, userPortalList);
     };
     document.getElementById('DeletePortal').onclick = function () {
-        DeleteUserPortalStep(pos, false);
+        DeleteUserPortalStep(pos, false, userPortalList, SetUserPortalList);
     };
     document.getElementById('DeletePortalConfirm').onclick = function () {
-        DeleteUserPortalStep(pos, true);
+        DeleteUserPortalStep(pos, true, userPortalList, SetUserPortalList);
     };
 
     // continue making selection screen
@@ -347,48 +407,6 @@ function SelectUser(id, userPortalList) {
     */
 }
 
-function AddUserPortal() {}
-/*function AddUserPortal() {
-    // gives functionality to "User Portal Toevoegen" button; ID incrementally increases by 1
-    let id = 'selector ' + (userPortalList.length + 1);
-    const names = [
-        'Henkje Geisterbrei',
-        'Sinter Klaas',
-        'Sietske Haarbal',
-        'Saskia Krentenbol',
-        'La Llrona',
-        'Brammetje Bakvet',
-        'Pauline Pisnicht',
-        'Merel Maagzuur',
-    ]; also temp
-    let employeedatatemp = [];
-   for (var a = 0; a < names.length; a++) {
-        let employeedata = new EmployeeData(a, names[a]);
-        employeedatatemp.push(employeedata);
-    }
-    let temp = new UserPortalData(
-        userPortalList.length + 1,
-        (
-            <div class="userPortalItemBox">
-                <div class="userPortalItem">
-                    <div class="userPortalItemName">
-                        {'User Portal ' + (userPortalList.length + 1)} {/* get from db */ /* <br />
-                    </div>
-                    <div class="userPortalItemCompany" id={'userPortalItemCompany' + id}>
-                        {'S.T.D. Wines & Liquors inc.'} {/* get from db */ /*
-                    </div>
-                    <div class="selectUserPortalButton" id={id} onClick={() => SelectUser(id)}>
-                        Selecteren
-                    </div>
-                </div>
-            </div>
-        ),
-        employeedatatemp
-    );
-    userPortalDivList.push(temp.portalListDivs);
-    userPortalList.push(temp);
-}*/
-
 function FillUserDataList(portalPos, userPortalList) {
     // fills the list of registered users in mainView
     let tempList = document.createDocumentFragment();
@@ -396,7 +414,7 @@ function FillUserDataList(portalPos, userPortalList) {
         let deleteUser = document.createElement('div');
         deleteUser.className = 'deleteUser';
         deleteUser.onclick = function () {
-            DeleteUser(a, portalPos);
+            DeleteUser(a, portalPos, userPortalList);
         };
         deleteUser.innerHTML = 'Verwijderen';
 
@@ -420,7 +438,7 @@ function FillUserDataList(portalPos, userPortalList) {
         tempList.appendChild(userItemBox);
     }
 
-    document.getElementById('GbrToevoegenbutton').onclick = function () {
+    document.getElementById('GbrToevoegenbutton').onclick = async function () {
         if (
             document.getElementById('GbrNaamInvoer').value === '' ||
             document.getElementById('GbrEmailInvoer').value === '' ||
@@ -432,24 +450,32 @@ function FillUserDataList(portalPos, userPortalList) {
             document.getElementById('Gbrtoevoegen').style.display = 'none';
             return;
         }
-        /*        let temp = new EmployeeData(
-            userPortalList[portalPos].registeredEmployeeList.length,
-            document.getElementById('GbrNaamInvoer').value
-        );
-        temp.contact = document.getElementById('GbrEmailInvoer').value;
+        const ApiInstance = new Api(getToken());
+        // sets the arrays w data in them from the database
 
-        userPortalList[portalPos].registeredEmployeeList.push(temp);*/
-        userPortalList[portalPos].registeredEmployeeList.push(
-            // user-ID
+        const result = await ApiInstance.create('user', [
             document.getElementById('GbrEmailInvoer').value,
-            1, // 1 is Role_Id
-            document.getElementById('GbrNaamInvoer').value
-        );
+            'pwd',
+            3,
+            document.getElementById('GbrNaamInvoer').value,
+            userPortalList[portalPos].DbId,
+            0,
+        ]);
+
+        if (result.status === 'FAIL') return;
+
+        let userListDb = await ApiInstance.all('user');
+        let userList = Enumerable.from(userListDb.content).toArray();
+        userPortalList[portalPos].registeredEmployeeList = userList;
 
         let deleteUser = document.createElement('div');
         deleteUser.className = 'deleteUser';
         deleteUser.onclick = function () {
-            DeleteUser(userPortalList[portalPos].registeredEmployeeList.length - 1, portalPos);
+            DeleteUser(
+                userPortalList[portalPos].registeredEmployeeList.length - 1,
+                portalPos,
+                userPortalList
+            );
         };
         deleteUser.innerHTML = 'Verwijderen';
 
@@ -457,7 +483,7 @@ function FillUserDataList(portalPos, userPortalList) {
         userItem.className = 'userItem';
         userItem.innerHTML =
             'ID: ' +
-            (userPortalList[portalPos].registeredEmployeeList.length + 1) +
+            userList[userList.length - 1].Id +
             `<br />` +
             'Naam: ' +
             document.getElementById('GbrNaamInvoer').value +
@@ -480,24 +506,28 @@ function FillUserDataList(portalPos, userPortalList) {
     return tempList;
 }
 
-function DeleteUser(pos, portalPos, userPortalList) {
-    let registeredEmployeeListtemp = userPortalList[portalPos].registeredEmployeeList;
-    registeredEmployeeListtemp[pos].id = null;
-    registeredEmployeeListtemp[pos].name = null;
-    userPortalList[portalPos].registeredEmployeeList = [];
-    for (var a = 0; a < registeredEmployeeListtemp.length; a++) {
-        if (registeredEmployeeListtemp[a].id !== null) {
-            let employeedata = registeredEmployeeListtemp[a];
-            userPortalList[portalPos].registeredEmployeeList.push(employeedata);
-        }
-    }
+async function DeleteUser(pos, portalPos, userPortalList) {
+    const ApiInstance = new Api(getToken());
+    const result = await ApiInstance.delete(
+        'user',
+        userPortalList[portalPos].registeredEmployeeList[pos].Id
+    );
+    if (result.status === 'FAIL') return;
+
+    let userListDb = await ApiInstance.all('user');
+    let userList = Enumerable.from(userListDb.content).toArray();
+    userPortalList[portalPos].registeredEmployeeList = Enumerable.from(userList)
+        .where((u) => u.Company_Id === userPortalList[portalPos].DbId && u.Role_Id === 3)
+        .toArray();
+
     document.getElementById('mainViewUserDataList').innerHTML = '';
-    document.getElementById('mainViewUserDataList').appendChild(FillUserDataList(portalPos));
+    document
+        .getElementById('mainViewUserDataList')
+        .appendChild(FillUserDataList(portalPos, userPortalList));
 }
 
 function FillTemplateList(portalPos, userPortalList) {
     let statsList = [];
-    console.log(userPortalList[portalPos].importedTemplateList.length);
     for (var a = 0; a < userPortalList[portalPos].importedTemplateList.length; a++) {
         let total = 0;
         let totalEuro = 0;
@@ -507,35 +537,29 @@ function FillTemplateList(portalPos, userPortalList) {
                     userPortalList[portalPos].designList[b].Template_id &&
                 userPortalList[portalPos].designList[b].Downloads > 0
             ) {
-                total++;
+                total += userPortalList[portalPos].designList[b].Downloads;
                 totalEuro = totalEuro + 4.99;
             }
         }
-        /*        let tempObj = new DownloadData(
-            userPortalList[portalPos].importedTemplateList[a].id,
-            userPortalList[portalPos].importedTemplateList[a].name,
-            total,
-            totalEuro
-        );
-        statsList.push(tempObj);*/
+
         statsList.push(
             // maak hier n dictionary van
-            [
-                userPortalList[portalPos].importedTemplateList[a].Id,
-                userPortalList[portalPos].importedTemplateList[a].name,
-                total,
-                totalEuro,
-            ]
+            {
+                Id: userPortalList[portalPos].importedTemplateList[a].Id,
+                name: userPortalList[portalPos].importedTemplateList[a].Name,
+                total: total,
+                totalEuro: totalEuro,
+            }
         );
     }
-    console.log(statsList);
     let tempList = document.createDocumentFragment();
     for (var c = 0; c < statsList.length; c++) {
         let ShowTemplate = document.createElement('div');
         ShowTemplate.className = 'ShowTemplate';
-        let TempPos = statsList[c].id;
+        let TempPos = statsList[c].Id;
+        let name = statsList[c].name;
         ShowTemplate.onclick = function () {
-            DrawPreview(portalPos, TempPos);
+            DrawPreview(portalPos, TempPos, userPortalList, name);
         };
         ShowTemplate.innerHTML = 'Bekijk Template';
 
@@ -546,10 +570,10 @@ function FillTemplateList(portalPos, userPortalList) {
             statsList[c].name +
             `<br />` +
             'Aantal Downloads: ' +
-            statsList[c].totalDL +
+            statsList[c].total +
             `<br />` +
             "Euro's: " +
-            statsList[c].totalEuroDL;
+            statsList[c].totalEuro;
 
         TemplateItem.appendChild(ShowTemplate);
 
@@ -562,32 +586,30 @@ function FillTemplateList(portalPos, userPortalList) {
     return tempList;
 }
 
-function FillDesignList(portalPos, selectedTemplateId) {
+function FillDesignList(portalPos, selectedTemplateId, userPortalList, templateName) {
     let tempDesignList = [];
-    /*    for (let a = 0; a < userPortalList[portalPos].designList.length; a++) {
-        if (selectedTemplateId === userPortalList[portalPos].designList[a].templateId) {
-            let tempObj = new DesignData(
-                selectedTemplateId,
-                userPortalList[portalPos].designList[a].templateName,
-                userPortalList[portalPos].designList[a].designName,
-                userPortalList[portalPos].designList[a].downloaded
-            );
-            tempDesignList.push(tempObj);
+    for (let a = 0; a < userPortalList[portalPos].designList.length; a++) {
+        if (selectedTemplateId === userPortalList[portalPos].designList[a].Template_id) {
+            tempDesignList.push({
+                Name: userPortalList[portalPos].designList[a].Name,
+                Downloads: userPortalList[portalPos].designList[a].Downloads,
+            });
         }
-    }*/
+    }
     let tempList = document.createDocumentFragment();
     for (let b = 0; b < tempDesignList.length; b++) {
         let DesignItem = document.createElement('div');
         DesignItem.className = 'DesignItem';
         DesignItem.innerHTML =
             'Naam: ' +
-            tempDesignList[b].designName +
+            tempDesignList[b].Name +
             '<br />' +
             'Gebruikte Template: <br />' +
-            tempDesignList[b].templateName +
+            templateName +
             '<br />' +
-            'Gedownload: ';
-        DesignItem.innerHTML += tempDesignList[b].wasDL ? 'Ja' : 'Nee';
+            'Downloads: ';
+        DesignItem.innerHTML +=
+            tempDesignList[b].Downloads > 0 ? tempDesignList[b].Downloads : 'geen';
 
         let DesignItemBox = document.createElement('div');
         DesignItemBox.className = 'DesignItemBox';
@@ -597,14 +619,14 @@ function FillDesignList(portalPos, selectedTemplateId) {
     return tempList;
 }
 
-function DrawPreview(portalPos, selectedTemplateId) {
+function DrawPreview(portalPos, selectedTemplateId, userPortalList, templateName) {
     document.getElementById('Gbrtoevoegen').style.display = 'none';
     document.getElementById('mainViewTemplatePreview').style.display = 'block';
     document.getElementById('mainViewDesigns').style.display = 'block';
     document.getElementById('mainViewDesignsList').innerHTML = '';
     document
         .getElementById('mainViewDesignsList')
-        .appendChild(FillDesignList(portalPos, selectedTemplateId));
+        .appendChild(FillDesignList(portalPos, selectedTemplateId, userPortalList, templateName));
 }
 
 function GbrToevoegen() {
@@ -613,29 +635,109 @@ function GbrToevoegen() {
     document.getElementById('Gbrtoevoegen').style.display = 'block';
 }
 
-function ChangeCompanyName(portalPos, userPortalList) {
+async function ChangeCompanyName(portalPos, userPortalList) {
     let companyInput = prompt('Voer de nieuwe bedrijfsnaam in.');
     while (companyInput === '') {
         companyInput = prompt('Voer opnieuw de nieuwe bedrijfsnaam in. (mag niet leeg zijn)');
     }
+    console.log(userPortalList[portalPos].companyName);
+    userPortalList[portalPos].companyName = companyInput;
+    const ApiInstance = new Api(getToken());
+    const companyListDb = await ApiInstance.read('company', userPortalList[portalPos].DbId);
+    const companyList = companyListDb.content;
+    const result = await ApiInstance.update('company', companyList[0].Id, [
+        userPortalList[portalPos].companyName,
+        companyList[0].Phonenumber,
+        companyList[0].Email,
+        companyList[0].Country,
+        companyList[0].City,
+        companyList[0].Postcode,
+        companyList[0].Streetname,
+        companyList[0].Housenumber,
+    ]);
+    console.log(result);
+
     document.getElementById('userPortalItemCompanyselector ' + portalPos).innerHTML = companyInput;
     document.getElementById('mainViewHeaderText').innerHTML =
         `<h1>User Portal ` +
-        userPortalList[portalPos - 1].portalId +
+        (userPortalList[portalPos].portalId + 1) +
         `</h1>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<p class="CompanyName">` +
         document.getElementById('userPortalItemCompanyselector ' + portalPos).innerHTML +
         `</p>`;
 }
 
-function DeleteUserPortalStep(portalPos, deletePortal, userPortalList) {
+async function DeleteUserPortalStep(portalPos, deletePortal, userPortalList, SetUserPortalList) {
     if (!deletePortal) {
         document.getElementById('DeletePortalTxt').style.display = 'block';
         document.getElementById('DeletePortalConfirm').style.display = 'flex';
         return;
     }
     document.getElementById('mainView').style.display = 'none';
-    userPortalList.splice(portalPos, 1);
-    userPortalDivList.splice(portalPos, 1);
+    const ApiInstance = new Api(getToken());
+    const result = await ApiInstance.delete('company', userPortalList[portalPos].DbId);
+    console.log(result);
+    SetUserPortalList(
+        Enumerable.from(userPortalList)
+            .where((p) => p.DbId !== userPortalList[portalPos].DbId)
+            .toArray()
+    );
+}
+
+async function portalToevoegen(SetUserPortalList) {
+    if (
+        document.getElementById('newCompanyName').value === '' ||
+        document.getElementById('newCompanyEmail').value === '' ||
+        document.getElementById('newCompanyCountry').value === '' ||
+        document.getElementById('newCompanyCity').value === '' ||
+        document.getElementById('newCompanyPostcode').value === '' ||
+        document.getElementById('newCompanyStreet').value === '' ||
+        document.getElementById('newCompanyHouseNumer').value === '' ||
+        document.getElementById('newMainUserName').value === '' ||
+        document.getElementById('newMainUserEmail').value === '' ||
+        document.getElementById('newMainUserPassword').value === ''
+    )
+        return;
+
+    const ApiInstance = new Api(getToken());
+    let response = await ApiInstance.create('company', [
+        document.getElementById('newCompanyName').value,
+        document.getElementById('newCompanyPhone').value,
+        document.getElementById('newCompanyEmail').value,
+        document.getElementById('newCompanyCountry').value,
+        document.getElementById('newCompanyCity').value,
+        document.getElementById('newCompanyPostcode').value,
+        document.getElementById('newCompanyStreet').value,
+        document.getElementById('newCompanyHouseNumer').value,
+    ]);
+    console.log(response);
+
+    const companyListDb = await ApiInstance.all('company');
+    const companyList = Enumerable.from(companyListDb.content).toArray();
+
+    response = await ApiInstance.create('user', [
+        document.getElementById('newMainUserEmail').value,
+        document.getElementById('newMainUserPassword').value,
+        2,
+        document.getElementById('newMainUserName').value,
+        companyList[companyList.length - 1].Id,
+        0,
+    ]);
+
+    console.log(response);
+
+    document.getElementById('newCompanyName').value = '';
+    document.getElementById('newCompanyEmail').value = '';
+    document.getElementById('newCompanyPhone').value = '';
+    document.getElementById('newCompanyCountry').value = '';
+    document.getElementById('newCompanyCity').value = '';
+    document.getElementById('newCompanyPostcode').value = '';
+    document.getElementById('newCompanyStreet').value = '';
+    document.getElementById('newCompanyHouseNumer').value = '';
+    document.getElementById('newMainUserName').value = '';
+    document.getElementById('newMainUserEmail').value = '';
+    document.getElementById('newMainUserPassword').value = '';
+    document.getElementById('addUserPortal').style.display = 'none';
+    SetUserPortalList(await getData());
 }
 
 export default CreateExport('/admin-portal', AdminPortal, true, ['Admin']);
