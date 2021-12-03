@@ -21,6 +21,8 @@ async function getData() {
     let designListDb = await ApiInstance.all('design');
     let designList = Enumerable.from(designListDb.content).toArray();
 
+    const testArr = [];
+
     for (let listPos = 0; listPos < companyList.length; listPos++) {
         let id = 'selector ' + listPos;
 
@@ -43,6 +45,7 @@ async function getData() {
         let userListTemp = Enumerable.from(userList)
             .where((u) => u.Company_Id === companyList[listPos].Id && u.Role_Id === 1)
             .toArray();
+
         // makes new user-portal w cool new data
         let temp = new UserPortalData(
             listPos,
@@ -68,10 +71,14 @@ async function getData() {
             templateListTemp,
             designListTemp
         );
-        userPortalDivList.push(temp.portalListDivs);
-        userPortalList.push(temp);
-        console.log(temp);
+
+        testArr.push(temp);
+        // userPortalDivList.push(temp.portalListDivs);
+        // userPortalList.push(temp);
+        // console.log(temp);
     }
+
+    return testArr;
 }
 
 class UserPortalData {
@@ -91,9 +98,20 @@ let userPortalList = []; // array of UserPortalData objects
 
 function AdminPortal() {
     const [userPortalList1, SetUserPortalList] = React.useState([]);
-    getData();
+    const [data, setData] = React.useState([]);
+
+    const dataElements = [];
+
+    React.useEffect(() => {
+        (async () => {
+            const temp = await getData();
+
+            setData(temp);
+        })();
+    }, []);
+
     return (
-        <React.Fragment>
+        <div>
             {/* menubar bijna tzelfde als die in user-portal.js */}
             <div class="menuBarAdmin">
                 <div class="kyndaLogo">
@@ -123,7 +141,35 @@ function AdminPortal() {
                         <p class="listViewTxt">User Portals</p>
                     </div>
                     <div class="userPortalList" id="userPortalList">
-                        {userPortalDivList}
+                        {data.map((data) => {
+                            return (
+                                <div class="userPortalItemBox">
+                                    <div class="userPortalItem">
+                                        <div class="userPortalItemName">
+                                            {'User Portal ' + (data.portalId + 1)}
+                                            <br />
+                                        </div>
+                                        <div
+                                            class="userPortalItemCompany"
+                                            id={
+                                                'userPortalItemCompany' +
+                                                'selector ' +
+                                                data.portalId
+                                            }
+                                        >
+                                            {data.companyName}
+                                        </div>
+                                        <div
+                                            class="selectUserPortalButton"
+                                            id={'selector ' + data.portalId}
+                                            onClick={() => SelectUser('selector ' + data.portalId)}
+                                        >
+                                            Selecteren
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                     <div
                         class="addUserPortalButton"
@@ -207,7 +253,7 @@ function AdminPortal() {
                     </div>
                 </div>
             </div>
-        </React.Fragment>
+        </div>
     );
 }
 
