@@ -20,7 +20,6 @@ const Input = styled('input')({
 function TemplateEngine() {
     const [templatePos, setTemplatePos] = useState(0);
     const [exportFiles, setExportFiles] = useState(null);
-
     const [templateFiles, setTemplateFiles] = useState([]);
 
     useEffect(() => {
@@ -63,7 +62,16 @@ function TemplateEngine() {
 
                     for (let i = 0; i < files['css'].length; i++) {
                         const node = document.createElement('style');
-                        node.innerText = files['css'][i]['data'].replace(/\r?\n|\r/g, '');
+                        const css =
+                            files['css'][i]['data'] +
+                            `
+                            .selectable:hover {
+                                border: 1px solid black;
+                                border-radius: 3px;
+                                cursor: pointer;
+                            }
+                        `;
+                        node.innerHTML = css.replace(/\r?\n|\r/g, '');
                         htmlDoc.getElementsByTagName('head')[0].appendChild(node);
                     }
 
@@ -80,26 +88,18 @@ function TemplateEngine() {
                             imgTag.src = imgObj['data'];
                         }
                     }
-
+                    console.log(htmlDoc);
                     files['html'][i]['data'] = new XMLSerializer().serializeToString(htmlDoc);
                 }
 
                 setTemplateFiles(files['html']);
             })();
         }
-    }, [templatePos, exportFiles, templateFiles]);
+    }, [exportFiles, templateFiles]);
 
     const handleOnLoad = (e) => {
         const doc = e.target.contentDocument;
 
-        const style = doc.getElementsByTagName('style')[1];
-        style.innerHTML += `
-            .selectable:hover {
-                border: 1px solid black;
-                border-radius: 3px;
-                cursor: pointer;
-            }
-        `;
         const editableElements = Array.from(doc.getElementsByClassName('Basic-Text-Frame'));
 
         editableElements.forEach((el) => el.classList.add('selectable'));
@@ -155,6 +155,7 @@ function TemplateEngine() {
                     templatePos >= 0 &&
                     templatePos <= templateFiles.length - 1 && (
                         <iframe
+                            title="templateViewer"
                             className="templateEngineFrame"
                             srcDoc={templateFiles[templatePos]['data']}
                             onLoad={handleOnLoad}
