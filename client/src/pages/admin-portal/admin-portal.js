@@ -8,9 +8,9 @@ import Api from '../../helpers/Api';
 import { getToken } from '../../helpers/Token';
 import Enumerable from 'linq';
 
-async function getData() {
+async function getData(userPortalList) {
     const ApiInstance = new Api(getToken());
-
+    let postalArray = [];
     // sets the arrays w data in them from the database
     let companyListDb = await ApiInstance.all('company');
     let companyList = Enumerable.from(companyListDb.content).toArray();
@@ -20,8 +20,6 @@ async function getData() {
     var templateList = Enumerable.from(templateListDb.content).toArray();
     let designListDb = await ApiInstance.all('design');
     let designList = Enumerable.from(designListDb.content).toArray();
-
-    const testArr = [];
 
     for (let listPos = 0; listPos < companyList.length; listPos++) {
         let id = 'selector ' + listPos;
@@ -43,28 +41,12 @@ async function getData() {
             .toArray()[0];
 
         let userListTemp = Enumerable.from(userList)
-            .where((u) => u.Company_Id === companyList[listPos].Id && u.Role_Id === 1)
+            .where((u) => u.Company_Id === companyList[listPos].Id && u.Role_Id === 3)
             .toArray();
 
         // makes new user-portal w cool new data
         let temp = new UserPortalData(
             listPos,
-            (
-                <div class="userPortalItemBox">
-                    <div class="userPortalItem">
-                        <div class="userPortalItemName">
-                            {'User Portal ' + (userPortalList.length + 1)} {/* also get from db */}{' '}
-                            <br />
-                        </div>
-                        <div class="userPortalItemCompany" id={'userPortalItemCompany' + id}>
-                            {companyList[listPos].Name} {/* get this from db */}
-                        </div>
-                        <div class="selectUserPortalButton" id={id} onClick={() => SelectUser(id)}>
-                            Selecteren
-                        </div>
-                    </div>
-                </div>
-            ),
             companyList[listPos].Name,
             adminUser,
             userListTemp,
@@ -72,19 +54,15 @@ async function getData() {
             designListTemp
         );
 
-        testArr.push(temp);
-        // userPortalDivList.push(temp.portalListDivs);
-        // userPortalList.push(temp);
-        // console.log(temp);
+        postalArray.push(temp);
     }
 
-    return testArr;
+    return postalArray;
 }
 
 class UserPortalData {
-    constructor(id, divs, companyName, mainUser, employeeList, templateList, designList) {
+    constructor(id, companyName, mainUser, employeeList, templateList, designList) {
         this.portalId = id;
-        this.portalListDivs = divs; // are the divs that appear in the userportal list on the side
         this.companyName = companyName; // get from database
         this.mainUserList = mainUser;
         this.registeredEmployeeList = employeeList; //get from database; is {id: id, name: name}
@@ -94,19 +72,15 @@ class UserPortalData {
 }
 
 let userPortalDivList = []; // array for divs
-let userPortalList = []; // array of UserPortalData objects
 
 function AdminPortal() {
-    const [userPortalList1, SetUserPortalList] = React.useState([]);
-    const [data, setData] = React.useState([]);
-
-    const dataElements = [];
+    //const [userPortalList1, SetUserPortalList] = React.useState([]);
+    let userPortalDivList = [];
+    const [userPortalList, SetUserPortalList] = React.useState([]);
 
     React.useEffect(() => {
         (async () => {
-            const temp = await getData();
-
-            setData(temp);
+            SetUserPortalList(await getData(userPortalList));
         })();
     }, []);
 
@@ -141,7 +115,7 @@ function AdminPortal() {
                         <p class="listViewTxt">User Portals</p>
                     </div>
                     <div class="userPortalList" id="userPortalList">
-                        {data.map((data) => {
+                        {userPortalList.map((data) => {
                             return (
                                 <div class="userPortalItemBox">
                                     <div class="userPortalItem">
@@ -162,7 +136,12 @@ function AdminPortal() {
                                         <div
                                             class="selectUserPortalButton"
                                             id={'selector ' + data.portalId}
-                                            onClick={() => SelectUser('selector ' + data.portalId)}
+                                            onClick={() =>
+                                                SelectUser(
+                                                    'selector ' + data.portalId,
+                                                    userPortalList
+                                                )
+                                            }
                                         >
                                             Selecteren
                                         </div>
@@ -306,8 +285,9 @@ function employeedata() {
     return employeedatatemp;
 }
 */
-function SelectUser(id) {
+function SelectUser(id, userPortalList) {
     const pos = id.replace('selector ', '');
+    console.log(pos);
     document.getElementById('mainView').style.display = 'flex';
 
     // unloads any menu's from a previously selected user-portal
@@ -319,7 +299,7 @@ function SelectUser(id) {
     // sets relevant data for header (portal id, company name)
     document.getElementById('mainViewHeaderText').innerHTML =
         `<h1>User Portal ` +
-        userPortalList[pos - 1].portalId +
+        (userPortalList[pos].portalId + 1) +
         `</h1>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<p class="CompanyName">` +
         document.getElementById('userPortalItemCompanyselector ' + pos).innerHTML +
         `</p>`;
@@ -327,22 +307,26 @@ function SelectUser(id) {
     // sets relevant data for main user display (id, name, e-mail)
     document.getElementById('mainViewUserData').innerHTML =
         `<p class="mainViewUserDataText">ID: ` +
-        userPortalList[pos - 1].mainUserList.id +
+        userPortalList[pos].mainUserList.Id +
         `<br/>` +
         'Naam: ' +
-        userPortalList[pos - 1].mainUserList.name +
+        userPortalList[pos].mainUserList.Name +
         `<br/>` +
         'E-mail: ' +
-        userPortalList[pos - 1].mainUserList.contact +
+        userPortalList[pos].mainUserList.Email +
         `</p>`;
 
     // sets relevant data for users in portal
     document.getElementById('mainViewUserDataList').innerHTML = '';
-    document.getElementById('mainViewUserDataList').appendChild(FillUserDataList(pos - 1));
+    document
+        .getElementById('mainViewUserDataList')
+        .appendChild(FillUserDataList(pos, userPortalList));
 
     // sets relevant data for download stats
     document.getElementById('mainViewTemplatesList').innerHTML = '';
-    document.getElementById('mainViewTemplatesList').appendChild(FillTemplateList(pos - 1));
+    document
+        .getElementById('mainViewTemplatesList')
+        .appendChild(FillTemplateList(pos, userPortalList));
 
     // adds onclick to bedrijfnaam wijzigen & delete user-portal buttons
     document.getElementById('BedrijfnaamWijzigen').onclick = function () {
@@ -405,7 +389,7 @@ function AddUserPortal() {}
     userPortalList.push(temp);
 }*/
 
-function FillUserDataList(portalPos) {
+function FillUserDataList(portalPos, userPortalList) {
     // fills the list of registered users in mainView
     let tempList = document.createDocumentFragment();
     for (let a = 0; a < userPortalList[portalPos].registeredEmployeeList.length; a++) {
@@ -420,13 +404,13 @@ function FillUserDataList(portalPos) {
         userItem.className = 'userItem';
         userItem.innerHTML =
             'ID: ' +
-            userPortalList[portalPos].registeredEmployeeList[a].id +
+            userPortalList[portalPos].registeredEmployeeList[a].Id +
             `<br />` +
             'Naam: ' +
-            userPortalList[portalPos].registeredEmployeeList[a].name +
+            userPortalList[portalPos].registeredEmployeeList[a].Name +
             '<br />' +
             'E-mail: ' +
-            userPortalList[portalPos].registeredEmployeeList[a].contact;
+            userPortalList[portalPos].registeredEmployeeList[a].Email;
         userItem.appendChild(deleteUser);
 
         let userItemBox = document.createElement('div');
@@ -473,7 +457,7 @@ function FillUserDataList(portalPos) {
         userItem.className = 'userItem';
         userItem.innerHTML =
             'ID: ' +
-            (userPortalList[portalPos].registeredEmployeeList.length - 1) +
+            (userPortalList[portalPos].registeredEmployeeList.length + 1) +
             `<br />` +
             'Naam: ' +
             document.getElementById('GbrNaamInvoer').value +
@@ -496,7 +480,7 @@ function FillUserDataList(portalPos) {
     return tempList;
 }
 
-function DeleteUser(pos, portalPos) {
+function DeleteUser(pos, portalPos, userPortalList) {
     let registeredEmployeeListtemp = userPortalList[portalPos].registeredEmployeeList;
     registeredEmployeeListtemp[pos].id = null;
     registeredEmployeeListtemp[pos].name = null;
@@ -511,17 +495,17 @@ function DeleteUser(pos, portalPos) {
     document.getElementById('mainViewUserDataList').appendChild(FillUserDataList(portalPos));
 }
 
-function FillTemplateList(portalPos) {
+function FillTemplateList(portalPos, userPortalList) {
     let statsList = [];
-
+    console.log(userPortalList[portalPos].importedTemplateList.length);
     for (var a = 0; a < userPortalList[portalPos].importedTemplateList.length; a++) {
         let total = 0;
         let totalEuro = 0;
         for (var b = 0; b < userPortalList[portalPos].designList.length; b++) {
             if (
-                userPortalList[portalPos].importedTemplateList[a].id ===
-                    userPortalList[portalPos].designList[b].templateId &&
-                userPortalList[portalPos].designList[b].downloaded === true
+                userPortalList[portalPos].importedTemplateList[a].Id ===
+                    userPortalList[portalPos].designList[b].Template_id &&
+                userPortalList[portalPos].designList[b].Downloads > 0
             ) {
                 total++;
                 totalEuro = totalEuro + 4.99;
@@ -534,7 +518,17 @@ function FillTemplateList(portalPos) {
             totalEuro
         );
         statsList.push(tempObj);*/
+        statsList.push(
+            // maak hier n dictionary van
+            [
+                userPortalList[portalPos].importedTemplateList[a].Id,
+                userPortalList[portalPos].importedTemplateList[a].name,
+                total,
+                totalEuro,
+            ]
+        );
     }
+    console.log(statsList);
     let tempList = document.createDocumentFragment();
     for (var c = 0; c < statsList.length; c++) {
         let ShowTemplate = document.createElement('div');
@@ -619,7 +613,7 @@ function GbrToevoegen() {
     document.getElementById('Gbrtoevoegen').style.display = 'block';
 }
 
-function ChangeCompanyName(portalPos) {
+function ChangeCompanyName(portalPos, userPortalList) {
     let companyInput = prompt('Voer de nieuwe bedrijfsnaam in.');
     while (companyInput === '') {
         companyInput = prompt('Voer opnieuw de nieuwe bedrijfsnaam in. (mag niet leeg zijn)');
@@ -633,7 +627,7 @@ function ChangeCompanyName(portalPos) {
         `</p>`;
 }
 
-function DeleteUserPortalStep(portalPos, deletePortal) {
+function DeleteUserPortalStep(portalPos, deletePortal, userPortalList) {
     if (!deletePortal) {
         document.getElementById('DeletePortalTxt').style.display = 'block';
         document.getElementById('DeletePortalConfirm').style.display = 'flex';
