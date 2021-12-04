@@ -8,7 +8,7 @@ import Api from '../../helpers/Api';
 import { getToken } from '../../helpers/Token';
 import Enumerable from 'linq';
 
-async function getData(userPortalList) {
+async function getData() {
     const ApiInstance = new Api(getToken());
     let portalArray = [];
     // sets the arrays w data in them from the database
@@ -71,12 +71,14 @@ class UserPortalData {
     }
 }
 
+let portalPosition = -1;
+
 function AdminPortal() {
     const [userPortalList, SetUserPortalList] = React.useState([]);
 
     React.useEffect(() => {
         (async () => {
-            SetUserPortalList(await getData(userPortalList));
+            SetUserPortalList(await getData());
         })();
     }, []);
 
@@ -193,7 +195,12 @@ function AdminPortal() {
                             </div>
                         </div>
                         <div className="DoubleButtons">
-                            <div className="HoofdgebruikerWijzigen">
+                            <div
+                                className="HoofdgebruikerWijzigen"
+                                onClick={() =>
+                                    hoofdgebruikerWijzigen(userPortalList, SetUserPortalList)
+                                }
+                            >
                                 <h3>Hoofdgebruiker account wijzigen</h3>
                             </div>
                             <div className="BedrijfnaamWijzigen" id="BedrijfnaamWijzigen">
@@ -346,6 +353,7 @@ function AdminPortal() {
 
 function SelectUser(id, userPortalList, SetUserPortalList) {
     const pos = id.replace('selector ', '');
+    portalPosition = pos;
     document.getElementById('mainView').style.display = 'flex';
 
     // unloads any menu's from a previously selected user-portal
@@ -365,7 +373,7 @@ function SelectUser(id, userPortalList, SetUserPortalList) {
     // sets relevant data for main user display (id, name, e-mail)
     if (userPortalList[pos].mainUserList) {
         document.getElementById('mainViewUserData').innerHTML =
-            `<p class="mainViewUserDataText">ID: ` +
+            `<p class="mainViewUserDataText" id="mainViewUserDataText">ID: ` +
             userPortalList[pos].mainUserList.Id +
             `<br/>` +
             'Naam: ' +
@@ -373,7 +381,9 @@ function SelectUser(id, userPortalList, SetUserPortalList) {
             `<br/>` +
             'E-mail: ' +
             userPortalList[pos].mainUserList.Email +
-            `</p>`;
+            `</p><div class="changeMainUserText" id="changeMainUserText">Naam gebruiker:
+            <input type="text" class="changeMainUser" id="changeMainUser"/>
+            <div class="setNewMainUser" id="setNewMainUser">Maak hoofdgebruiker</div></div>`;
     }
 
     // sets relevant data for users in portal
@@ -738,6 +748,76 @@ async function portalToevoegen(SetUserPortalList) {
     document.getElementById('newMainUserPassword').value = '';
     document.getElementById('addUserPortal').style.display = 'none';
     SetUserPortalList(await getData());
+}
+
+function hoofdgebruikerWijzigen(userPortalList, SetUserPortalList) {
+    document.getElementById('mainViewUserDataText').style.display = 'none';
+    document.getElementById('mainViewUserData').style.display = 'flex';
+    document.getElementById('changeMainUserText').style.display = 'flex';
+    document.getElementById('setNewMainUser').onclick = async function () {
+        if (
+            document.getElementById('changeMainUser').value !== '' &&
+            Enumerable.from(userPortalList[portalPosition].registeredEmployeeList)
+                .select((u) => u.Name)
+                .contains(document.getElementById('changeMainUser').value)
+        ) {
+            const oldMainUser = userPortalList[portalPosition].mainUserList;
+            const NewMainUser = Enumerable.from(
+                userPortalList[portalPosition].registeredEmployeeList
+            )
+                .where((u) => u.Name === document.getElementById('changeMainUser').value)
+                .toArray();
+            const ApiInstance = new Api(getToken());
+            let result = await ApiInstance.update(
+                'user',
+                userPortalList[portalPosition].mainUserList.Id,
+                [
+                    userPortalList[portalPosition].mainUserList.Email,
+                    userPortalList[portalPosition].mainUserList.Password,
+                    3,
+                    userPortalList[portalPosition].mainUserList.Name,
+                    userPortalList[portalPosition].mainUserList.Company_Id,
+                    userPortalList[portalPosition].mainUserList.Is_logged_on,
+                ]
+            );
+
+            if (result.status !== 'SUCCESS') return;
+
+            result = await ApiInstance.update('user', NewMainUser[0].Id, [
+                NewMainUser[0].Email,
+                NewMainUser[0].Password,
+                2,
+                NewMainUser[0].Name,
+                NewMainUser[0].Company_Id,
+                NewMainUser[0].Is_logged_on,
+            ]);
+
+            if (result.status !== 'SUCCESS') return;
+
+            userPortalList[portalPosition].registeredEmployeeList.push(
+                userPortalList[portalPosition].mainUserList
+            );
+            userPortalList[portalPosition].registeredEmployeeList.splice(
+                Enumerable.from(userPortalList[portalPosition].registeredEmployeeList)
+                    .select((u) => u.Id)
+                    .indexOf(oldMainUser.Id) - 1,
+                1
+            );
+            userPortalList[portalPosition].mainUserList = NewMainUser[0];
+
+            document.getElementById('mainViewUserDataText').style.display = 'block';
+            document.getElementById('mainViewUserData').style.display = 'block';
+            document.getElementById('changeMainUserText').style.display = 'none';
+            SelectUser(
+                'selector ' + userPortalList[portalPosition].portalId,
+                userPortalList,
+                SetUserPortalList
+            );
+            return;
+        }
+        console.log('you done wrong');
+        //alert
+    };
 }
 
 export default CreateExport('/admin-portal', AdminPortal, true, ['Admin']);
