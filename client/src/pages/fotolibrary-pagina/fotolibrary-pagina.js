@@ -15,10 +15,10 @@ import {
 import { Settings } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 import kyndalogo from './kynda.png';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CreateExport } from '../../helpers/Export';
 import Api from '../../helpers/Api';
-import { getToken } from '../../helpers/Token';
+import { getPayloadAsJson, getToken } from '../../helpers/Token';
 
 //===========MATERIAL DESIGN styles===========
 const Input = styled('input')({
@@ -52,8 +52,17 @@ const ApiInstance = new Api(getToken());
 
 function Gallery() {
     const [isAdmin] = useState(true);
-    const [fotolibrary, updateFotolibrary] = useState([]);
+    const [images, setImages] = useState([]);
     const styles = useStyles();
+
+    useEffect(() => {
+        (async () => {
+            const imagesFromDatabase = await ApiInstance.all('image');
+            const images = imagesFromDatabase.content;
+            setImages(images);
+        })();
+    }, []);
+
     return (
         <>
             <CssBaseline />
@@ -69,7 +78,7 @@ function Gallery() {
                     <Typography variant="h5" style={{ color: 'black' }}>
                         Fotogalerij
                     </Typography>
-                    <Grid container spacing={2} justify="flex-end">
+                    <Grid container spacing={2} justifyContent="flex-end">
                         <Grid item>{adminButton(isAdmin)}</Grid>
                         <Grid item>
                             <div className="searchbar">
@@ -95,8 +104,73 @@ function Gallery() {
                 <div>
                     <Container maxWidth="md" className={styles.cardGrid}>
                         <Grid container spacing={4}>
-                            {fotolibrary}
-                            {/* De state-update vind plaats in de gallery functie maar waar moet ik die aanroepen? */}
+                            {images.length === 0 ? (
+                                <Typography gutterBottom variant="h6" align="center">
+                                    Geen foto's
+                                </Typography>
+                            ) : (
+                                images.map((image, index) => {
+                                    const initialImageURL =
+                                        process.env.REACT_APP_SERVER_URL + image.Filepath;
+                                    const actualImageURL = initialImageURL.replace(/\\/g, '/');
+                                    const imageFilePath = image.Filepath;
+                                    const imagePathArray = imageFilePath.split('\\');
+                                    const imagePathName = imagePathArray[imagePathArray.length - 1];
+                                    const imageName = imagePathName.split('.');
+                                    console.log(image.Id);
+
+                                    let token = getPayloadAsJson();
+                                    if (token.company === image.Company_id) {
+                                        return (
+                                            <Grid item xs={12} sm={6} md={4} key={index}>
+                                                <Card className={styles.card}>
+                                                    <Button
+                                                        id={'btn' + index}
+                                                        variant="contained"
+                                                        style={deleteButton(isAdmin)}
+                                                        onMouseEnter={() =>
+                                                            imageOnHover(index, styles)
+                                                        }
+                                                        onMouseLeave={() =>
+                                                            imageLeave(index, styles)
+                                                        }
+                                                        onClick={(e) =>
+                                                            selectedPicture(
+                                                                e,
+                                                                isAdmin ? 'delete' : 'select',
+                                                                image.Id
+                                                            )
+                                                        }
+                                                    >
+                                                        {isAdmin ? 'Verwijderen' : 'Selecteren'}
+                                                    </Button>
+                                                    <CardMedia
+                                                        id={'img' + index}
+                                                        className={styles.cardMedia}
+                                                        title={imageName[0]}
+                                                        image={actualImageURL}
+                                                        onMouseEnter={() =>
+                                                            imageOnHover(index, styles)
+                                                        }
+                                                        onMouseLeave={() =>
+                                                            imageLeave(index, styles)
+                                                        }
+                                                    />
+                                                    <CardContent className={styles.cardContent}>
+                                                        <Typography
+                                                            gutterBottom
+                                                            variant="h6"
+                                                            align="center"
+                                                        >
+                                                            {imageName[0]}
+                                                        </Typography>
+                                                    </CardContent>
+                                                </Card>
+                                            </Grid>
+                                        );
+                                    }
+                                })
+                            )}
                         </Grid>
                     </Container>
                 </div>
@@ -132,7 +206,7 @@ function selectedPicture(picture, type, id) {
     if (type === 'select') {
         alert('Uw foto is geselecteerd!');
     } else {
-        ApiInstance.delete('image', id);
+        ApiInstance.removeImage(id);
     }
 }
 
@@ -165,61 +239,4 @@ function deleteButton(isAdmin) {
     } else {
         return { color: 'white', backgroundColor: 'blue', opacity: 0 };
     }
-}
-
-async function getImagesFromDatabase() {
-    const imagesFromDatabase = await ApiInstance.all('image');
-    const images = imagesFromDatabase.content;
-    return images;
-}
-
-function gallery(isAdmin, styles, fotolibrary, updateFotolibrary) {
-    getImagesFromDatabase().then((listOfImages) => {
-        console.log(listOfImages);
-        if (listOfImages.length === 0) {
-            updateFotolibrary((fotolibrary) => [
-                ...fotolibrary,
-                <Typography gutterBottom variant="h6" align="center">
-                    Geen foto's
-                </Typography>,
-            ]);
-        } else {
-            for (let a = 0; a < listOfImages.length; a++) {
-                // if (listOfImages[a].Company_id == )
-                const imageURL = process.env.REACT_APP_SERVER_URL + listOfImages[a].Filepath;
-                updateFotolibrary((fotolibrary) => [
-                    ...fotolibrary,
-                    <Grid item xs={12} sm={6} md={4}>
-                        <Card className={styles.card}>
-                            <Button
-                                id={'btn' + a}
-                                variant="contained"
-                                style={deleteButton(isAdmin)}
-                                onMouseEnter={() => imageOnHover(a, styles)}
-                                onMouseLeave={() => imageLeave(a, styles)}
-                                onClick={(e) =>
-                                    selectedPicture(e, isAdmin ? 'delete' : 'select', a)
-                                }
-                            >
-                                {isAdmin ? 'Verwijderen' : 'Selecteren'}
-                            </Button>
-                            <CardMedia
-                                id={'img' + a}
-                                className={styles.cardMedia}
-                                title="imageTitle"
-                                image={imageURL}
-                                onMouseEnter={() => imageOnHover(a, styles)}
-                                onMouseLeave={() => imageLeave(a, styles)}
-                            />
-                            <CardContent className={styles.cardContent}>
-                                <Typography gutterBottom variant="h6" align="center">
-                                    Naam van foto
-                                </Typography>
-                            </CardContent>
-                        </Card>
-                    </Grid>,
-                ]);
-            }
-        }
-    });
 }
