@@ -79,7 +79,7 @@ function Gallery() {
                         Fotogalerij
                     </Typography>
                     <Grid container spacing={2} justifyContent="flex-end">
-                        <Grid item>{adminButton(isAdmin, images, setImages)}</Grid>
+                        <Grid item>{adminButton(isAdmin)}</Grid>
                         <Grid item>
                             <div className="searchbar">
                                 <input type="text" placeholder="Zoeken..." />
@@ -138,9 +138,7 @@ function Gallery() {
                                                             selectedPicture(
                                                                 e,
                                                                 isAdmin ? 'delete' : 'select',
-                                                                image.Id,
-                                                                images,
-                                                                setImages
+                                                                image.Id
                                                             )
                                                         }
                                                     >
@@ -183,7 +181,7 @@ function Gallery() {
 
 export default CreateExport('/fotogalerij', Gallery);
 
-function adminButton(isAdmin, images, setImages) {
+function adminButton(isAdmin) {
     if (isAdmin) {
         return (
             <label htmlFor="contained-button-file">
@@ -191,17 +189,19 @@ function adminButton(isAdmin, images, setImages) {
                     id="contained-button-file"
                     multiple
                     type="file"
-                    accept="image/*"
                     onChange={(e) => {
                         (async () => {
+                            var extValidation = /(\.jpg|\.jpeg|\.gif|\.png)$/i;
                             for (let i = 0; i < e.target.files.length; i++) {
-                                console.log('ik zit nu in de loop');
                                 if (e.target.files[i].size > 20971520) {
-                                    console.log('Mijn foto is te groot');
                                     alert('Uw foto is te groot!');
-                                } else if (fileNameValidation(e.target.files[i].name)) {
-                                    console.log('Mijn foto bevat een spatie of verkeerde ext');
-                                    alert('Uw foto bevat een spatie in de naam!');
+                                } else if (
+                                    fileNameValidation(e.target.files[i].name) ||
+                                    !extValidation.exec(e.target.files[i].name)
+                                ) {
+                                    alert(
+                                        'Uw foto bevat een spatie in de naam of de verkeerde extensie!'
+                                    );
                                 } else {
                                     await ApiInstance.createImage(e.target.files[i]);
                                     window.location.reload();
@@ -238,7 +238,7 @@ function imageLeave(id) {
     document.getElementById(buttonId).style.opacity = '0';
 }
 
-function selectedPicture(picture, type, id, images, setImages) {
+function selectedPicture(picture, type, id) {
     picture.preventDefault();
     if (type === 'select') {
         alert('Uw foto is geselecteerd!');
