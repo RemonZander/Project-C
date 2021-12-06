@@ -73,8 +73,7 @@ for (let i = 0; i < sqlData.length; i++) {
         ('moderator3@gmail.com', 'Moderator1!', 2, 'Karen Kartoffeln', 3, FALSE),
         ('user1@gmail.com', 'User1!', 3, 'Pollination Technician 1', 1, FALSE),
         ('user2@gmail.com', 'User1!', 3, 'Helma Hobbelkut', 2, FALSE),
-        ('user3@gmail.com', 'User1!', 3, 'Qwerty Azerty', 3, FALSE)
-        `
+        ('user3@gmail.com', 'User1!', 3, 'Qwerty Azerty', 3, FALSE)`
   );
 
   await conn.runStatement(
