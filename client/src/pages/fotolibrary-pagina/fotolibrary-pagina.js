@@ -79,7 +79,7 @@ function Gallery() {
                         Fotogalerij
                     </Typography>
                     <Grid container spacing={2} justifyContent="flex-end">
-                        <Grid item>{adminButton(isAdmin)}</Grid>
+                        <Grid item>{adminButton(isAdmin, images, setImages)}</Grid>
                         <Grid item>
                             <div className="searchbar">
                                 <input type="text" placeholder="Zoeken..." />
@@ -117,6 +117,7 @@ function Gallery() {
                                     const imagePathArray = imageFilePath.split('\\');
                                     const imagePathName = imagePathArray[imagePathArray.length - 1];
                                     const imageName = imagePathName.split('.');
+                                    console.log(image.Id);
 
                                     let token = getPayloadAsJson();
                                     if (token.company === image.Company_id) {
@@ -137,7 +138,9 @@ function Gallery() {
                                                             selectedPicture(
                                                                 e,
                                                                 isAdmin ? 'delete' : 'select',
-                                                                image.Id
+                                                                image.Id,
+                                                                images,
+                                                                setImages
                                                             )
                                                         }
                                                     >
@@ -200,16 +203,17 @@ function imageLeave(id) {
     document.getElementById(buttonId).style.opacity = '0';
 }
 
-function selectedPicture(picture, type, id) {
+function selectedPicture(picture, type, id, images, setImages) {
     picture.preventDefault();
     if (type === 'select') {
         alert('Uw foto is geselecteerd!');
     } else {
+        console.log(id);
         ApiInstance.removeImage(id);
     }
 }
 
-function adminButton(isAdmin) {
+function adminButton(isAdmin, images, setImages) {
     if (isAdmin) {
         return (
             <label htmlFor="contained-button-file">
@@ -224,7 +228,12 @@ function adminButton(isAdmin) {
                         alert('Uw foto is toegevoegd!');
                     }}
                 />
-                <Button variant="contained" component="span" color="primary">
+                <Button
+                    variant="contained"
+                    component="span"
+                    color="primary"
+                    onClick={() => setImages(images)}
+                >
                     Foto's toevoegen
                 </Button>
             </label>
