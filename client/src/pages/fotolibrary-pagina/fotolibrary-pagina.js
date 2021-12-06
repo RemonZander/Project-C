@@ -117,7 +117,7 @@ function Gallery() {
                                     const imagePathArray = imageFilePath.split('\\');
                                     const imagePathName = imagePathArray[imagePathArray.length - 1];
                                     const imageName = imagePathName.split('.');
-                                    console.log(image.Id);
+                                    //console.log(image.Id);
 
                                     let token = getPayloadAsJson();
                                     if (token.company === image.Company_id) {
@@ -209,7 +209,7 @@ function selectedPicture(picture, type, id, images, setImages) {
         alert('Uw foto is geselecteerd!');
     } else {
         console.log(id);
-        ApiInstance.removeImage(id);
+        //ApiInstance.removeImage(id);
     }
 }
 
@@ -222,22 +222,30 @@ function adminButton(isAdmin, images, setImages) {
                     multiple
                     type="file"
                     onChange={(e) => {
+                        console.log('ik bereid me voor op algoritme');
                         var extCheck = /(\.jpg|\.jpeg|\.gif|\.png)$/i;
                         for (let i = 0; i < e.target.files.length; i++) {
+                            console.log('ik zit nu in de loop');
                             if (e.target.files[i].size > 20971520) {
+                                console.log('Mijn foto is te groot');
                                 alert('Uw foto is te groot!');
+                                window.location.reload();
                             } else if (
                                 !extCheck.exec(e.target.files[i].name) ||
                                 fileNameValidation(e.target.files[i].name)
                             ) {
+                                console.log('Mijn foto bevat een spatie of verkeerde ext');
                                 alert(
                                     'Uw foto bevat de verkeerde extensie of een spatie in de naam!'
                                 );
+                                window.location.reload();
                             } else {
                                 ApiInstance.createImage(e.target.files[i]);
+                                console.log('Mijn foto is opgeslagen!');
                                 alert('Uw foto is toegevoegd!');
                                 window.location.reload();
                             }
+                            console.log('ik ben buiten de loop');
                         }
                     }}
                 />
