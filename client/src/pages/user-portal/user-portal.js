@@ -23,7 +23,7 @@ function UserPortal() {
                     </select>
                 </div>
                 <div class="logoutbutton">
-                    <loguitbutton>Uitloggen</loguitbutton>
+                    <div className="logUitButton">Uitloggen</div>
                 </div>
 
                 <div class="kyndacog">

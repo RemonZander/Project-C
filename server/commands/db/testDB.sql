@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS "user" (
 	"Id"	integer NOT NULL,
 	"Email"	text NOT NULL UNIQUE,
 	"Password"	text NOT NULL,
+	"Name" text NUT NULL,
 	"Role_Id"	integer NOT NULL,
 	"Company_Id"	integer NOT NULL,
 	"Is_logged_on"	BOOLEAN,

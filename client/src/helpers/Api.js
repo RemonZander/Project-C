@@ -18,7 +18,7 @@ export default class Api {
             options = {
                 method: method,
                 headers: { Authorization: 'Bear ' + this.token },
-                body: body,
+                body: JSON.stringify(body),
             };
         }
 
