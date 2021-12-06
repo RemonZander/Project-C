@@ -137,7 +137,7 @@ function AdminPortal() {
                                                 document.getElementById(
                                                     'addUserPortal'
                                                 ).style.display = 'none';
-                                                SelectUser(
+                                                onSelectUserPortalButtonClick(
                                                     'selector ' + data.portalId,
                                                     userPortalList,
                                                     SetUserPortalList
@@ -189,7 +189,10 @@ function AdminPortal() {
                             >
                                 <h3>Import template</h3>
                             </div>
-                            <div className="GebruikerToevoegen" onClick={() => GbrToevoegen()}>
+                            <div
+                                className="GebruikerToevoegen"
+                                onClick={() => onAddUserButtonClick()}
+                            >
                                 <h3>Gebruiker toevoegen</h3>
                             </div>
                         </div>
@@ -197,7 +200,7 @@ function AdminPortal() {
                             <div
                                 className="HoofdgebruikerWijzigen"
                                 onClick={() =>
-                                    hoofdgebruikerWijzigen(userPortalList, SetUserPortalList)
+                                    onChangeMainUserButtonClick(userPortalList, SetUserPortalList)
                                 }
                             >
                                 <h3>Hoofdgebruiker account wijzigen</h3>
@@ -249,7 +252,7 @@ function AdminPortal() {
                 </div>
                 <div className="addUserPortal" id="addUserPortal">
                     <div className="newUserPortalHeaders">
-                        <div className="newCompanyHeader">Bedrijf gegevens</div>
+                        <div className="newCompanyHeader">Bedrijfsgegevens</div>
                         <div className="newMainUserHeader">Hoofdgebruiker</div>
                     </div>
                     <div className="newCompanyData">
@@ -340,7 +343,7 @@ function AdminPortal() {
                     </div>
                     <div
                         className="AddNewUserPortalButton"
-                        onClick={() => portalToevoegen(SetUserPortalList)}
+                        onClick={() => onAddNewUserPortalButtonClick(SetUserPortalList)}
                     >
                         Nieuwe user portal toevoegen
                     </div>
@@ -350,7 +353,7 @@ function AdminPortal() {
     );
 }
 
-function SelectUser(id, userPortalList, SetUserPortalList) {
+function onSelectUserPortalButtonClick(id, userPortalList, SetUserPortalList) {
     const pos = id.replace('selector ', '');
     portalPosition = pos;
     document.getElementById('mainView').style.display = 'flex';
@@ -389,23 +392,23 @@ function SelectUser(id, userPortalList, SetUserPortalList) {
     document.getElementById('mainViewUserDataList').innerHTML = '';
     document
         .getElementById('mainViewUserDataList')
-        .appendChild(FillUserDataList(pos, userPortalList));
+        .appendChild(loadUserPortalUsers(pos, userPortalList));
 
     // sets relevant data for download stats
     document.getElementById('mainViewTemplatesList').innerHTML = '';
     document
         .getElementById('mainViewTemplatesList')
-        .appendChild(FillTemplateList(pos, userPortalList));
+        .appendChild(loadUserPortalTemplates(pos, userPortalList));
 
     // adds onclick to bedrijfnaam wijzigen & delete user-portal buttons
     document.getElementById('BedrijfnaamWijzigen').onclick = function () {
-        ChangeCompanyName(pos, userPortalList);
+        onChangeCompanyNameButtonClick(pos, userPortalList);
     };
     document.getElementById('DeletePortal').onclick = function () {
-        DeleteUserPortalStep(pos, false, userPortalList, SetUserPortalList);
+        onDeleteUserPortalButtonClick(pos, false, userPortalList, SetUserPortalList);
     };
     document.getElementById('DeletePortalConfirm').onclick = function () {
-        DeleteUserPortalStep(pos, true, userPortalList, SetUserPortalList);
+        onDeleteUserPortalButtonClick(pos, true, userPortalList, SetUserPortalList);
     };
 
     // continue making selection screen
@@ -416,14 +419,14 @@ function SelectUser(id, userPortalList, SetUserPortalList) {
     */
 }
 
-function FillUserDataList(portalPos, userPortalList) {
+function loadUserPortalUsers(portalPos, userPortalList) {
     // fills the list of registered users in mainView
     let tempList = document.createDocumentFragment();
     for (let a = 0; a < userPortalList[portalPos].registeredEmployeeList.length; a++) {
         let deleteUser = document.createElement('div');
         deleteUser.className = 'deleteUser';
         deleteUser.onclick = function () {
-            DeleteUser(a, portalPos, userPortalList);
+            onDeleteUserButtonClick(a, portalPos, userPortalList);
         };
         deleteUser.innerHTML = 'Verwijderen';
 
@@ -482,7 +485,7 @@ function FillUserDataList(portalPos, userPortalList) {
         let deleteUser = document.createElement('div');
         deleteUser.className = 'deleteUser';
         deleteUser.onclick = function () {
-            DeleteUser(
+            onDeleteUserButtonClick(
                 userPortalList[portalPos].registeredEmployeeList.length - 1,
                 portalPos,
                 userPortalList
@@ -517,7 +520,7 @@ function FillUserDataList(portalPos, userPortalList) {
     return tempList;
 }
 
-async function DeleteUser(pos, portalPos, userPortalList) {
+async function onDeleteUserButtonClick(pos, portalPos, userPortalList) {
     const ApiInstance = new Api(getToken());
     const result = await ApiInstance.delete(
         'user',
@@ -534,10 +537,10 @@ async function DeleteUser(pos, portalPos, userPortalList) {
     document.getElementById('mainViewUserDataList').innerHTML = '';
     document
         .getElementById('mainViewUserDataList')
-        .appendChild(FillUserDataList(portalPos, userPortalList));
+        .appendChild(loadUserPortalUsers(portalPos, userPortalList));
 }
 
-function FillTemplateList(portalPos, userPortalList) {
+function loadUserPortalTemplates(portalPos, userPortalList) {
     let statsList = [];
     for (var a = 0; a < userPortalList[portalPos].importedTemplateList.length; a++) {
         let total = 0;
@@ -570,7 +573,7 @@ function FillTemplateList(portalPos, userPortalList) {
         let TempPos = statsList[c].Id;
         let name = statsList[c].name;
         ShowTemplate.onclick = function () {
-            DrawPreview(portalPos, TempPos, userPortalList, name);
+            loadUserPortalTemplatePreview(portalPos, TempPos, userPortalList, name);
         };
         ShowTemplate.innerHTML = 'Bekijk Template';
 
@@ -580,7 +583,7 @@ function FillTemplateList(portalPos, userPortalList) {
             'Naam: ' +
             statsList[c].name +
             `<br />` +
-            'Aantal Downloads: ' +
+            'Totaal Downloads: ' +
             statsList[c].total +
             `<br />` +
             "Euro's: " +
@@ -597,7 +600,7 @@ function FillTemplateList(portalPos, userPortalList) {
     return tempList;
 }
 
-function FillDesignList(portalPos, selectedTemplateId, userPortalList, templateName) {
+function loadUserPortalDesigns(portalPos, selectedTemplateId, userPortalList, templateName) {
     let tempDesignList = [];
     for (let a = 0; a < userPortalList[portalPos].designList.length; a++) {
         if (selectedTemplateId === userPortalList[portalPos].designList[a].Template_id) {
@@ -630,27 +633,32 @@ function FillDesignList(portalPos, selectedTemplateId, userPortalList, templateN
     return tempList;
 }
 
-function DrawPreview(portalPos, selectedTemplateId, userPortalList, templateName) {
+function loadUserPortalTemplatePreview(
+    portalPos,
+    selectedTemplateId,
+    userPortalList,
+    templateName
+) {
     document.getElementById('Gbrtoevoegen').style.display = 'none';
     document.getElementById('mainViewTemplatePreview').style.display = 'block';
     document.getElementById('mainViewDesigns').style.display = 'block';
     document.getElementById('mainViewDesignsList').innerHTML = '';
     document
         .getElementById('mainViewDesignsList')
-        .appendChild(FillDesignList(portalPos, selectedTemplateId, userPortalList, templateName));
+        .appendChild(
+            loadUserPortalDesigns(portalPos, selectedTemplateId, userPortalList, templateName)
+        );
 }
 
-function GbrToevoegen() {
+function onAddUserButtonClick() {
     document.getElementById('mainViewTemplatePreview').style.display = 'none';
     document.getElementById('mainViewDesigns').style.display = 'none';
     document.getElementById('Gbrtoevoegen').style.display = 'block';
 }
 
-async function ChangeCompanyName(portalPos, userPortalList) {
+async function onChangeCompanyNameButtonClick(portalPos, userPortalList) {
     let companyInput = prompt('Voer de nieuwe bedrijfsnaam in.');
-    while (companyInput === '') {
-        companyInput = prompt('Voer opnieuw de nieuwe bedrijfsnaam in. (mag niet leeg zijn)');
-    }
+    if (!(companyInput !== '')) return;
     console.log(userPortalList[portalPos].companyName);
     userPortalList[portalPos].companyName = companyInput;
     const ApiInstance = new Api(getToken());
@@ -677,7 +685,12 @@ async function ChangeCompanyName(portalPos, userPortalList) {
         `</p>`;
 }
 
-async function DeleteUserPortalStep(portalPos, deletePortal, userPortalList, SetUserPortalList) {
+async function onDeleteUserPortalButtonClick(
+    portalPos,
+    deletePortal,
+    userPortalList,
+    SetUserPortalList
+) {
     if (!deletePortal) {
         document.getElementById('DeletePortalTxt').style.display = 'block';
         document.getElementById('DeletePortalConfirm').style.display = 'flex';
@@ -707,7 +720,7 @@ async function DeleteUserPortalStep(portalPos, deletePortal, userPortalList, Set
     );
 }
 
-async function portalToevoegen(SetUserPortalList) {
+async function onAddNewUserPortalButtonClick(SetUserPortalList) {
     if (
         document.getElementById('newCompanyName').value === '' ||
         document.getElementById('newCompanyEmail').value === '' ||
@@ -762,7 +775,7 @@ async function portalToevoegen(SetUserPortalList) {
     SetUserPortalList(await getData());
 }
 
-function hoofdgebruikerWijzigen(userPortalList, SetUserPortalList) {
+function onChangeMainUserButtonClick(userPortalList, SetUserPortalList) {
     document.getElementById('mainViewUserDataText').style.display = 'none';
     document.getElementById('mainViewUserData').style.display = 'flex';
     document.getElementById('changeMainUserText').style.display = 'flex';
@@ -830,7 +843,7 @@ function hoofdgebruikerWijzigen(userPortalList, SetUserPortalList) {
             document.getElementById('mainViewUserDataText').style.display = 'block';
             document.getElementById('mainViewUserData').style.display = 'block';
             document.getElementById('changeMainUserText').style.display = 'none';
-            SelectUser(
+            onSelectUserPortalButtonClick(
                 'selector ' + userPortalList[portalPosition].portalId,
                 userPortalList,
                 SetUserPortalList
