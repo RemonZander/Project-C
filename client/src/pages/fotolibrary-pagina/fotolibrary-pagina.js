@@ -222,23 +222,37 @@ function adminButton(isAdmin, images, setImages) {
                     multiple
                     type="file"
                     onChange={(e) => {
+                        var extCheck = /(\.jpg|\.jpeg|\.gif|\.png)$/i;
                         for (let i = 0; i < e.target.files.length; i++) {
-                            ApiInstance.createImage(e.target.files[i]);
+                            if (e.target.files[i].size > 20971520) {
+                                alert('Uw foto is te groot!');
+                            } else if (
+                                !extCheck.exec(e.target.files[i].name) ||
+                                fileNameValidation(e.target.files[i].name)
+                            ) {
+                                alert(
+                                    'Uw foto bevat de verkeerde extensie of een spatie in de naam!'
+                                );
+                            } else {
+                                ApiInstance.createImage(e.target.files[i]);
+                                alert('Uw foto is toegevoegd!');
+                                window.location.reload();
+                            }
                         }
-                        alert('Uw foto is toegevoegd!');
                     }}
                 />
-                <Button
-                    variant="contained"
-                    component="span"
-                    color="primary"
-                    onClick={() => setImages(images)}
-                >
+                <Button variant="contained" component="span" color="primary">
                     Foto's toevoegen
                 </Button>
             </label>
         );
     }
+}
+
+function fileNameValidation(fileName) {
+    const FileNameArray = fileName.split('.');
+    const newFileName = FileNameArray[0];
+    return newFileName.indexOf(' ') >= 0;
 }
 
 function deleteButton(isAdmin) {
