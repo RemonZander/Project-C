@@ -3,6 +3,7 @@ const Route = new (require("./src/Route"))();
 const DBManager = new (require("./src/db/DB"))();
 const Token = new (require("./src/Token"))();
 const Storage = new (require("./src/Storage"))();
+const path = require("path");
 
 Route.add("/auth", async (req, res) => {
   try {
@@ -72,8 +73,9 @@ for (let i = 0; i < TableStructure.length; i++) {
                             INSERT INTO ${table.name} (${table.columns.join()})
                             VALUES (${table.columns.map((val) => "?").join()})`,
           [
-            pathLib.normalize(
-              Storage.storagePathAbsolute + `/${companyId}/images/${fileName}`
+            path.normalize(
+              Storage.storagePathRelative +
+                `/${payload.company}/images/${requestBody.name}`
             ),
             date,
             date,
