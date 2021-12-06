@@ -380,7 +380,7 @@ function SelectUser(id, userPortalList, SetUserPortalList) {
             `<br/>` +
             'E-mail: ' +
             userPortalList[pos].mainUserList.Email +
-            `</p><div class="changeMainUserText" id="changeMainUserText">Naam gebruiker:
+            `</p><div class="changeMainUserText" id="changeMainUserText">Email gebruiker:
             <input type="text" class="changeMainUser" id="changeMainUser"/>
             <div class="setNewMainUser" id="setNewMainUser">Maak hoofdgebruiker</div></div>`;
     }
@@ -771,14 +771,14 @@ function hoofdgebruikerWijzigen(userPortalList, SetUserPortalList) {
         if (
             document.getElementById('changeMainUser').value !== '' &&
             Enumerable.from(userPortalList[portalPosition].registeredEmployeeList)
-                .select((u) => u.Name)
+                .select((u) => u.Email)
                 .contains(document.getElementById('changeMainUser').value)
         ) {
             const oldMainUser = userPortalList[portalPosition].mainUserList;
             const NewMainUser = Enumerable.from(
                 userPortalList[portalPosition].registeredEmployeeList
             )
-                .where((u) => u.Name === document.getElementById('changeMainUser').value)
+                .where((u) => u.Email === document.getElementById('changeMainUser').value)
                 .toArray();
             const ApiInstance = new Api(getToken());
             let result = await ApiInstance.update(
