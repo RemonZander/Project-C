@@ -33,7 +33,7 @@
     font-family: Raleway;
 }
 
-loguitbutton {
+.logUitButton {
     font-size: 15px;
     color: white;
 }
@@ -56,24 +56,9 @@ loguitbutton {
     height: 20px;
     text-align: center;
 
-    background: -moz-linear-gradient(
-        left,
-        #0000ff 0%,
-        #fe04ff 56%,
-        #db0000 100%
-    );
-    background: -webkit-linear-gradient(
-        left,
-        #0000ff 0%,
-        #fe04ff 56%,
-        #db0000 100%
-    );
-    background: linear-gradient(
-        to right,
-        #0000ff 0%,
-        #fe04ff 56%,
-        #db0000 100%
-    );
+    background: -moz-linear-gradient(left, #0000ff 0%, #fe04ff 56%, #db0000 100%);
+    background: -webkit-linear-gradient(left, #0000ff 0%, #fe04ff 56%, #db0000 100%);
+    background: linear-gradient(to right, #0000ff 0%, #fe04ff 56%, #db0000 100%);
 }
 
 .plusimage {
@@ -110,24 +95,9 @@ loguitbutton {
     font-size: 40px;
     text-align: center;
 
-    background: -moz-linear-gradient(
-        left,
-        #0000ff 0%,
-        #fe04ff 56%,
-        #db0000 100%
-    );
-    background: -webkit-linear-gradient(
-        left,
-        #0000ff 0%,
-        #fe04ff 56%,
-        #db0000 100%
-    );
-    background: linear-gradient(
-        to right,
-        #0000ff 0%,
-        #fe04ff 56%,
-        #db0000 100%
-    );
+    background: -moz-linear-gradient(left, #0000ff 0%, #fe04ff 56%, #db0000 100%);
+    background: -webkit-linear-gradient(left, #0000ff 0%, #fe04ff 56%, #db0000 100%);
+    background: linear-gradient(to right, #0000ff 0%, #fe04ff 56%, #db0000 100%);
 }
 
 .mainpage {

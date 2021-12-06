@@ -66,15 +66,14 @@ for (let i = 0; i < sqlData.length; i++) {
 
   await conn.runStatement(
     `INSERT INTO user
-        (Email, Password, Role_Id, Company_Id, Is_logged_on) VALUES
-        ('admin@gmail.com', 'Admin1!', 1, -1, FALSE),
-        ('moderator1@gmail.com', 'Moderator1!', 2, 0, FALSE),
-        ('moderator2@gmail.com', 'Moderator1!', 2, 1, FALSE),
-        ('moderator3@gmail.com', 'Moderator1!', 2, 2, FALSE),
-        ('user1@gmail.com', 'User1!', 3, 0, FALSE),
-        ('user2@gmail.com', 'User1!', 3, 1, FALSE),
-        ('user3@gmail.com', 'User1!', 3, 2, FALSE)
-        `
+        (Email, Password, Role_Id, Name, Company_Id, Is_logged_on) VALUES
+        ('admin@gmail.com', 'Admin1!', 1, 'Amadeus Mozart', -1, FALSE),
+        ('moderator1@gmail.com', 'Moderator1!', 2, 'Liesje Lompkop', 1, FALSE),
+        ('moderator2@gmail.com', 'Moderator1!', 2, 'Pieter Pisnicht', 2, FALSE),
+        ('moderator3@gmail.com', 'Moderator1!', 2, 'Karen Kartoffeln', 3, FALSE),
+        ('user1@gmail.com', 'User1!', 3, 'Pollination Technician 1', 1, FALSE),
+        ('user2@gmail.com', 'User1!', 3, 'Helma Hobbelkut', 2, FALSE),
+        ('user3@gmail.com', 'User1!', 3, 'Qwerty Azerty', 3, FALSE)`
   );
 
   await conn.runStatement(

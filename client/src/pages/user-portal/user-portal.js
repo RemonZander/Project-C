@@ -23,7 +23,7 @@ function UserPortal() {
                     </select>
                 </div>
                 <div class="logoutbutton">
-                    <loguitbutton>Uitloggen</loguitbutton>
+                    <div className="logUitButton">Uitloggen</div>
                 </div>
 
                 <div class="kyndacog">
@@ -59,9 +59,7 @@ function designs() {
     if (max >= 5) {
         list.push(<div class="lastitem"> Alle designs </div>);
     }
-    list.push(
-        <img class="plusimage" src={plus} width="130" height="130"></img>
-    );
+    list.push(<img class="plusimage" src={plus} width="130" height="130"></img>);
     return list;
 }
 
@@ -76,8 +74,6 @@ function fotos() {
     if (max >= 5) {
         list.push(<div class="lastitem"> Alle foto's </div>);
     }
-    list.push(
-        <img class="plusimage" src={plus} width="130" height="130"></img>
-    );
+    list.push(<img class="plusimage" src={plus} width="130" height="130"></img>);
     return list;
 }
