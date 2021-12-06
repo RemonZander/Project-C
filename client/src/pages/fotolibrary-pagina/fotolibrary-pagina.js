@@ -183,6 +183,41 @@ function Gallery() {
 
 export default CreateExport('/fotogalerij', Gallery);
 
+function adminButton(isAdmin, images, setImages) {
+    if (isAdmin) {
+        return (
+            <label htmlFor="contained-button-file">
+                <Input
+                    id="contained-button-file"
+                    multiple
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                        (async () => {
+                            for (let i = 0; i < e.target.files.length; i++) {
+                                console.log('ik zit nu in de loop');
+                                if (e.target.files[i].size > 20971520) {
+                                    console.log('Mijn foto is te groot');
+                                    alert('Uw foto is te groot!');
+                                } else if (fileNameValidation(e.target.files[i].name)) {
+                                    console.log('Mijn foto bevat een spatie of verkeerde ext');
+                                    alert('Uw foto bevat een spatie in de naam!');
+                                } else {
+                                    await ApiInstance.createImage(e.target.files[i]);
+                                    window.location.reload();
+                                }
+                            }
+                        })();
+                    }}
+                />
+                <Button variant="contained" component="span" color="primary">
+                    Foto's toevoegen
+                </Button>
+            </label>
+        );
+    }
+}
+
 function imageOnHover(id) {
     const imgId = 'img' + id;
     const buttonId = 'btn' + id;
@@ -210,50 +245,6 @@ function selectedPicture(picture, type, id, images, setImages) {
     } else {
         console.log(id);
         //ApiInstance.removeImage(id);
-    }
-}
-
-function adminButton(isAdmin, images, setImages) {
-    if (isAdmin) {
-        return (
-            <label htmlFor="contained-button-file">
-                <Input
-                    id="contained-button-file"
-                    multiple
-                    type="file"
-                    onChange={(e) => {
-                        console.log('ik bereid me voor op algoritme');
-                        var extCheck = /(\.jpg|\.jpeg|\.gif|\.png)$/i;
-                        for (let i = 0; i < e.target.files.length; i++) {
-                            console.log('ik zit nu in de loop');
-                            if (e.target.files[i].size > 20971520) {
-                                console.log('Mijn foto is te groot');
-                                alert('Uw foto is te groot!');
-                                window.location.reload();
-                            } else if (
-                                !extCheck.exec(e.target.files[i].name) ||
-                                fileNameValidation(e.target.files[i].name)
-                            ) {
-                                console.log('Mijn foto bevat een spatie of verkeerde ext');
-                                alert(
-                                    'Uw foto bevat de verkeerde extensie of een spatie in de naam!'
-                                );
-                                window.location.reload();
-                            } else {
-                                ApiInstance.createImage(e.target.files[i]);
-                                console.log('Mijn foto is opgeslagen!');
-                                alert('Uw foto is toegevoegd!');
-                                window.location.reload();
-                            }
-                            console.log('ik ben buiten de loop');
-                        }
-                    }}
-                />
-                <Button variant="contained" component="span" color="primary">
-                    Foto's toevoegen
-                </Button>
-            </label>
-        );
     }
 }
 
