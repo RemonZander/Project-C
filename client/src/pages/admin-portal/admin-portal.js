@@ -55,7 +55,6 @@ async function getData() {
 
         portalArray.push(temp);
     }
-    console.log(portalArray);
     return portalArray;
 }
 
@@ -465,7 +464,7 @@ function FillUserDataList(portalPos, userPortalList) {
 
         const result = await ApiInstance.create('user', [
             document.getElementById('GbrEmailInvoer').value,
-            'pwd',
+            document.getElementById('GbrPassInvoer').value,
             3,
             document.getElementById('GbrNaamInvoer').value,
             userPortalList[portalPos].DbId,
@@ -475,7 +474,9 @@ function FillUserDataList(portalPos, userPortalList) {
         if (result.status === 'FAIL') return;
 
         let userListDb = await ApiInstance.all('user');
-        let userList = Enumerable.from(userListDb.content).toArray();
+        let userList = Enumerable.from(userListDb.content)
+            .where((u) => u.Company_Id === userPortalList[portalPos].DbId && u.Role_Id === 3)
+            .toArray();
         userPortalList[portalPos].registeredEmployeeList = userList;
 
         let deleteUser = document.createElement('div');
@@ -683,9 +684,22 @@ async function DeleteUserPortalStep(portalPos, deletePortal, userPortalList, Set
         return;
     }
     document.getElementById('mainView').style.display = 'none';
+    const delUserIdList = Enumerable.from(userPortalList[portalPos].registeredEmployeeList)
+        .where((u) => u.Company_Id === userPortalList[portalPos].DbId)
+        .select((i) => i.Id)
+        .toArray();
+    console.log(delUserIdList);
     const ApiInstance = new Api(getToken());
-    const result = await ApiInstance.delete('company', userPortalList[portalPos].DbId);
+    let result = await ApiInstance.delete('company', userPortalList[portalPos].DbId);
     console.log(result);
+
+    if (result.status !== 'SUCCESS') return;
+
+    for (var a = 0; a < delUserIdList.length; a++) {
+        result = await ApiInstance.delete('user', delUserIdList[a]);
+        console.log(result);
+    }
+
     SetUserPortalList(
         Enumerable.from(userPortalList)
             .where((p) => p.DbId !== userPortalList[portalPos].DbId)
@@ -719,8 +733,6 @@ async function portalToevoegen(SetUserPortalList) {
         document.getElementById('newCompanyStreet').value,
         document.getElementById('newCompanyHouseNumer').value,
     ]);
-    console.log(response);
-
     const companyListDb = await ApiInstance.all('company');
     const companyList = Enumerable.from(companyListDb.content).toArray();
 
@@ -755,6 +767,7 @@ function hoofdgebruikerWijzigen(userPortalList, SetUserPortalList) {
     document.getElementById('mainViewUserData').style.display = 'flex';
     document.getElementById('changeMainUserText').style.display = 'flex';
     document.getElementById('setNewMainUser').onclick = async function () {
+        console.log(userPortalList[portalPosition].registeredEmployeeList);
         if (
             document.getElementById('changeMainUser').value !== '' &&
             Enumerable.from(userPortalList[portalPosition].registeredEmployeeList)
@@ -797,12 +810,21 @@ function hoofdgebruikerWijzigen(userPortalList, SetUserPortalList) {
             userPortalList[portalPosition].registeredEmployeeList.push(
                 userPortalList[portalPosition].mainUserList
             );
+            console.log('List of user ids: ');
+            console.log(
+                Enumerable.from(userPortalList[portalPosition].registeredEmployeeList)
+                    .select((u) => u.Id)
+                    .toArray()
+            );
+            console.log('Id old main user: ' + oldMainUser.Id);
             userPortalList[portalPosition].registeredEmployeeList.splice(
                 Enumerable.from(userPortalList[portalPosition].registeredEmployeeList)
                     .select((u) => u.Id)
                     .indexOf(oldMainUser.Id) - 1,
                 1
             );
+            console.log('User list + old main user and - new main user: ');
+            console.log(userPortalList[portalPosition].registeredEmployeeList);
             userPortalList[portalPosition].mainUserList = NewMainUser[0];
 
             document.getElementById('mainViewUserDataText').style.display = 'block';
