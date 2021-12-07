@@ -117,7 +117,6 @@ function Gallery() {
                                     const imagePathArray = imageFilePath.split('\\');
                                     const imagePathName = imagePathArray[imagePathArray.length - 1];
                                     const imageName = imagePathName.split('.');
-                                    //console.log(image.Id);
 
                                     let token = getPayloadAsJson();
                                     if (token.company === image.Company_id) {
@@ -244,7 +243,10 @@ function selectedPicture(picture, type, id) {
         alert('Uw foto is geselecteerd!');
     } else {
         console.log(id);
-        //ApiInstance.removeImage(id);
+        (async () => {
+            await ApiInstance.removeImage(id);
+            window.location.reload();
+        })();
     }
 }
 

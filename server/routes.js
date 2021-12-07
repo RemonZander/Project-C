@@ -103,8 +103,9 @@ for (let i = 0; i < TableStructure.length; i++) {
         );
 
         const filePath = file[0].Filepath;
+        const newFilePath = filePath.substring(8);
 
-        Storage.removeImage(filePath);
+        Storage.removeImage(Storage.storagePathAbsolute + newFilePath);
 
         const result = await conn.runStatement(
           `DELETE FROM ${table.name} WHERE Id = ?`,
