@@ -177,7 +177,9 @@ function AdminPortal() {
                             src={FotoGalleryImg}
                             alt="gallery"
                             onClick={function () {
-                                window.open('/fotogalerij', '_blank').focus();
+                                window
+                                    .open('/fotogalerij?companyId=' + portalPosition, '_blank')
+                                    .focus();
                             }}
                         />
                         <div className="DoubleButtons">
