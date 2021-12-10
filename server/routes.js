@@ -59,6 +59,7 @@ for (let i = 0; i < TableStructure.length; i++) {
     Route.add(`/${table.name}/create`, async (req, res) => {
       try {
         const requestBody = await req.getRequestData();
+
         const payload = req.getPayload();
 
         const conn = DBManager.startConnection();
@@ -66,7 +67,12 @@ for (let i = 0; i < TableStructure.length; i++) {
         // create special exception to notify if body is missing or empty
         const date = new Date().toLocaleDateString();
 
-        Storage.addImage(requestBody.name, payload.company, requestBody.image);
+        const companyID =
+          requestBody.companyId !== null
+            ? requestBody.companyId
+            : payload.company;
+
+        Storage.addImage(requestBody.name, companyID, requestBody.image);
 
         await conn.runStatement(
           `
@@ -75,11 +81,11 @@ for (let i = 0; i < TableStructure.length; i++) {
           [
             path.normalize(
               Storage.storagePathRelative +
-                `/${payload.company}/images/${requestBody.name}`
+                `/${companyID}/images/${requestBody.name}`
             ),
             date,
             date,
-            payload.company,
+            companyID,
           ]
         );
 

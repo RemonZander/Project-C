@@ -38,12 +38,12 @@ export default class Api {
         });
     }
 
-    async createImage(file) {
+    async createImage(file, companyId = null) {
         const result = await readFileAsDataUrl(file);
-
         return await this._doFetch(this.serverUrl + `/image/create`, 'POST', {
             name: file.name,
             image: result,
+            companyId: companyId,
         });
     }
 
