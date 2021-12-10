@@ -3,6 +3,7 @@ const Route = new (require("./src/Route"))();
 const DBManager = new (require("./src/db/DB"))();
 const Token = new (require("./src/Token"))();
 const Storage = new (require("./src/Storage"))();
+const path = require("path");
 
 Route.add("/auth", async (req, res) => {
   try {
@@ -58,6 +59,7 @@ for (let i = 0; i < TableStructure.length; i++) {
     Route.add(`/${table.name}/create`, async (req, res) => {
       try {
         const requestBody = await req.getRequestData();
+
         const payload = req.getPayload();
 
         const conn = DBManager.startConnection();
@@ -65,19 +67,25 @@ for (let i = 0; i < TableStructure.length; i++) {
         // create special exception to notify if body is missing or empty
         const date = new Date().toLocaleDateString();
 
-        Storage.addImage(requestBody.name, payload.company, requestBody.image);
+        const companyID =
+          requestBody.companyId !== null
+            ? requestBody.companyId
+            : payload.company;
+
+        Storage.addImage(requestBody.name, companyID, requestBody.image);
 
         await conn.runStatement(
           `
                             INSERT INTO ${table.name} (${table.columns.join()})
                             VALUES (${table.columns.map((val) => "?").join()})`,
           [
-            pathLib.normalize(
-              Storage.storagePathAbsolute + `/${companyId}/images/${fileName}`
+            path.normalize(
+              Storage.storagePathRelative +
+                `/${companyID}/images/${requestBody.name}`
             ),
             date,
             date,
-            payload.company,
+            companyID,
           ]
         );
 
@@ -101,8 +109,9 @@ for (let i = 0; i < TableStructure.length; i++) {
         );
 
         const filePath = file[0].Filepath;
+        const newFilePath = filePath.substring(8);
 
-        Storage.removeImage(filePath);
+        Storage.removeImage(Storage.storagePathAbsolute + newFilePath);
 
         const result = await conn.runStatement(
           `DELETE FROM ${table.name} WHERE Id = ?`,
