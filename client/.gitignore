@@ -8,6 +8,8 @@
 .env.development
 .env.production
 
+build
+
 # User-specific files
 *.rsuser
 *.suo
