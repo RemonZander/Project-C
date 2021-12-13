@@ -30,7 +30,7 @@ import {
     PhotoCamera,
     Panorama,
     Brush,
-    menu,
+    Menu,
     ContactSupport,
 } from '@material-ui/icons';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
@@ -68,116 +68,124 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 }));
 
 function UserPortal() {
+    const theme = useTheme();
     const styles = useStyles();
     const [open, setOpen] = useState(false);
     const handleDrawerOpen = () => {
         setOpen(true);
+        document.getElementById('AppBar').style.width = window.innerWidth - 280 + 'px';
     };
 
     const handleDrawerClose = () => {
         setOpen(false);
+        document.getElementById('AppBar').style.width = window.innerWidth + 'px';
     };
     return (
         <React.Fragment>
             <CssBaseline />
-            <AppBar position="relative" style={{ background: 'white' }}>
-                <Toolbar>
-                    <img
-                        src={kyndalogo}
-                        alt="kynda logo"
-                        width="90"
-                        height="30"
-                        style={{ marginRight: '20px' }}
-                    />
-                    <Typography variant="h5" style={{ color: 'black' }}>
-                        User
-                    </Typography>
-                    <Typography variant="h5" style={{ color: 'black', marginLeft: '6px' }}>
-                        portal
-                    </Typography>
-                    <Grid container spacing={2} justifyContent="flex-end">
-                        <Grid item>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={() => {
-                                    document.cookie = document.cookie.substring(
-                                        document.cookie.indexOf('token='),
-                                        6
-                                    );
-                                    window.location.replace('/').focus();
-                                }}
-                            >
-                                Uitloggen
-                            </Button>
+            <Box sx={{ display: 'flex' }}>
+                <AppBar position="fixed" open={open} style={{ background: 'white' }} id="AppBar">
+                    <Toolbar>
+                        <IconButton color={'primary'} onClick={handleDrawerOpen}>
+                            <Menu />
+                        </IconButton>
+                        <img
+                            src={kyndalogo}
+                            alt="kynda logo"
+                            width="90"
+                            height="30"
+                            style={{ marginRight: '20px', marginLeft: '20px' }}
+                        />
+                        <Typography variant="h5" style={{ color: 'black' }}>
+                            User
+                        </Typography>
+                        <Typography variant="h5" style={{ color: 'black', marginLeft: '6px' }}>
+                            portal
+                        </Typography>
+                        <Grid container spacing={2} justifyContent="flex-end">
+                            <Grid item>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => {
+                                        document.cookie = document.cookie.substring(
+                                            document.cookie.indexOf('token='),
+                                            6
+                                        );
+                                        window.location.replace('/').focus();
+                                    }}
+                                >
+                                    Uitloggen
+                                </Button>
+                            </Grid>
+                            <Grid item>
+                                <Settings
+                                    className={styles.icon}
+                                    style={{ color: 'black' }}
+                                    fontSize="large"
+                                    onClick={() => {}}
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid item>
-                            <Settings
-                                className={styles.icon}
-                                style={{ color: 'black' }}
-                                fontSize="large"
-                                onClick={() => {}}
-                            />
-                        </Grid>
-                    </Grid>
-                </Toolbar>
-            </AppBar>
-            <main>
-                <Box sx={{ display: 'flex' }}>
-                    <Button variant="contained" color="primary" onClick={handleDrawerOpen}>
-                        open
-                    </Button>
-                    <menu></menu>
-                    <Drawer
-                        sx={{
+                    </Toolbar>
+                </AppBar>
+                <Drawer
+                    id="Drawer"
+                    sx={{
+                        width: '400px',
+                        flexShrink: 0,
+                        '& .MuiDrawer-paper': {
                             width: '400px',
-                            flexShrink: 0,
-                            '& .MuiDrawer-paper': {
-                                width: '400px',
-                                boxSizing: 'border-box',
-                            },
-                        }}
-                        variant="persistent"
-                        anchor="left"
-                        open={open}
-                    >
-                        <DrawerHeader>
-                            <IconButton onClick={handleDrawerClose}>{<ChevronLeft />}</IconButton>
-                        </DrawerHeader>
-                        <Divider />
-                        <List>
-                            <ListItem>
-                                <PhotoCamera style={{ marginRight: '20px' }}></PhotoCamera>
-                                <Typography variant="h5">Fotogalerij</Typography>
-                            </ListItem>
-                            <ListItem>
-                                <Panorama style={{ marginRight: '20px' }}></Panorama>
-                                <Typography variant="h5">Alle templates</Typography>
-                            </ListItem>
-                            <ListItem>
-                                <Brush style={{ marginRight: '20px' }}></Brush>
-                                <Typography variant="h5">Alle designs</Typography>
-                            </ListItem>
-                        </List>
-                        <Divider />
-                        <List>
-                            <ListItem>
-                                <Typography variant="h7">Kynda contactgegevens:</Typography>
-                                <Typography variant="h7">
-                                    Goudsesingel 156 | 3011 KD Rotterdam
-                                </Typography>
-                                <Typography variant="h7">+31 (0) 10 3075454</Typography>
-                            </ListItem>
-                            <ListItem>
-                                <Typography variant="h7">
-                                    Hoofdgebruiker contactgegevens: Schilderswijk 55 | 2111 FD Den
-                                    Haag +31 (0) 12 3456789
-                                </Typography>
-                            </ListItem>
-                        </List>
-                    </Drawer>
-                </Box>
-            </main>
+                            boxSizing: 'border-box',
+                        },
+                    }}
+                    variant="persistent"
+                    anchor="left"
+                    open={open}
+                >
+                    <DrawerHeader>
+                        <IconButton onClick={handleDrawerClose}>
+                            {theme.direction === 'rtl' ? <ChevronRight /> : <ChevronLeft />}
+                        </IconButton>
+                    </DrawerHeader>
+                    <Divider />
+                    <List>
+                        <ListItem>
+                            <PhotoCamera style={{ marginRight: '20px' }}></PhotoCamera>
+                            <Typography variant="h5">Fotogalerij</Typography>
+                        </ListItem>
+                        <ListItem>
+                            <Panorama style={{ marginRight: '20px' }}></Panorama>
+                            <Typography variant="h5">Alle templates</Typography>
+                        </ListItem>
+                        <ListItem>
+                            <Brush style={{ marginRight: '20px' }}></Brush>
+                            <Typography variant="h5">Alle designs</Typography>
+                        </ListItem>
+                    </List>
+                    <Divider />
+                    <List>
+                        <ListItem>
+                            <Typography variant="h7">
+                                Kynda contactgegevens:
+                                <br />
+                                Goudsesingel 156 | 3011 KD Rotterdam
+                                <br />
+                                +31 (0) 10 3075454
+                            </Typography>
+                        </ListItem>
+                        <ListItem>
+                            <Typography variant="h7">
+                                Hoofdgebruiker contactgegevens:
+                                <br />
+                                Schilderswijk 55 | 2111 FD DenHaag
+                                <br />
+                                +31 (0) 12 3456789
+                            </Typography>
+                        </ListItem>
+                    </List>
+                </Drawer>
+            </Box>
         </React.Fragment>
     );
 }
