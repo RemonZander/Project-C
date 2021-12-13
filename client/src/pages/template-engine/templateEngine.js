@@ -43,6 +43,7 @@ function TemplateEngine() {
                     };
                 };
 
+                // TODO: Should only ready 1 template and process whenever a new template gets into the screen. Cache like behaviour.
                 for (let i = 0; i < exportFiles.length; i++) {
                     const file = exportFiles[i];
 
@@ -55,10 +56,11 @@ function TemplateEngine() {
                     }
                 }
 
+                // For every template found in the export directory
                 for (let i = 0; i < files['html'].length; i++) {
                     const htmlObj = files['html'][i];
 
-                    const htmlDoc = new DOMParser().parseFromString(htmlObj.data, 'text/html');
+                    const doc = new DOMParser().parseFromString(htmlObj.data, 'text/html');
 
                     for (let i = 0; i < files['css'].length; i++) {
                         const node = document.createElement('style');
@@ -72,10 +74,10 @@ function TemplateEngine() {
                             }
                         `;
                         node.innerHTML = css.replace(/\r?\n|\r/g, '');
-                        htmlDoc.getElementsByTagName('head')[0].appendChild(node);
+                        doc.getElementsByTagName('head')[0].appendChild(node);
                     }
 
-                    const imgTags = htmlDoc.getElementsByTagName('img');
+                    const imgTags = doc.getElementsByTagName('img');
 
                     for (let i = 0; i < imgTags.length; i++) {
                         const imgTag = imgTags[i];
@@ -88,8 +90,39 @@ function TemplateEngine() {
                             imgTag.src = imgObj['data'];
                         }
                     }
-                    console.log(htmlDoc);
-                    files['html'][i]['data'] = new XMLSerializer().serializeToString(htmlDoc);
+
+                    const containers = doc.getElementById('outer-wrapper').children;
+
+                    for (let i = 0; i < containers.length; i++) {
+                        const container = containers[i];
+
+                        // Determine if container is valid
+                        // Recursively check if we are at the deepest point of the tree
+
+                        const getDeepestElements = (container) => {
+                            console.log(container);
+                            // if (container.children.length !== 0) {
+                            //     return getDeepestElements(container);
+                            // } else {
+                            //     return container;
+                            // }
+                        };
+
+                        const result = getDeepestElements(container);
+
+                        console.log(result);
+                        // console.log(container.children.length);
+                    }
+
+                    // Algorithm
+                    // Container: De container waar de tekst in moet. In de container zit de entrypoint die een
+                    // aantal lagen diep kan zijn.
+                    // Entrypoint: Punt waarbij de nieuwe geformateerde tekst ingeladen moet worden.
+                    // Teksten: Tekst elementen die de tekst bevatten. Dit zijn span elementen met 1 woord erin
+                    // Styling: Elke tekst bevat een classname die bepaalt wat voor styling de tekst bevat.
+                    // Dit moet onthouden worden zodat die op het eind stukje op de juiste tekst gezet kan worden.
+
+                    files['html'][i]['data'] = new XMLSerializer().serializeToString(doc);
                 }
 
                 setTemplateFiles(files['html']);
@@ -100,9 +133,24 @@ function TemplateEngine() {
     const handleOnLoad = (e) => {
         const doc = e.target.contentDocument;
 
-        const editableElements = Array.from(doc.getElementsByClassName('Basic-Text-Frame'));
+        const containerElements = doc.getElementsByTagName('div');
+        let textElements = [];
 
-        editableElements.forEach((el) => el.classList.add('selectable'));
+        for (let i = 0; i < containerElements.length; i++) {
+            const el = containerElements[i];
+            // el.children[0].classList?.includes('Basic-Paragraph')
+            // console.log(el.children)
+            console.log(Array.from(el.classList).includes);
+            if (Array.from(el.classList).includes('Basic-Text-Frame')) {
+            }
+            // const text = Array.from(paragraphElements[i].childNodes).map(el => el.innerText).join(' ').trim();
+            // console.log(text);
+            // console.log(containerElements[i].closest());
+        }
+
+        // const editableElements = [].concat(text, paragraph);
+
+        // editableElements.forEach((el) => el.classList.add('selectable'));
     };
 
     function buttonHandler(buttonName, templatePosition, templateFiles) {
@@ -158,7 +206,6 @@ function TemplateEngine() {
                             title="templateViewer"
                             className="templateEngineFrame"
                             srcDoc={templateFiles[templatePos]['data']}
-                            onLoad={handleOnLoad}
                         ></iframe>
                     )}
             </div>
