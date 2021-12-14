@@ -11,14 +11,28 @@ import Enumerable from 'linq';
 async function getData() {
     const ApiInstance = new Api(getToken());
     let portalArray = [];
+    let companyListDb = [];
+    let userListDb = [];
+    let templateListDb = [];
+    let designListDb = [];
     // sets the arrays w data in them from the database
-    let companyListDb = await ApiInstance.all('company');
+    companyListDb = await ApiInstance.all('company');
+    console.log(companyListDb);
     let companyList = Enumerable.from(companyListDb.content).toArray();
-    let userListDb = await ApiInstance.all('user');
+    if (typeof (userListDb = await ApiInstance.all('user')) === 'undefined') {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
     let userList = Enumerable.from(userListDb.content).toArray();
-    let templateListDb = await ApiInstance.all('template');
-    var templateList = Enumerable.from(templateListDb.content).toArray();
-    let designListDb = await ApiInstance.all('design');
+    if (typeof (templateListDb = await ApiInstance.all('template')) === 'undefined') {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
+    let templateList = Enumerable.from(templateListDb.content).toArray();
+    if (typeof (designListDb = await ApiInstance.all('design')) === 'undefined') {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
     let designList = Enumerable.from(designListDb.content).toArray();
 
     for (let listPos = 0; listPos < companyList.length; listPos++) {
@@ -99,7 +113,9 @@ function AdminPortal() {
                     </select>
                 </div>
                 <div class="logOutButton">
-                    <div className="logUitButton">Uitloggen</div>
+                    <div className="logUitButton" onClick={() => onLogOutButtonClick()}>
+                        Uitloggen
+                    </div>
                 </div>
                 <div class="kyndaCog">
                     <img src={cog} width="40" height="40" alt="settingsImg" />
@@ -212,7 +228,7 @@ function AdminPortal() {
                             </div>
                         </div>
                         <div className="DeletePortal" id="DeletePortal">
-                            <h3>Delete user-portal</h3>
+                            <h3>Delete user portal</h3>
                             <div className="DeletePortalTxt" id="DeletePortalTxt">
                                 Bevestig uw keuze
                             </div>
@@ -359,6 +375,7 @@ function onSelectUserPortalButtonClick(id, userPortalList, SetUserPortalList) {
     const pos = id.replace('selector ', '');
     portalPosition = pos;
     document.getElementById('mainView').style.display = 'flex';
+    document.getElementById('Gbrtoevoegen').style.display = 'none';
 
     // unloads any menu's from a previously selected user-portal
     document.getElementById('mainViewTemplatePreview').style.display = 'none';
@@ -461,24 +478,36 @@ function loadUserPortalUsers(portalPos, userPortalList) {
             document.getElementById('GbrNaamInvoer').value = '';
             document.getElementById('GbrEmailInvoer').value = '';
             document.getElementById('GbrPassInvoer').value = '';
-            document.getElementById('Gbrtoevoegen').style.display = 'none';
+            window.alert('U moet elk veld invullen om een gebruiker toe te kunnen voegen.');
             return;
         }
         const ApiInstance = new Api(getToken());
         // sets the arrays w data in them from the database
 
-        const result = await ApiInstance.create('user', [
-            document.getElementById('GbrEmailInvoer').value,
-            document.getElementById('GbrPassInvoer').value,
-            3,
-            document.getElementById('GbrNaamInvoer').value,
-            userPortalList[portalPos].DbId,
-            0,
-        ]);
+        let result = [];
+        if (
+            typeof (result = await ApiInstance.create('user', [
+                document.getElementById('GbrEmailInvoer').value,
+                document.getElementById('GbrPassInvoer').value,
+                3,
+                document.getElementById('GbrNaamInvoer').value,
+                userPortalList[portalPos].DbId,
+            ])) === 'undefined'
+        ) {
+            window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+            return;
+        }
 
-        if (result.status === 'FAIL') return;
+        if (result.status !== 'SUCCESS') {
+            window.alert('Gebruiker kon niet toegevoegd worden. Probeer het opnieuw.');
+            return;
+        }
 
-        let userListDb = await ApiInstance.all('user');
+        let userListDb = [];
+        if (typeof (userListDb = await ApiInstance.all('user')) === 'undefined') {
+            window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+            return;
+        }
         let userList = Enumerable.from(userListDb.content)
             .where((u) => u.Company_Id === userPortalList[portalPos].DbId && u.Role_Id === 3)
             .toArray();
@@ -524,13 +553,26 @@ function loadUserPortalUsers(portalPos, userPortalList) {
 
 async function onDeleteUserButtonClick(pos, portalPos, userPortalList) {
     const ApiInstance = new Api(getToken());
-    const result = await ApiInstance.delete(
-        'user',
-        userPortalList[portalPos].registeredEmployeeList[pos].Id
-    );
-    if (result.status === 'FAIL') return;
+    let result = [];
+    if (
+        typeof (result = await ApiInstance.delete(
+            'user',
+            userPortalList[portalPos].registeredEmployeeList[pos].Id
+        )) === 'undefined'
+    ) {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
+    if (result.status !== 'SUCCESS') {
+        window.alert('Gebruiker kon niet verwijderd worden. Probeer het opnieuw.');
+        return;
+    }
 
-    let userListDb = await ApiInstance.all('user');
+    let userListDb = [];
+    if (typeof (userListDb = await ApiInstance.all('user')) === 'undefined') {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
     let userList = Enumerable.from(userListDb.content).toArray();
     userPortalList[portalPos].registeredEmployeeList = Enumerable.from(userList)
         .where((u) => u.Company_Id === userPortalList[portalPos].DbId && u.Role_Id === 3)
@@ -558,15 +600,12 @@ function loadUserPortalTemplates(portalPos, userPortalList) {
             }
         }
 
-        statsList.push(
-            // maak hier n dictionary van
-            {
-                Id: userPortalList[portalPos].importedTemplateList[a].Id,
-                name: userPortalList[portalPos].importedTemplateList[a].Name,
-                total: total,
-                totalEuro: totalEuro,
-            }
-        );
+        statsList.push({
+            Id: userPortalList[portalPos].importedTemplateList[a].Id,
+            name: userPortalList[portalPos].importedTemplateList[a].Name,
+            total: total,
+            totalEuro: totalEuro,
+        });
     }
     let tempList = document.createDocumentFragment();
     for (var c = 0; c < statsList.length; c++) {
@@ -653,6 +692,11 @@ function loadUserPortalTemplatePreview(
 }
 
 function onAddUserButtonClick() {
+    console.log(document.getElementById('Gbrtoevoegen').style.display);
+    if (document.getElementById('Gbrtoevoegen').style.display === 'block') {
+        document.getElementById('Gbrtoevoegen').style.display = 'none';
+        return;
+    }
     document.getElementById('mainViewTemplatePreview').style.display = 'none';
     document.getElementById('mainViewDesigns').style.display = 'none';
     document.getElementById('Gbrtoevoegen').style.display = 'block';
@@ -660,27 +704,47 @@ function onAddUserButtonClick() {
 
 async function onChangeCompanyNameButtonClick(portalPos, userPortalList) {
     let companyInput = prompt('Voer de nieuwe bedrijfsnaam in.');
-    if (!(companyInput !== '')) return;
-    console.log(userPortalList[portalPos].companyName);
+    if (!(companyInput != '') || typeof companyInput === 'object') return;
     userPortalList[portalPos].companyName = companyInput;
+
     const ApiInstance = new Api(getToken());
-    const companyListDb = await ApiInstance.read('company', userPortalList[portalPos].DbId);
+    let companyListDb = [];
+    if (
+        typeof (companyListDb = await ApiInstance.read(
+            'company',
+            userPortalList[portalPos].DbId
+        )) === 'undefined'
+    ) {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
+    console.log(typeof companyListDb);
     const companyList = companyListDb.content;
-    const result = await ApiInstance.update('company', companyList[0].Id, [
-        userPortalList[portalPos].companyName,
-        companyList[0].Phonenumber,
-        companyList[0].Email,
-        companyList[0].Country,
-        companyList[0].City,
-        companyList[0].Postcode,
-        companyList[0].Streetname,
-        companyList[0].Housenumber,
-    ]);
-    console.log(result);
+    let result = [];
+    if (
+        typeof (result =
+            (await ApiInstance.update('company', companyList[0].Id, [
+                userPortalList[portalPos].companyName,
+                companyList[0].Phonenumber,
+                companyList[0].Email,
+                companyList[0].Country,
+                companyList[0].City,
+                companyList[0].Postcode,
+                companyList[0].Streetname,
+                companyList[0].Housenumber,
+            ])) === 'undefined')
+    ) {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
+    if (result.status !== 'SUCCESS') {
+        window.alert('Bedrijfsnaam kon niet veranderd worden. Probeer het opnieuw.');
+        return;
+    }
 
     document.getElementById('userPortalItemCompanyselector ' + portalPos).innerHTML = companyInput;
     document.getElementById('mainViewHeaderText').innerHTML =
-        `<h1>User Portal ` +
+        `<h1 class='userPortalDenominationTxt'>User Portal ` +
         (userPortalList[portalPos].portalId + 1) +
         `</h1>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<p class="CompanyName">` +
         document.getElementById('userPortalItemCompanyselector ' + portalPos).innerHTML +
@@ -699,20 +763,39 @@ async function onDeleteUserPortalButtonClick(
         return;
     }
     document.getElementById('mainView').style.display = 'none';
-    const delUserIdList = Enumerable.from(userPortalList[portalPos].registeredEmployeeList)
-        .where((u) => u.Company_Id === userPortalList[portalPos].DbId)
-        .select((i) => i.Id)
-        .toArray();
+    const delUserIdList = Enumerable.from(
+        userPortalList[portalPos].registeredEmployeeList
+            .where((u) => u.Company_Id === userPortalList[portalPos].DbId)
+            .select((i) => i.Id)
+            .toArray()
+    );
+
     console.log(delUserIdList);
     const ApiInstance = new Api(getToken());
-    let result = await ApiInstance.delete('company', userPortalList[portalPos].DbId);
-    console.log(result);
+    let result = [];
+    if (
+        typeof (result = await ApiInstance.delete('company', userPortalList[portalPos].DbId)) ===
+        'undefined'
+    ) {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
 
-    if (result.status !== 'SUCCESS') return;
+    if (result.status !== 'SUCCESS') {
+        window.alert('Bedrijfsnaam kon niet veranderd worden. Probeer het opnieuw.');
+        return;
+    }
 
     for (var a = 0; a < delUserIdList.length; a++) {
-        result = await ApiInstance.delete('user', delUserIdList[a]);
-        console.log(result);
+        if (typeof (result = await ApiInstance.delete('user', delUserIdList[a])) === 'undefined') {
+            window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+            return;
+        }
+
+        if (result.status !== 'SUCCESS') {
+            window.alert('User portal kon niet verwijderd worden. Probeer het opnieuw.');
+            return;
+        }
     }
 
     SetUserPortalList(
@@ -734,33 +817,60 @@ async function onAddNewUserPortalButtonClick(SetUserPortalList) {
         document.getElementById('newMainUserName').value === '' ||
         document.getElementById('newMainUserEmail').value === '' ||
         document.getElementById('newMainUserPassword').value === ''
-    )
+    ) {
+        window.alert(
+            'Het enige veld dat niet verplicht is om in te vullen is het telefoonnummer veld.'
+        );
         return;
+    }
 
     const ApiInstance = new Api(getToken());
-    let response = await ApiInstance.create('company', [
-        document.getElementById('newCompanyName').value,
-        document.getElementById('newCompanyPhone').value,
-        document.getElementById('newCompanyEmail').value,
-        document.getElementById('newCompanyCountry').value,
-        document.getElementById('newCompanyCity').value,
-        document.getElementById('newCompanyPostcode').value,
-        document.getElementById('newCompanyStreet').value,
-        document.getElementById('newCompanyHouseNumer').value,
-    ]);
-    const companyListDb = await ApiInstance.all('company');
+    let response = [];
+    let companyListDb = [];
+    if (
+        typeof (response = await ApiInstance.create('company', [
+            document.getElementById('newCompanyName').value,
+            document.getElementById('newCompanyPhone').value,
+            document.getElementById('newCompanyEmail').value,
+            document.getElementById('newCompanyCountry').value,
+            document.getElementById('newCompanyCity').value,
+            document.getElementById('newCompanyPostcode').value,
+            document.getElementById('newCompanyStreet').value,
+            document.getElementById('newCompanyHouseNumer').value,
+        ])) === 'undefined'
+    ) {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
+
+    if (response.status !== 'SUCCESS') {
+        window.alert('Nieuw bedrijf kan niet woden aangemaakt. Probeer het opnieuw.');
+        return;
+    }
+
+    if (typeof (companyListDb = await ApiInstance.all('company')) === 'undefined') {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
     const companyList = Enumerable.from(companyListDb.content).toArray();
 
-    response = await ApiInstance.create('user', [
-        document.getElementById('newMainUserEmail').value,
-        document.getElementById('newMainUserPassword').value,
-        2,
-        document.getElementById('newMainUserName').value,
-        companyList[companyList.length - 1].Id,
-        0,
-    ]);
+    if (
+        typeof (response = await ApiInstance.create('user', [
+            document.getElementById('newMainUserEmail').value,
+            document.getElementById('newMainUserPassword').value,
+            2,
+            document.getElementById('newMainUserName').value,
+            companyList[companyList.length - 1].Id,
+        ])) === 'undefined'
+    ) {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
 
-    console.log(response);
+    if (response.status !== 'SUCCESS') {
+        window.alert('Nieuwe hoofdgebruiker kan niet worden aangemaakt. Probeer het opnieuw.');
+        return;
+    }
 
     document.getElementById('newCompanyName').value = '';
     document.getElementById('newCompanyEmail').value = '';
@@ -796,31 +906,50 @@ function onChangeMainUserButtonClick(userPortalList, SetUserPortalList) {
                 .where((u) => u.Email === document.getElementById('changeMainUser').value)
                 .toArray();
             const ApiInstance = new Api(getToken());
-            let result = await ApiInstance.update(
-                'user',
-                userPortalList[portalPosition].mainUserList.Id,
-                [
-                    userPortalList[portalPosition].mainUserList.Email,
-                    userPortalList[portalPosition].mainUserList.Password,
-                    3,
-                    userPortalList[portalPosition].mainUserList.Name,
-                    userPortalList[portalPosition].mainUserList.Company_Id,
-                    userPortalList[portalPosition].mainUserList.Is_logged_on,
-                ]
-            );
+            let result = [];
+            if (
+                typeof (result = await ApiInstance.update(
+                    'user',
+                    userPortalList[portalPosition].mainUserList.Id,
+                    [
+                        userPortalList[portalPosition].mainUserList.Email,
+                        userPortalList[portalPosition].mainUserList.Password,
+                        3,
+                        userPortalList[portalPosition].mainUserList.Name,
+                        userPortalList[portalPosition].mainUserList.Company_Id,
+                    ]
+                )) === 'undefined'
+            ) {
+                window.alert(
+                    'De verbinding met de database is verbroken. Probeer het later opnieuw.'
+                );
+                return;
+            }
 
-            if (result.status !== 'SUCCESS') return;
+            if (result.status !== 'SUCCESS') {
+                window.alert('Hoofdgebruiker kan niet worden aangepast. Probeer het opnieuw.');
+                return;
+            }
 
-            result = await ApiInstance.update('user', NewMainUser[0].Id, [
-                NewMainUser[0].Email,
-                NewMainUser[0].Password,
-                2,
-                NewMainUser[0].Name,
-                NewMainUser[0].Company_Id,
-                NewMainUser[0].Is_logged_on,
-            ]);
+            if (
+                typeof (result = await ApiInstance.update('user', NewMainUser[0].Id, [
+                    NewMainUser[0].Email,
+                    NewMainUser[0].Password,
+                    2,
+                    NewMainUser[0].Name,
+                    NewMainUser[0].Company_Id,
+                ])) === 'undefined'
+            ) {
+                window.alert(
+                    'De verbinding met de database is verbroken. Probeer het later opnieuw.'
+                );
+                return;
+            }
 
-            if (result.status !== 'SUCCESS') return;
+            if (result.status !== 'SUCCESS') {
+                window.alert('Hoofdgebruiker kan niet worden aangepast. Probeer het opnieuw.');
+                return;
+            }
 
             userPortalList[portalPosition].registeredEmployeeList.push(
                 userPortalList[portalPosition].mainUserList
@@ -851,10 +980,18 @@ function onChangeMainUserButtonClick(userPortalList, SetUserPortalList) {
                 SetUserPortalList
             );
             return;
+        } else if (document.getElementById('changeMainUser').value === '') {
+            window.alert('U moet wel een e-mailadres invullen.');
+            return;
         }
-        console.log('you done wrong');
+        window.alert('U heeft een onjuist e-mailadres ingevuld.');
         //alert
     };
+}
+
+function onLogOutButtonClick() {
+    document.cookie = document.cookie.substring(document.cookie.indexOf('token='), 6);
+    window.location.replace('/').focus();
 }
 
 export default CreateExport('/admin-portal', AdminPortal, true, ['Admin']);
