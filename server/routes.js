@@ -36,6 +36,7 @@ Route.add("/auth", async (req, res) => {
         const token = Token.createJWT({
           sub: result[0].Id,
           email: result[0].Email,
+          naam: result[0].Name,
           company: result[0].Company_Id,
           type: role[0].Name,
         });

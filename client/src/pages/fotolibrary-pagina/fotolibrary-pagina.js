@@ -210,7 +210,17 @@ function Gallery(props) {
                             </div>
                         </Grid>
                         <Grid item>
-                            <Button variant="contained" color="primary">
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => {
+                                    document.cookie = document.cookie.substring(
+                                        document.cookie.indexOf('token='),
+                                        6
+                                    );
+                                    window.location.replace('/').focus();
+                                }}
+                            >
                                 Uitloggen
                             </Button>
                         </Grid>
