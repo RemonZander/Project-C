@@ -2,7 +2,7 @@ import './templateEngine.css';
 import { useEffect, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
-import { Button, styled } from '@material-ui/core';
+import { Button, StepLabel, styled } from '@material-ui/core';
 
 /*
 Uitleg:
@@ -34,6 +34,7 @@ function TemplateEngine() {
                     html: [],
                     css: [],
                     images: [],
+                    js: [],
                 };
 
                 const createObj = (file, data) => {
@@ -51,9 +52,11 @@ function TemplateEngine() {
                         files['html'].push(createObj(file, await readFile(file)));
                     } else if (file.type === 'text/css') {
                         files['css'].push(createObj(file, await readFile(file)));
+                    } else if (file.type === 'text/javascript') {
+                        files['js'].push(createObj(file, await readFile(file)));
                     } else if (['image/png', 'image/jpg', 'image/jpeg'].includes(file.type)) {
                         files['images'].push(createObj(file, await readFileAsDataUrl(file)));
-                    }
+                    } 
                 }
 
                 // For every template found in the export directory
@@ -62,21 +65,43 @@ function TemplateEngine() {
 
                     const doc = new DOMParser().parseFromString(htmlObj.data, 'text/html');
 
+                    Array.from(doc.getElementsByTagName('head')[0].children).forEach(child => {
+                        if (child.tagName === 'LINK' || child.tagName === 'SCRIPT') child.remove();
+                    })
+
+                    // Add the contents of the css files as a style element to the html document
                     for (let i = 0; i < files['css'].length; i++) {
                         const node = document.createElement('style');
                         const css =
                             files['css'][i]['data'] +
                             `
                             .selectable:hover {
-                                border: 1px solid black;
-                                border-radius: 3px;
-                                cursor: pointer;
+                                border: 2rem solid black !important;
+                                border-radius: 0.8rem !important;
+                                cursor: pointer !important;
                             }
                         `;
                         node.innerHTML = css.replace(/\r?\n|\r/g, '');
                         doc.getElementsByTagName('head')[0].appendChild(node);
                     }
+                    
+                    for (let i = 0; i < files['js'].length; i++) {
+                        const node = document.createElement('script');
+                        const js = files['js'][i]['data'];
 
+                        const newJs = js.replace(js.substring(js.indexOf('document'), js.lastIndexOf(';') + 1), `
+                            const head = document.getElementsByTagName('head')[0];
+                            const styleNode = document.createElement('style');
+                            styleNode.innerHTML = buildFontRule(nameArray[i], dataArray[i], fontStyle[i][j], fontWeight[i], fontStretch[i]);
+                            head.appendChild(styleNode);
+                        `)
+                        
+                        node.innerHTML = newJs;
+
+                        doc.getElementsByTagName('head')[0].appendChild(node);
+                    }
+
+                    // Change all image references to data urls
                     const imgTags = doc.getElementsByTagName('img');
 
                     for (let i = 0; i < imgTags.length; i++) {
@@ -84,43 +109,12 @@ function TemplateEngine() {
 
                         const srcName = imgTag.src.split('/').at(-1);
 
-                        const imgObj = files['images'].find((imgObj) => imgObj['name'] === srcName);
+                        const imgObj = files['images'].find(imgObj => imgObj['name'] === srcName);
 
                         if (imgObj !== undefined) {
                             imgTag.src = imgObj['data'];
                         }
                     }
-
-                    const containers = doc.getElementById('outer-wrapper').children;
-
-                    for (let i = 0; i < containers.length; i++) {
-                        const container = containers[i];
-
-                        // Determine if container is valid
-                        // Recursively check if we are at the deepest point of the tree
-
-                        const getDeepestElements = (container) => {
-                            console.log(container);
-                            // if (container.children.length !== 0) {
-                            //     return getDeepestElements(container);
-                            // } else {
-                            //     return container;
-                            // }
-                        };
-
-                        const result = getDeepestElements(container);
-
-                        console.log(result);
-                        // console.log(container.children.length);
-                    }
-
-                    // Algorithm
-                    // Container: De container waar de tekst in moet. In de container zit de entrypoint die een
-                    // aantal lagen diep kan zijn.
-                    // Entrypoint: Punt waarbij de nieuwe geformateerde tekst ingeladen moet worden.
-                    // Teksten: Tekst elementen die de tekst bevatten. Dit zijn span elementen met 1 woord erin
-                    // Styling: Elke tekst bevat een classname die bepaalt wat voor styling de tekst bevat.
-                    // Dit moet onthouden worden zodat die op het eind stukje op de juiste tekst gezet kan worden.
 
                     files['html'][i]['data'] = new XMLSerializer().serializeToString(doc);
                 }
