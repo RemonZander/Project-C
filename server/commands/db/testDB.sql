@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS "user" (
 	"Name" text NUT NULL,
 	"Role_Id"	integer NOT NULL,
 	"Company_Id"	integer NOT NULL,
-	"Is_logged_on"	BOOLEAN,
-	FOREIGN KEY("Role_Id") REFERENCES "role"("Id"),
+	FOREIGN KEY("Role_Id") REFERENCES "role"("Id") ON DELETE CASCADE ON UPDATE CASCADE,
+	FOREIGN KEY("Company_Id") REFERENCES "company"("Id") ON DELETE CASCADE ON UPDATE CASCADE,
 	PRIMARY KEY("Id" AUTOINCREMENT)
 );
 CREATE TABLE IF NOT EXISTS "role" (
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS "template" (
 	"Filepath"	text NOT NULL,
 	"Company_id"	integer NOT NULL,
 	"Name"		text NOT NULL,
-	FOREIGN KEY("Company_id") REFERENCES "company"("Id"),
+	FOREIGN KEY("Company_id") REFERENCES "company"("Id") ON DELETE CASCADE ON UPDATE CASCADE,
 	PRIMARY KEY("Id" AUTOINCREMENT)
 );
 CREATE TABLE IF NOT EXISTS "design" (
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS "design" (
 	"Verified"	tinyint(4) NOT NULL,
 	"Template_id"	integer NOT NULL,
 	"Name"		text NOT NULL,
-	FOREIGN KEY("Template_id") REFERENCES "template"("Id"),
+	FOREIGN KEY("Template_id") REFERENCES "template"("Id") ON DELETE CASCADE ON UPDATE CASCADE,
 	PRIMARY KEY("Id" AUTOINCREMENT)
 );
 CREATE TABLE IF NOT EXISTS "image" (
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS "image" (
 	"Created_at"	datetime NOT NULL,
 	"Updated_at"	datetime DEFAULT NULL,
 	"Company_id"	integer NOT NULL,
-	FOREIGN KEY("Company_id") REFERENCES "company"("Id"),
+	FOREIGN KEY("Company_id") REFERENCES "company"("Id") ON DELETE CASCADE ON UPDATE CASCADE,
 	PRIMARY KEY("Id" AUTOINCREMENT)
 );
 COMMIT;

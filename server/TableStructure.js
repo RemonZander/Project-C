@@ -1,14 +1,7 @@
 module.exports = [
   {
     name: "user",
-    columns: [
-      "Email",
-      "Password",
-      "Role_Id",
-      "Name",
-      "Company_Id",
-      "Is_logged_on",
-    ],
+    columns: ["Email", "Password", "Role_Id", "Name", "Company_Id"],
   },
   {
     name: "role",

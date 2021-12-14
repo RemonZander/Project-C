@@ -21,6 +21,10 @@
     font-size: 35px;
 }
 
+.listItemButton {
+    cursor: pointer;
+}
+
 .kyndalogo {
     margin-top: 0.3%;
 }

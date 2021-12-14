@@ -492,7 +492,6 @@ function loadUserPortalUsers(portalPos, userPortalList) {
                 3,
                 document.getElementById('GbrNaamInvoer').value,
                 userPortalList[portalPos].DbId,
-                0,
             ])) === 'undefined'
         ) {
             window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
@@ -818,11 +817,12 @@ async function onAddNewUserPortalButtonClick(SetUserPortalList) {
         document.getElementById('newMainUserName').value === '' ||
         document.getElementById('newMainUserEmail').value === '' ||
         document.getElementById('newMainUserPassword').value === ''
-    )
+    ) {
         window.alert(
             'Het enige veld dat niet verplicht is om in te vullen is het telefoonnummer veld.'
         );
-    return;
+        return;
+    }
 
     const ApiInstance = new Api(getToken());
     let response = [];
@@ -861,7 +861,6 @@ async function onAddNewUserPortalButtonClick(SetUserPortalList) {
             2,
             document.getElementById('newMainUserName').value,
             companyList[companyList.length - 1].Id,
-            0,
         ])) === 'undefined'
     ) {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
@@ -918,7 +917,6 @@ function onChangeMainUserButtonClick(userPortalList, SetUserPortalList) {
                         3,
                         userPortalList[portalPosition].mainUserList.Name,
                         userPortalList[portalPosition].mainUserList.Company_Id,
-                        userPortalList[portalPosition].mainUserList.Is_logged_on,
                     ]
                 )) === 'undefined'
             ) {
@@ -940,7 +938,6 @@ function onChangeMainUserButtonClick(userPortalList, SetUserPortalList) {
                     2,
                     NewMainUser[0].Name,
                     NewMainUser[0].Company_Id,
-                    NewMainUser[0].Is_logged_on,
                 ])) === 'undefined'
             ) {
                 window.alert(

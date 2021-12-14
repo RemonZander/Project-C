@@ -22,6 +22,8 @@ import {
     IconButton,
     Divider,
     ListItem,
+    MenuItem,
+    Menu,
 } from '@material-ui/core';
 import {
     Settings,
@@ -30,11 +32,13 @@ import {
     PhotoCamera,
     Panorama,
     Brush,
-    Menu,
+    Menu as MenuIcon,
     ContactSupport,
+    AccountCircle,
 } from '@material-ui/icons';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { useState, useEffect } from 'react';
+import { getPayloadAsJson } from '../../helpers/Token';
 
 const useStyles = makeStyles((theme) => ({
     icon: {
@@ -67,27 +71,66 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     justifyContent: 'flex-start',
 }));
 
+const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
+    ({ theme, open }) => ({
+        flexGrow: 1,
+        padding: theme.spacing(3),
+        transition: theme.transitions.create('margin', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+        }),
+        marginLeft: `-$400px`,
+        ...(open && {
+            transition: theme.transitions.create('margin', {
+                easing: theme.transitions.easing.easeOut,
+                duration: theme.transitions.duration.enteringScreen,
+            }),
+            marginLeft: 0,
+        }),
+    })
+);
+
 function UserPortal() {
+    const user = getPayloadAsJson();
+    console.log(user);
     const theme = useTheme();
     const styles = useStyles();
-    const [open, setOpen] = useState(false);
+    const [isModerator] = useState(user.type === 'Moderator' ? true : false);
+    const [openDrawer, setOpenDrawer] = useState(false);
+    const [anchorEl, setAnchorEl] = React.useState(null);
+    const openMenu = Boolean(anchorEl);
     const handleDrawerOpen = () => {
-        setOpen(true);
+        setOpenDrawer(true);
         document.getElementById('AppBar').style.width = window.innerWidth - 280 + 'px';
+        document.getElementById('userPortalMainPage').style.marginLeft = '280px';
     };
 
     const handleDrawerClose = () => {
-        setOpen(false);
+        setOpenDrawer(false);
         document.getElementById('AppBar').style.width = window.innerWidth + 'px';
+        document.getElementById('userPortalMainPage').style.marginLeft = '10px';
     };
+
+    const handleClickMenu = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleCloseMenu = () => {
+        setAnchorEl(null);
+    };
+
     return (
         <React.Fragment>
             <CssBaseline />
             <Box sx={{ display: 'flex' }}>
-                <AppBar position="fixed" open={open} style={{ background: 'white' }} id="AppBar">
+                <AppBar
+                    position="fixed"
+                    open={openDrawer}
+                    style={{ background: 'white' }}
+                    id="AppBar"
+                >
                     <Toolbar>
                         <IconButton color={'primary'} onClick={handleDrawerOpen}>
-                            <Menu />
+                            <MenuIcon />
                         </IconButton>
                         <img
                             src={kyndalogo}
@@ -121,10 +164,55 @@ function UserPortal() {
                             <Grid item>
                                 <Settings
                                     className={styles.icon}
-                                    style={{ color: 'black' }}
+                                    style={{ color: 'black', cursor: 'pointer' }}
                                     fontSize="large"
-                                    onClick={() => {}}
+                                    onClick={handleClickMenu}
+                                    aria-controls="basic-menu"
+                                    aria-haspopup="true"
+                                    aria-expanded={openMenu ? 'true' : undefined}
                                 />
+                                <Menu
+                                    id="basic-menu"
+                                    anchorEl={anchorEl}
+                                    open={openMenu}
+                                    onClose={handleCloseMenu}
+                                    MenuListProps={{
+                                        'aria-labelledby': 'basic-button',
+                                    }}
+                                    style={{ marginTop: '50px' }}
+                                >
+                                    <MenuItem onClick={handleCloseMenu}>
+                                        <AccountCircle
+                                            style={{ fontSize: '110px', marginRight: '15px' }}
+                                        />
+                                        {user.naam}
+                                        <br />
+                                        {user.email}
+                                    </MenuItem>
+                                    <Divider />
+                                    <MenuItem
+                                        onClick={handleCloseMenu}
+                                        style={{ marginTop: '10px' }}
+                                    >
+                                        Account gegevens wijzigen
+                                    </MenuItem>
+                                    <MenuItem
+                                        onClick={handleCloseMenu}
+                                        style={{ marginTop: '10px' }}
+                                    >
+                                        Login gegevens wijzigen
+                                    </MenuItem>
+                                    {isModerator ? (
+                                        <MenuItem
+                                            onClick={handleCloseMenu}
+                                            style={{ marginTop: '10px' }}
+                                        >
+                                            Hoofdgebruiker account wijzigen
+                                        </MenuItem>
+                                    ) : (
+                                        ''
+                                    )}
+                                </Menu>
                             </Grid>
                         </Grid>
                     </Toolbar>
@@ -141,7 +229,7 @@ function UserPortal() {
                     }}
                     variant="persistent"
                     anchor="left"
-                    open={open}
+                    open={openDrawer}
                 >
                     <DrawerHeader>
                         <IconButton onClick={handleDrawerClose}>
@@ -150,15 +238,20 @@ function UserPortal() {
                     </DrawerHeader>
                     <Divider />
                     <List>
-                        <ListItem>
+                        <ListItem
+                            className="listItemButton"
+                            onClick={() => {
+                                window.open('/fotogalerij', '_blank').focus();
+                            }}
+                        >
                             <PhotoCamera style={{ marginRight: '20px' }}></PhotoCamera>
                             <Typography variant="h5">Fotogalerij</Typography>
                         </ListItem>
-                        <ListItem>
+                        <ListItem className="listItemButton">
                             <Panorama style={{ marginRight: '20px' }}></Panorama>
                             <Typography variant="h5">Alle templates</Typography>
                         </ListItem>
-                        <ListItem>
+                        <ListItem className="listItemButton">
                             <Brush style={{ marginRight: '20px' }}></Brush>
                             <Typography variant="h5">Alle designs</Typography>
                         </ListItem>
@@ -186,6 +279,9 @@ function UserPortal() {
                     </List>
                 </Drawer>
             </Box>
+            <div style={{ marginTop: '70px', marginLeft: '10px' }} id="userPortalMainPage">
+                fdsfds
+            </div>
         </React.Fragment>
     );
 }
