@@ -12,8 +12,8 @@ class ResponseHelper {
         }));
     }
 
-    responseError(errorMessage) {
-        this.response.writeHead(200);
+    responseError(errorMessage, code = 200) {
+        this.response.writeHead(code);
         this.response.end(JSON.stringify({
             status: "FAIL",
             err: errorMessage,

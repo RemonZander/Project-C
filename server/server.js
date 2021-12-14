@@ -1,6 +1,5 @@
-require("dotenv").config();
+require('dotenv').config({ path: `.env.${process.env.NODE_ENV}` })
 
-const http = require("http");
 const RequestHelper = require("./src/RequestHelper");
 const ResponseHelper = require("./src/ResponseHelper");
 const Token = new (require("./src/Token"))();
@@ -8,13 +7,14 @@ const fs = require("fs");
 const path = require("path");
 
 // Create a local server to receive data from
+const http = require("http");
 const server = http.createServer();
 
 const routes = require("./routes");
 
 // Listen to the request event
 server.on("request", (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", process.env.APP_URL);
+  res.setHeader("Access-Control-Allow-Origin", process.env.CLIENT_URL);
   res.setHeader("Access-Control-Allow-Headers", "Authorization");
   res.setHeader("Access-Control-Allow-Methods", [
     "GET",
@@ -22,13 +22,12 @@ server.on("request", (req, res) => {
     "PUT",
     "DELETE",
   ]);
-
   req.setEncoding("utf-8");
 
   const reqHelper = new RequestHelper(req);
   const resHelper = new ResponseHelper(res);
 
-  if (process.env.APP_ENV === "production") {
+  if (process.env.NODE_ENV === "production") {
     if (req.url === "/") {
       fs.readFile(
         path.normalize(__dirname + "/index.html"),
@@ -96,13 +95,10 @@ server.on("request", (req, res) => {
           }
         }
       })();
-
-      break;
     }
   }
-
-  res.writeHead(404);
-  res.end();
 });
 
-server.listen(3001);
+console.log(`Listening on port: ${process.env.SERVER_PORT || 8080}`);
+
+server.listen(process.env.SERVER_PORT || 8080);

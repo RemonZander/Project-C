@@ -122,10 +122,10 @@ for (let i = 0; i < sqlData.length; i++) {
         )}', '6-11-2021', '8-11-2021', 0)`
   );
 
-  Storage.addImage("test.gif", 0, testUri);
-
   // DB CONNECTION END
   conn.endConnection();
+
+  Storage.addImage("test.gif", 0, testUri);
 
   console.log("Queries done and DB is closed");
 })();

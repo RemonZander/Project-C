@@ -2,9 +2,9 @@ import { readFileAsDataUrl } from './FileReader';
 import { getToken } from './Token';
 
 export default class Api {
-    constructor(token, serverUrl = process.env.REACT_APP_SERVER_URL) {
+    constructor(token) {
         this.token = token;
-        this.serverUrl = serverUrl;
+        this.serverUrl = process.env.REACT_APP_SERVER_UR;
     }
 
     async _doFetch(url, method, body = null) {

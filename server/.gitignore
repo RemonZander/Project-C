@@ -3,8 +3,11 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-.env
 .vscode
+
+.env
+.env.development
+.env.production
 
 # User-specific files
 *.rsuser
