@@ -1,8 +1,10 @@
 import * as React from 'react';
 import './user-portal.css';
 import kyndalogo from './kynda.png';
-import cog from './cog69420.png';
-import plus from './plusafbeelding.png';
+import testimg1 from './testimg1.png';
+import testimg2 from './testimg2.png';
+import testimg3 from './testimg3.png';
+import Enumerable from 'linq';
 import { CreateExport } from '../../helpers/Export';
 import {
     Typography,
@@ -24,6 +26,7 @@ import {
     ListItem,
     MenuItem,
     Menu,
+    Paper,
 } from '@material-ui/core';
 import {
     Settings,
@@ -38,7 +41,9 @@ import {
 } from '@material-ui/icons';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { useState, useEffect } from 'react';
-import { getPayloadAsJson } from '../../helpers/Token';
+import { getPayloadAsJson, getToken } from '../../helpers/Token';
+import Api from '../../helpers/Api';
+import Image from 'image-js';
 
 const useStyles = makeStyles((theme) => ({
     icon: {
@@ -48,15 +53,10 @@ const useStyles = makeStyles((theme) => ({
         padding: '20px 0',
     },
     card: {
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-    },
-    cardMedia: {
-        paddingTop: '56.25%',
-        width: '100%',
+        width: '200px',
         height: '100%',
     },
+    cardMedia: {},
     cardContent: {
         flexGrow: 1,
     },
@@ -71,30 +71,58 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     justifyContent: 'flex-start',
 }));
 
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-    ({ theme, open }) => ({
-        flexGrow: 1,
-        padding: theme.spacing(3),
-        transition: theme.transitions.create('margin', {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-        }),
-        marginLeft: `-$400px`,
-        ...(open && {
-            transition: theme.transitions.create('margin', {
-                easing: theme.transitions.easing.easeOut,
-                duration: theme.transitions.duration.enteringScreen,
-            }),
-            marginLeft: 0,
-        }),
-    })
-);
+async function getDesigns() {
+    const user = getPayloadAsJson();
+    const ApiInstance = new Api(getToken());
+    let designListDb = [];
+    let templateListDb = [];
+    if (typeof (designListDb = await ApiInstance.all('design')) === 'undefined') {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
+
+    if (typeof (templateListDb = await ApiInstance.all('template')) === 'undefined') {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
+    let templateIdList = Enumerable.from(templateListDb.content)
+        .where((t) => t.Company_id === user.company)
+        .select((i) => i.Id)
+        .toArray();
+    let designList = Enumerable.from(designListDb.content)
+        .where((d) => Enumerable.from(templateIdList).contains(d.Template_id))
+        .orderBy((d) => d.Template_id)
+        .toArray();
+}
+
+async function makeImages() {
+    let templist = [];
+    let img = await Image.load(testimg1);
+    let temp = new imageData(await img.toDataURL(), img.width, img.height);
+    templist.push(temp);
+    img = await Image.load(testimg2);
+    temp = new imageData(await img.toDataURL(), img.width, img.height);
+    templist.push(temp);
+    img = await Image.load(testimg3);
+    temp = new imageData(await img.toDataURL(), img.width, img.height);
+    templist.push(temp);
+    return templist;
+}
+
+class imageData {
+    constructor(dataURL, width, height) {
+        this.dataURL = dataURL;
+        this.width = width;
+        this.height = height;
+    }
+}
 
 function UserPortal() {
     const user = getPayloadAsJson();
-    console.log(user);
     const theme = useTheme();
     const styles = useStyles();
+    const [designList, SetdesignList] = React.useState([]);
+    const [imgList, SetimgList] = React.useState([]);
     const [isModerator] = useState(user.type === 'Moderator' ? true : false);
     const [openDrawer, setOpenDrawer] = useState(false);
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -114,10 +142,24 @@ function UserPortal() {
     const handleClickMenu = (event) => {
         setAnchorEl(event.currentTarget);
     };
+
     const handleCloseMenu = () => {
         setAnchorEl(null);
     };
 
+    React.useEffect(() => {
+        (async () => {
+            SetimgList(await makeImages());
+        })();
+    }, []);
+
+    React.useEffect(() => {
+        (async () => {
+            SetdesignList(await getDesigns());
+        })();
+    }, []);
+
+    console.log(imgList[0]);
     return (
         <React.Fragment>
             <CssBaseline />
@@ -129,7 +171,10 @@ function UserPortal() {
                     id="AppBar"
                 >
                     <Toolbar>
-                        <IconButton color={'primary'} onClick={handleDrawerOpen}>
+                        <IconButton
+                            color={'primary'}
+                            onClick={openDrawer ? handleDrawerClose : handleDrawerOpen}
+                        >
                             <MenuIcon />
                         </IconButton>
                         <img
@@ -280,7 +325,26 @@ function UserPortal() {
                 </Drawer>
             </Box>
             <div style={{ marginTop: '70px', marginLeft: '10px' }} id="userPortalMainPage">
-                fdsfds
+                <Container maxWidth="md" className={styles.cardGrid}>
+                    <Grid container spacing={4}>
+                        <Grid item xs={12} sm={6} md={4} key={0}>
+                            <Card className={styles.card}>
+                                <CardMedia className={styles.cardMedia} title={'test'}>
+                                    <img
+                                        id="testimg"
+                                        src={imgList[0].dataURL}
+                                        style={{ width: '200px', height: '280px' }}
+                                    />
+                                </CardMedia>
+                                <CardContent className={styles.cardContent}>
+                                    <Typography gutterBottom variant="h6" align="center">
+                                        {'test img card'}
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        </Grid>
+                    </Grid>
+                </Container>
             </div>
         </React.Fragment>
     );
