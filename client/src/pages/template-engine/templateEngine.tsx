@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
 import { Box, Grid, styled } from '@material-ui/core';
 import { Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
 import { getPayloadAsJson } from '../../helpers/Token';
+import { PageProps } from '../../@types/app';
+import { createDataObject } from '../../helpers/TemplateEngine';
+import { TemplateFiles } from '../../@types/templateEngine';
 
 /*
 Uitleg:
@@ -18,9 +21,9 @@ const Input = styled('input')({
     display: 'none',
 });
 
-function TemplateEngine(props) {
+function TemplateEngine(props: PageProps) {
     const [templatePos, setTemplatePos] = useState(0);
-    const [templateFiles, setTemplateFiles] = useState([]);
+    const [templateFiles, setTemplateFiles] = useState({});
     const [templateImages, setTemplateImages] = useState([]);
     const [entryPoints, setEntryPoints] = useState([]);
     const [templateDoc, setTemplateDoc] = useState(null);
@@ -31,12 +34,12 @@ function TemplateEngine(props) {
     const [textAlign, setTextAlign] = useState(-1);
     const [fixApplied, setFixApplied] = useState(false);
 
+    const textFieldRef = useRef(null);
+
     useEffect(() => {
-        const textField = document.getElementById('templateEditorTextField');
-        
-        if (selectedElement !== null) {
+        if (selectedElement !== null && textFieldRef !== null) {
             // Sets the default value of the text field
-            textField.value = textFieldValue;
+            textFieldRef.value = textFieldValue;
 
             if (textAlign === 0 || textAlign === -1) {
                 selectedElement.style.textAlign = 'left';
@@ -63,18 +66,11 @@ function TemplateEngine(props) {
 
         const exportFiles = e.target.files;
         (async () => {
-            let files = {
+            let files: TemplateFiles = {
                 html: [],
                 css: [],
                 images: [],
                 js: [],
-            };
-
-            const createObj = (file, data) => {
-                return {
-                    name: file.name,
-                    data: data,
-                };
             };
 
             // TODO: Should only ready 1 template and process whenever a new template gets into the screen. Cache like behaviour.
@@ -82,13 +78,13 @@ function TemplateEngine(props) {
                 const file = exportFiles[i];
 
                 if (file.type === 'text/html') {
-                    files['html'].push(createObj(file, await readFile(file)));
+                    files['html'].push(createDataObject(file, await readFile(file)));
                 } else if (file.type === 'text/css') {
-                    files['css'].push(createObj(file, await readFile(file)));
+                    files['css'].push(createDataObject(file, await readFile(file)));
                 } else if (file.type === 'text/javascript') {
-                    files['js'].push(createObj(file, await readFile(file)));
+                    files['js'].push(createDataObject(file, await readFile(file)));
                 } else if (['image/png', 'image/jpg', 'image/jpeg'].includes(file.type)) {
-                    files['images'].push(createObj(file, await readFileAsDataUrl(file)));
+                    files['images'].push(createDataObject(file, await readFileAsDataUrl(file)));
                 } else {
                     return;
                 }
@@ -155,17 +151,17 @@ function TemplateEngine(props) {
         })();
     }
 
-    function buttonHandler(buttonName, templatePosition, templateFiles) {
-        if (buttonName === 'previous') {
-            if (templatePosition === 0) {
-                return { display: 'none' };
-            }
-        } else {
-            if (templatePosition === templateFiles.length - 1) {
-                return { display: 'none' };
-            }
-        }
-    }
+    // function buttonHandler(buttonName, templatePosition, templateFiles) {
+    //     if (buttonName === 'previous') {
+    //         if (templatePosition === 0) {
+    //             return { display: 'none' };
+    //         }
+    //     } else {
+    //         if (templatePosition === templateFiles.length - 1) {
+    //             return { display: 'none' };
+    //         }
+    //     }
+    // }
 
     function handleTemplateLoad(e) {
         const doc = e.target.contentDocument;
@@ -173,7 +169,7 @@ function TemplateEngine(props) {
         const imgTags = doc.getElementsByTagName('img');
 
         // Returns an object that includes the name and the dataUrl (signed as data)
-        const findImageByUrl = (url) => templateImages.find(imgObj => imgObj['name'] === url.split('/').at(-1));
+        const findImageByUrl = (url: string) => templateImages.find(imgObj => imgObj['name'] === url.split('/').at(-1));
 
         // Replace image tags sources with data urls
         for (let i = 0; i < imgTags.length; i++) {
@@ -360,6 +356,7 @@ function TemplateEngine(props) {
                                     variant="filled"
                                     onChange={handleTextChange}
                                     style={{ width: "100%" }}
+                                    ref={textFieldRef}
                                 />
                                 <FormControl style={{ width: "100%" }}>
                                     <InputLabel id="templateEditorSelectWrapLabel">Wrap</InputLabel>
