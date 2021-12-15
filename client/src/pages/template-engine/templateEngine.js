@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
 import { Box, Grid, styled } from '@material-ui/core';
-import { Button, Stack } from '@mui/material';
+import { Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
+import { getPayloadAsJson } from '../../helpers/Token';
 
 /*
 Uitleg:
@@ -17,9 +18,41 @@ const Input = styled('input')({
     display: 'none',
 });
 
-function TemplateEngine() {
+function TemplateEngine(props) {
     const [templatePos, setTemplatePos] = useState(0);
     const [templateFiles, setTemplateFiles] = useState([]);
+    const [templateImages, setTemplateImages] = useState([]);
+    const [entryPoints, setEntryPoints] = useState([]);
+    const [templateDoc, setTemplateDoc] = useState(null);
+    const [selectedElement, setSelectedElement] = useState(null);
+    const [textFieldValue, setTextFieldValue] = useState("");
+    const [textFieldLimit, setTextFieldLimit] = useState(null);
+    const [textWrap, setTextWrap] = useState(-1);
+    const [textAlign, setTextAlign] = useState(-1);
+    const [fixApplied, setFixApplied] = useState(false);
+
+    useEffect(() => {
+        const textField = document.getElementById('templateEditorTextField');
+        
+        if (selectedElement !== null) {
+            // Sets the default value of the text field
+            textField.value = textFieldValue;
+
+            if (textAlign === 0 || textAlign === -1) {
+                selectedElement.style.textAlign = 'left';
+            } else if (textAlign === 1) {
+                selectedElement.style.textAlign = 'center';
+            } else if (textAlign === 2) {
+                selectedElement.style.textAlign = 'right';
+            }
+
+            if (textWrap === 0 || textWrap === -1) {
+                selectedElement.style.whiteSpace = 'normal';
+            } else if (textWrap === 1) {
+                selectedElement.style.whiteSpace = 'nowrap';
+            }
+        }
+    })
 
     function loadFilesHandler(e) {
         // Omdat het lezen van bestanden asynchrounous gaat, wrappen wij onze for loop in een async functie zodat wij
@@ -61,9 +94,12 @@ function TemplateEngine() {
                 }
             }
 
+            let fontDataLoaded = false;
+
             if (!(files['js'].some(obj => obj.name === 'FontData.js'))) {
-                alert("Geen fontdata script gevonden. Zijn de fonts ingeladen?");
-                return;
+                alert("Geen fontdata script gevonden. Tekst kan overlappen.");
+            } else {
+                fontDataLoaded = true;
             }
 
             // For every template found in the export directory
@@ -88,165 +124,34 @@ function TemplateEngine() {
                                 cursor: pointer !important;
                             }
                         `;
+
                     node.innerHTML = css.replace(/\r?\n|\r/g, '');
                     doc.getElementsByTagName('head')[0].appendChild(node);
                 }
 
-                for (let i = 0; i < files['js'].length; i++) {
-                    const node = document.createElement('script');
-                    const js = files['js'][i]['data'];
+                if (fontDataLoaded) {
+                    for (let i = 0; i < files['js'].length; i++) {
+                        const node = document.createElement('script');
+                        const js = files['js'][i]['data'];
 
-                    const newJs = js.replace(js.substring(js.indexOf('document'), js.lastIndexOf(';') + 1), `
-                            const head = document.getElementsByTagName('head')[0];
-                            const styleNode = document.createElement('style');
-                            styleNode.innerHTML = buildFontRule(nameArray[i], dataArray[i], fontStyle[i][j], fontWeight[i], fontStretch[i]);
-                            head.appendChild(styleNode);
-                        `)
+                        const newJs = js.replace(js.substring(js.indexOf('document'), js.lastIndexOf(';') + 1), `
+                        const head = document.getElementsByTagName('head')[0];
+                        const styleNode = document.createElement('style');
+                        styleNode.innerHTML = buildFontRule(nameArray[i], dataArray[i], fontStyle[i][j], fontWeight[i], fontStretch[i]);
+                        head.appendChild(styleNode);
+                    `)
 
-                    node.innerHTML = newJs;
+                        node.innerHTML = newJs;
 
-                    doc.getElementsByTagName('head')[0].appendChild(node);
-                }
-
-                // Change all image references to data urls
-                const imgTags = doc.getElementsByTagName('img');
-
-                for (let i = 0; i < imgTags.length; i++) {
-                    const imgTag = imgTags[i];
-
-                    const srcName = imgTag.src.split('/').at(-1);
-
-                    const imgObj = files['images'].find(imgObj => imgObj['name'] === srcName);
-
-                    if (imgObj !== undefined) {
-                        imgTag.src = imgObj['data'];
+                        doc.getElementsByTagName('head')[0].appendChild(node);
                     }
                 }
-
-                // const wrapper = doc.getElementById('outer-wrapper');
-
-                // const getEntryPointRecursive = (container, entryPoints = [], closestEntryPoint = "") => {
-                //     const children = container.children;
-                //     const entryPoint = entryPoints.filter(point => point.id === closestEntryPoint)[0];
-
-                //     for (let i = 0; i < children.length; i++) {
-                //         const child = children[i];
-
-                //         // Assume that we found an entrypoint and give it an appropiate ID
-                //         if (child.id === "" && child.tagName.toLowerCase() === "div" && child.style.length !== 0) {
-                //             child.id = "layer_" + entryPoints.length;
-                //             child.className = "layer selectable";
-
-                //             entryPoints.push({
-                //                 id: child.id,
-                //                 element: child,
-                //                 spanClasses: [],
-                //                 pElements: [],
-                //                 spanElements: []
-                //             });
-                //         }
-
-                //         if (child.tagName.toLowerCase() === "p") {
-                //             entryPoint.pElements.push(child);
-                //         }
-
-                //         if (child.tagName.toLowerCase() === "span") {
-                //             entryPoint.spanElements.push(child);
-
-                //             if (!entryPoint.spanClasses.includes(child.className)) {
-                //                 entryPoint.spanClasses.push(child.className);
-                //             }
-                //         }
-
-                //         if (child.children.length !== 0) {
-                //             getEntryPointRecursive(child, entryPoints, child.id === "" ? closestEntryPoint : child.id);
-                //         }
-                //     }
-
-                //     return entryPoints;
-                // }
-
-                // const entryPoints = getEntryPointRecursive(wrapper);
-
-                // console.log(entryPoints);
-
-                // for (let i = 0; i < entryPoints.length; i++) {
-                //     const point = entryPoints[i];
-
-                //     const mergedSpan = [];
-
-                //     point.spanClasses.forEach(spanClass => {
-                //         const span = doc.createElement('span');
-                //         span.className = spanClass
-
-                //         mergedSpan.push(span);
-                //     })
-
-                //     console.log(mergedSpan);
-
-                //     mergedSpan.forEach(span => {
-                //         point.spanElements.forEach(el => {
-                //             if (el.className === span.className) {
-                //                 span.innerText += el.innerText;
-                //             }
-                //         })
-                //     })
-
-                // for (let i = 0; i < point.element.children.length; i++) {
-                //     const child = point.element.children[i];
-
-                //     if (child.tagName.toLowerCase() === "p") {
-
-                //     }
-                //     point.pElements[i].remove();
-
-                //     point.element.appendChild(mergedSpan[i]);
-                //     point.element.appendChild(doc.createElement('br'));
-                // }
-
-                //     point.spanElements.forEach(span => {
-                //         if (!(span.className in textObject)) {
-                //             textObject[span.className] = [];
-                //         }    
-
-                //         textObject[span.className].push(span.innerText);
-                //     })
-
-                //     let j = 0;
-
-                // point.pElements.forEach(p => {
-
-                // })
-
-                //     for (const key in textObject) {
-                //         if (Object.hasOwnProperty.call(textObject, key)) {
-                //             const span = doc.createElement('span');
-                //             span.className = key;
-                //             span.innerText = textObject[key].join(' ').trim();
-                //             // span.style.fontSize = "100vw";
-                //             console.log(point.pElements[j]);
-                //             // point.element.replaceChild(span, point.pElements[j])
-                //             // point.element.appendChild(span);
-                //             // point.element.appendChild(doc.createElement('br'));
-
-                //             j++;
-
-                //         }
-                //     }
-                // }
-                // Algorithm
-                // Container: De container waar de elementen in moet. In de container zit de entrypoint die een
-                // aantal lagen diep kan zijn.
-                // Entrypoint: Punt waarbij de nieuwe geformateerde tekst ingeladen moet worden. De entrypoint bevat (bijna) altijd de tekst (p) elementen
-                // Teksten: Tekst elementen die de tekst bevatten. Dit zijn span elementen met 1 woord erin
-                // Styling: Elke tekst bevat een classname die bepaalt wat voor styling de tekst bevat.
-                // Dit moet onthouden worden zodat die op het eind stukje op de juiste tekst gezet kan worden.
 
                 files['html'][i]['data'] = new XMLSerializer().serializeToString(doc);
             }
 
-
             setTemplateFiles(files['html']);
+            setTemplateImages(files['images']);
         })();
     }
 
@@ -262,23 +167,47 @@ function TemplateEngine() {
         }
     }
 
-    function onLoadHandler(e) {
+    function handleTemplateLoad(e) {
         const doc = e.target.contentDocument;
         const wrapper = doc.getElementById('outer-wrapper');
+        const imgTags = doc.getElementsByTagName('img');
 
-        // Does more than just getting the entry points
-        // it also adds ids, classes and events to the elements it goes through
-        const getEntryPointRecursive = (container, entryPoints = [], closestEntryPoint = "") => {
+        // Returns an object that includes the name and the dataUrl (signed as data)
+        const findImageByUrl = (url) => templateImages.find(imgObj => imgObj['name'] === url.split('/').at(-1));
+
+        // Replace image tags sources with data urls
+        for (let i = 0; i < imgTags.length; i++) {
+            const imgTag = imgTags[i];
+
+            const imgObj = findImageByUrl(imgTag.src);
+
+            if (imgObj !== undefined) {
+                imgTag.src = imgObj['data'];
+            }
+        }
+
+        // Self calling function that returns the entry points for use further down the code
+        // It also adds ids, classes and events to the elements it goes through
+        const entryPoints = (function getEntryPointsRecursive(container, entryPoints = [], closesElementWithId = "") {
             const children = container.children;
-            const entryPoint = entryPoints.filter(point => point.id === closestEntryPoint)[0];
+            const entryPoint = entryPoints.filter(point => point.id === closesElementWithId)[0];
 
             for (let i = 0; i < children.length; i++) {
                 const child = children[i];
+                const childStyles = getComputedStyle(child);
+
+                if (childStyles.backgroundImage !== 'none') {
+                    const url = childStyles.backgroundImage.split("\"")[1];
+
+                    if (!(url.startsWith('data:'))) {
+                        child.style.backgroundImage = `url(${findImageByUrl(url)['data']})`;
+                    }
+                }
 
                 // Assume that we found an entrypoint and give it an appropiate ID
                 if (child.id === "" && child.tagName.toLowerCase() === "div" && child.style.length !== 0) {
                     child.id = "layer_" + entryPoints.length;
-                    child.className = "layer selectable";
+                    child.className = "layer";
 
                     entryPoints.push({
                         id: child.id,
@@ -302,23 +231,22 @@ function TemplateEngine() {
                 }
 
                 if (child.children.length !== 0) {
-                    getEntryPointRecursive(child, entryPoints, child.id === "" ? closestEntryPoint : child.id);
+                    getEntryPointsRecursive(child, entryPoints, child.id === "" ? closesElementWithId : child.id);
                 }
             }
 
             return entryPoints;
-        }
+        })(wrapper);
 
-        const entryPoints = getEntryPointRecursive(wrapper);
+        setEntryPoints(entryPoints);
+        setTemplateDoc(doc);
+    }
+
+    function handleOnClickFix(e) {
+        const doc = templateDoc;
 
         for (let i = 0; i < entryPoints.length; i++) {
             const point = entryPoints[i];
-
-            point.element.onclick = () => {
-                const text = prompt();
-
-                point.element.innerHTML = `<span class="${point.spanClasses[0]}">${text}</span>`
-            }
 
             const mergedSpan = [];
 
@@ -329,14 +257,51 @@ function TemplateEngine() {
                 mergedSpan.push(span);
             })
 
+            point.pElements.forEach(p => p.remove());
+
             mergedSpan.forEach(span => {
                 point.spanElements.forEach(el => {
                     if (el.className === span.className) {
-                        span.innerText += el.innerText;
+                        span.innerText += el.innerText + ' ';
                     }
                 })
+
+                span.innerText = span.innerText.trim();
+                span.style.display = "block";
+                span.style.lineHeight = 1;
+                span.className += " selectable";
+
+                span.onclick = (e) => {
+                    setSelectedElement(e.target);
+                    setTextFieldValue(e.target.innerText);
+                    setTextWrap(-1);
+                    setTextAlign(-1);
+                }
+
+                point.element.appendChild(span);
             })
         }
+
+        alert("Fix applied");
+
+        setFixApplied(true);
+    }
+
+    function handleTextChange(e) {
+        selectedElement.innerText = e.target.value;
+        setTextFieldValue(e.target.value);
+    }
+
+    function handleWrapping(e) {
+        setTextWrap(e.target.value);
+    }
+
+    function handleAlign(e) {
+        setTextAlign(e.target.value);
+    }
+
+    function handleSaveText(e) {
+        setSelectedElement(null);
     }
 
     return (
@@ -348,28 +313,85 @@ function TemplateEngine() {
                     boxShadow={3}
                     style={{ height: "inherit" }}
                 >
-                    <Stack spacing={2} alignItems={"center"} style={{ width: "100%", marginTop: "10px" }}>
-                        <label htmlFor="contained-button-file">
-                            <Input
-                                id="contained-button-file"
-                                multiple
-                                webkitdirectory="true"
-                                directory="true"
-                                type="file"
-                                onChange={loadFilesHandler}
-                            />
-                            <Button variant="contained" component="span">
-                                Load Export Files
-                            </Button>
-                        </label>
+                    <Stack spacing={2} alignItems={"center"} style={{ width: "95%", margin: "10px 10px 0 10px" }}>
+                        {
+                            getPayloadAsJson().type === "Admin" && (
+                                <label htmlFor="contained-button-file" style={{ width: "100%" }}>
+                                    <Input
+                                        id="contained-button-file"
+                                        multiple
+                                        webkitdirectory="true"
+                                        directory="true"
+                                        type="file"
+                                        onChange={loadFilesHandler}
+                                    />
+                                    <Button variant="contained" component="span" style={{ width: "100%" }}>
+                                        Load export files
+                                    </Button>
+                                </label>
+                            )
+                        }
+                        {
+                            templateFiles.length > 0 && !fixApplied && (
+                                <Button variant="contained" component="span" onClick={handleOnClickFix} style={{ width: "100%" }}>
+                                    Try fix
+                                </Button>
+                            )
+                        }
                         {
                             templateFiles.length > 1 &&
                             <>
-                                <Button variant="contained" component="span" onClick={() => setTemplatePos(templatePos + 1)}>
+                                <Button variant="contained" component="span" onClick={() => setTemplatePos(templatePos + 1)} style={{ width: "100%" }}>
                                     Next
                                 </Button>
-                                <Button variant="contained" component="span" onClick={() => setTemplatePos(templatePos - 1)}>
+                                <Button variant="contained" component="span" onClick={() => setTemplatePos(templatePos - 1)} style={{ width: "100%" }}>
                                     Previous
+                                </Button>
+                            </>
+                        }
+                        {
+                            selectedElement !== null && 
+                            <>
+                                <TextField
+                                    id="templateEditorTextField"
+                                    label="Type text"
+                                    multiline
+                                    rows={4}
+                                    variant="filled"
+                                    onChange={handleTextChange}
+                                    style={{ width: "100%" }}
+                                />
+                                <FormControl style={{ width: "100%" }}>
+                                    <InputLabel id="templateEditorSelectWrapLabel">Wrap</InputLabel>
+                                    <Select
+                                        id="templateEditorSelectWrap"
+                                        labelId='templateEditorSelectWrapLabel'
+                                        label="Wrap"
+                                        value={textWrap}
+                                        onChange={handleWrapping}
+                                    >
+                                        <MenuItem value={-1}>Default (Wrap)</MenuItem>
+                                        <MenuItem value={0}>Wrap</MenuItem>
+                                        <MenuItem value={1}>No wrap</MenuItem>
+                                    </Select>
+                                </FormControl>
+                                <FormControl style={{ width: "100%" }}>
+                                    <InputLabel id="templateEditorSelectAlignLabel">Align</InputLabel>
+                                    <Select
+                                        id="templateEditorSelectAlign"
+                                        labelId='templateEditorSelectAlignLabel'
+                                        label="Align"
+                                        value={textAlign}
+                                        onChange={handleAlign}
+                                    >
+                                        <MenuItem value={-1}>Default (Left)</MenuItem>
+                                        <MenuItem value={0}>Left</MenuItem>
+                                        <MenuItem value={1}>Center</MenuItem>
+                                        <MenuItem value={2}>Right</MenuItem>
+                                    </Select>
+                                </FormControl>
+                                <Button variant="contained" component="span" color="success" onClick={handleSaveText} style={{ width: "100%" }}>
+                                    Done
                                 </Button>
                             </>
                         }
@@ -379,13 +401,20 @@ function TemplateEngine() {
             <Grid item xs={true}>
                 {templateFiles.length > 0 &&
                 templatePos >= 0 &&
-                templatePos <= templateFiles.length - 1 && (
-                    <iframe onLoad={onLoadHandler}
+                templatePos <= templateFiles.length - 1 ? 
+                    <iframe onLoad={handleTemplateLoad}
                         title="templateViewer"
                         srcDoc={templateFiles[templatePos]['data']}
                         style={{ height: "100%", width: "100%" }}
                     ></iframe>
-                )}
+                    :
+                    <div style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "100vh",
+                    }}>No template selected</div>
+                }
             </Grid>
         </Grid>
     );
