@@ -40,6 +40,7 @@ import {
     AccountCircle,
     Info,
     Add,
+    Home,
 } from '@material-ui/icons';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { useState, useEffect } from 'react';
@@ -97,6 +98,7 @@ async function getDesigns() {
         .orderBy((d) => d.Template_id)
         .toArray();
 
+    console.log(designList);
     return designList;
 }
 
@@ -113,6 +115,7 @@ async function getTemplates() {
         .where((t) => t.Company_id === user.company)
         .toArray();
 
+    console.log(templateList);
     return templateList;
 }
 
@@ -132,7 +135,6 @@ async function makeInfoViewBoolList() {
     const designList = await getDesigns();
     if (typeof designList === 'undefined') return [];
     const boolList = [];
-    console.log(designList);
     for (var a = 0; a < designList.length; a++) {
         boolList.push(false);
     }
@@ -191,7 +193,6 @@ function UserPortal() {
         })();
     }, []);
 
-    console.log(infoView);
     return (
         <React.Fragment>
             <CssBaseline />
@@ -321,6 +322,18 @@ function UserPortal() {
                         <ListItem
                             className="listItemButton"
                             onClick={() => {
+                                setDesignView(false);
+                                settemplateView(false);
+                                handleDrawerClose();
+                            }}
+                        >
+                            <Home style={{ marginRight: '20px' }}></Home>
+                            <Typography variant="h5">Home pagina</Typography>
+                        </ListItem>
+                        <Divider />
+                        <ListItem
+                            className="listItemButton"
+                            onClick={() => {
                                 window.open('/fotogalerij', '_blank').focus();
                             }}
                         >
@@ -391,7 +404,6 @@ function UserPortal() {
                                                           src={testimg2}
                                                           style={{
                                                               width: '300px',
-                                                              height: '420px',
                                                           }}
                                                       />
                                                   </CardMedia>
@@ -407,7 +419,8 @@ function UserPortal() {
                                                               setInfoView(
                                                                   makeNewInfoViewBoolList(
                                                                       index,
-                                                                      designList
+                                                                      designList,
+                                                                      infoView
                                                                   )
                                                               );
                                                           }}
@@ -415,7 +428,90 @@ function UserPortal() {
                                                           <Info style={{ color: 'white' }} />
                                                       </Button>
                                                   ) : (
-                                                      ''
+                                                      <List
+                                                          style={{
+                                                              position: 'absolute',
+                                                              top: '0px',
+                                                              left: '0px',
+                                                              background: 'white',
+                                                              color: 'black',
+                                                              height: '85%',
+                                                          }}
+                                                          onClick={() => {
+                                                              setInfoView(
+                                                                  makeNewInfoViewBoolList(
+                                                                      index,
+                                                                      designList,
+                                                                      infoView
+                                                                  )
+                                                              );
+                                                          }}
+                                                      >
+                                                          <ListItem
+                                                              style={{
+                                                                  alignItems: 'center',
+                                                                  justifyContent: 'center',
+                                                                  fontSize: '20px',
+                                                              }}
+                                                          >
+                                                              Gegevens
+                                                          </ListItem>
+                                                          <Divider />
+                                                          <ListItem
+                                                              style={{
+                                                                  alignItems: 'center',
+                                                                  justifyContent: 'center',
+                                                              }}
+                                                          >
+                                                              {'Naam: ' + design.Name}
+                                                          </ListItem>
+                                                          <ListItem
+                                                              style={{
+                                                                  alignItems: 'center',
+                                                                  justifyContent: 'center',
+                                                              }}
+                                                          >
+                                                              {'Template naam: ' +
+                                                                  Enumerable.from(templateList)
+                                                                      .where(
+                                                                          (t) =>
+                                                                              t.Id ===
+                                                                              design.Template_id
+                                                                      )
+                                                                      .select((t) => t.Name)
+                                                                      .toArray()[0]}
+                                                          </ListItem>
+                                                          <ListItem
+                                                              style={{
+                                                                  alignItems: 'center',
+                                                                  justifyContent: 'center',
+                                                              }}
+                                                          >
+                                                              {'Gemaakt op: ' + design.Created_at}
+                                                          </ListItem>
+                                                          <ListItem
+                                                              style={{
+                                                                  alignItems: 'center',
+                                                                  justifyContent: 'center',
+                                                              }}
+                                                          >
+                                                              {'Laadst bijgewerkt: ' +
+                                                                  (design.Updated_at === ''
+                                                                      ? 'nooit'
+                                                                      : design.Updated_at)}
+                                                          </ListItem>
+                                                          <ListItem
+                                                              style={{
+                                                                  alignItems: 'center',
+                                                                  justifyContent: 'center',
+                                                              }}
+                                                          >
+                                                              {'Gevalideerd: ' +
+                                                                  (design.Verified === 0
+                                                                      ? 'nee'
+                                                                      : 'ja')}
+                                                          </ListItem>
+                                                      </List>
                                                   )}
                                                   <CardContent className={styles.cardContent}>
                                                       <Typography
@@ -423,7 +519,7 @@ function UserPortal() {
                                                           variant="h6"
                                                           align="center"
                                                       >
-                                                          {'test card: ' + (index + 1)}
+                                                          {design.Name}
                                                       </Typography>
                                                   </CardContent>
                                               </Card>
@@ -443,19 +539,9 @@ function UserPortal() {
                                                   <img
                                                       id="testimg"
                                                       src={testimg3}
-                                                      style={{ width: '300px', height: '420px' }}
+                                                      style={{ width: '300px' }}
                                                   />
                                               </CardMedia>
-                                              <Button
-                                                  style={{
-                                                      position: 'absolute',
-                                                      top: '5px',
-                                                      left: '5px',
-                                                      background: 'rgb(63, 81, 181)',
-                                                  }}
-                                              >
-                                                  <Info style={{ color: 'white' }} />
-                                              </Button>
                                               <CardContent className={styles.cardContent}>
                                                   <Typography
                                                       gutterBottom
@@ -477,7 +563,7 @@ function UserPortal() {
                                         <img
                                             id="testimg"
                                             src={testimg1}
-                                            style={{ width: '300px', height: '420px' }}
+                                            style={{ width: '300px' }}
                                         />
                                     </CardMedia>
                                     <Button
@@ -486,6 +572,9 @@ function UserPortal() {
                                             top: '210px',
                                             left: '110px',
                                             background: 'rgb(63, 81, 181)',
+                                        }}
+                                        onClick={() => {
+                                            window.open('/template-engine', '_blank').focus();
                                         }}
                                     >
                                         <Add style={{ color: 'white' }} />
@@ -507,12 +596,11 @@ function UserPortal() {
     );
 }
 
-function makeNewInfoViewBoolList(index, designList) {
+function makeNewInfoViewBoolList(index, designList, infoView) {
     const boolList = [];
-    console.log(designList);
     for (var a = 0; a < designList.length; a++) {
         if (a === index) {
-            boolList.push(true);
+            boolList.push(!infoView[index]);
             continue;
         }
         boolList.push(false);
