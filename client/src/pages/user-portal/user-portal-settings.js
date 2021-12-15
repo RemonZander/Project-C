@@ -19,13 +19,9 @@ import {
     List,
     ListItem,
     Divider,
-    
+    TextField,
 } from '@material-ui/core';
-import {
-    AccountCircle, 
-    BorderBottom,
-
-} from '@material-ui/icons';
+import { AccountCircle, BorderBottom } from '@material-ui/icons';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { useState, useEffect } from 'react';
 import Enumerable from 'linq';
@@ -36,14 +32,31 @@ function UserPortalSettings() {
     const [openDrawer, setOpenDrawer] = useState(false);
     const [anchorEl, setAnchorEl] = React.useState(null);
     const [pass, setPass] = React.useState();
+    const [userList, setUserList] = useState([]);
 
     React.useEffect(() => {
         (async () => {
+            const ApiInstance = new Api(getToken());
+
+            console.log(user);
             setPass(await GetUserPassword(user));
+
+            const userDataDb = await ApiInstance.all('user');
+            const allUsers = userDataDb.content;
+            let usersOfCompany = [];
+            for (let userIndex = 0; userIndex < allUsers.length; userIndex++) {
+                if (
+                    allUsers[userIndex].Company_Id === user.company &&
+                    allUsers[userIndex].Email !== user.email
+                ) {
+                    usersOfCompany.push(allUsers[userIndex]);
+                }
+            }
+            setUserList(usersOfCompany);
         })();
     }, []);
 
-    return(
+    return (
         <React.Fragment>
             <CssBaseline />
             <Box sx={{ display: 'flex' }}>
@@ -76,7 +89,7 @@ function UserPortalSettings() {
                                     variant="contained"
                                     color="primary"
                                     onClick={() => {
-                                        window.close();
+                                        window.open('/user-portal', '_self');
                                     }}
                                 >
                                     Pagina sluiten
@@ -86,11 +99,20 @@ function UserPortalSettings() {
                     </Toolbar>
                 </AppBar>
             </Box>
-            <Box sx={{ display: 'flex', marginTop: '70px', alignItems: 'center', flexDirection: 'column' }} id="userPortalMainPage" anchorEl={anchorEl}>
-                <List alignItems='center'>
+            <Box
+                sx={{
+                    display: 'flex',
+                    marginTop: '70px',
+                    alignItems: 'center',
+                    flexDirection: 'column',
+                }}
+                id="userPortalMainPage"
+                anchorEl={anchorEl}
+            >
+                <List alignItems="center">
                     <ListItem style={{ paddingLeft: '200px', paddingRight: '200px' }}>
-                        <AccountCircle style={{ fontSize: '170px', marginRight: '15px' }}/>
-                        <Typography variant='h6'>
+                        <AccountCircle style={{ fontSize: '170px', marginRight: '15px' }} />
+                        <Typography variant="h6">
                             {user.naam}
                             <br />
                             {user.email}
@@ -99,25 +121,61 @@ function UserPortalSettings() {
                     <Divider />
                 </List>
                 <List>
-                    <ListItem style={{ paddingTop: '50px', paddingBottom: '20px', paddingRight: '300px' }}>
-                        <Typography variant='h6'>
+                    <ListItem
+                        style={{ paddingTop: '50px', paddingBottom: '20px', paddingRight: '300px' }}
+                    >
+                        <Typography variant="h6">
                             {'Naam: '} &emsp;&emsp;&emsp;&nbsp;
                             {user.naam}
                         </Typography>
                     </ListItem>
                     <ListItem style={{ paddingBottom: '50px', paddingRight: '300px' }}>
-                        <Typography variant='h6'>
-                            {'E-mail: '} &emsp;&emsp;&emsp; 
+                        <Typography variant="h6">
+                            {'E-mail: '} &emsp;&emsp;&emsp;
                             {user.email}
                         </Typography>
                     </ListItem>
                     <Divider />
                     <ListItem style={{ paddingTop: '50px', paddingRight: '500px' }}>
-                        <Typography variant='h6'>
+                        <Typography variant="h6">
                             {'Huidig wachtwoord: '} &emsp;&emsp;
-                            {HashPassword(pass)}
+                            {}
                         </Typography>
                     </ListItem>
+                    <ListItem style={{ paddingTop: '50px', paddingRight: '500px' }}>
+                        <Typography variant="h6">{'Nieuw wachtwoord: '} &emsp;&emsp;</Typography>
+                        <TextField required />
+                    </ListItem>
+                    <ListItem style={{ paddingTop: '50px', paddingRight: '500px' }}>
+                        <Typography variant="h6">{'Bevestig wachtwoord: '} &emsp;&emsp;</Typography>
+                        <TextField required />
+                    </ListItem>
+                    <Typography
+                        align="center"
+                        style={{ paddingTop: '50px', paddingRight: '500px', paddingBottom: '50px' }}
+                    >
+                        <Button variant="contained" color="primary">
+                            Toepassen
+                        </Button>
+                    </Typography>
+                    <Divider />
+                </List>
+                <List>
+                    {user.type === 'Moderator'
+                        ? userList.map((user) => {
+                              console.log(user);
+                              return (
+                                  <ListItem>
+                                      <AccountCircle style={{ marginRight: '15px' }} />
+                                      <Typography variant="h6">
+                                          {user.Name}
+                                          <br />
+                                          {user.Email}
+                                      </Typography>
+                                  </ListItem>
+                              );
+                          })
+                        : ''}
                 </List>
             </Box>
         </React.Fragment>
@@ -133,7 +191,8 @@ async function GetUserPassword(userInstance) {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
         return;
     }
-    console.log(userDataDb.content);
+    // console.log(userDataDb);
+    // console.log(userDataDb.content);
     console.log(userInstance);
     return userDataDb.content[0].Password;
 }
