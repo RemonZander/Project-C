@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "lib": [
+            "es6",
+            "dom"
+        ],
+        "allowJs": true,
+        "rootDir": "src",
+        "jsx": "react-jsx",
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "strictNullChecks": true
+    }
+}
