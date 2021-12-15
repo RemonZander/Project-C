@@ -1,8 +1,10 @@
 import * as React from 'react';
 import './user-portal.css';
 import kyndalogo from './kynda.png';
-import cog from './cog69420.png';
-import plus from './plusafbeelding.png';
+import testimg1 from './testimg1.png';
+import testimg2 from './testimg2.png';
+import testimg3 from './testimg3.png';
+import Enumerable from 'linq';
 import { CreateExport } from '../../helpers/Export';
 import {
     Typography,
@@ -24,6 +26,7 @@ import {
     ListItem,
     MenuItem,
     Menu,
+    Popover,
 } from '@material-ui/core';
 import {
     Settings,
@@ -35,10 +38,15 @@ import {
     Menu as MenuIcon,
     ContactSupport,
     AccountCircle,
+    Info,
+    Add,
+    Home,
 } from '@material-ui/icons';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { useState, useEffect } from 'react';
-import { getPayloadAsJson } from '../../helpers/Token';
+import { getPayloadAsJson, getToken } from '../../helpers/Token';
+import Api from '../../helpers/Api';
+//import Image from 'image-js';
 
 const useStyles = makeStyles((theme) => ({
     icon: {
@@ -48,15 +56,11 @@ const useStyles = makeStyles((theme) => ({
         padding: '20px 0',
     },
     card: {
+        width: '300px',
         height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
+        position: 'relative',
     },
-    cardMedia: {
-        paddingTop: '56.25%',
-        width: '100%',
-        height: '100%',
-    },
+    cardMedia: {},
     cardContent: {
         flexGrow: 1,
     },
@@ -71,30 +75,91 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     justifyContent: 'flex-start',
 }));
 
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-    ({ theme, open }) => ({
-        flexGrow: 1,
-        padding: theme.spacing(3),
-        transition: theme.transitions.create('margin', {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-        }),
-        marginLeft: `-$400px`,
-        ...(open && {
-            transition: theme.transitions.create('margin', {
-                easing: theme.transitions.easing.easeOut,
-                duration: theme.transitions.duration.enteringScreen,
-            }),
-            marginLeft: 0,
-        }),
-    })
-);
+async function getDesigns() {
+    const user = getPayloadAsJson();
+    const ApiInstance = new Api(getToken());
+    let designListDb = [];
+    let templateListDb = [];
+    if (typeof (designListDb = await ApiInstance.all('design')) === 'undefined') {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
+
+    if (typeof (templateListDb = await ApiInstance.all('template')) === 'undefined') {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
+    let templateIdList = Enumerable.from(templateListDb.content)
+        .where((t) => t.Company_id === user.company)
+        .select((i) => i.Id)
+        .toArray();
+    let designList = Enumerable.from(designListDb.content)
+        .where((d) => Enumerable.from(templateIdList).contains(d.Template_id))
+        .orderBy((d) => d.Template_id)
+        .toArray();
+
+    console.log(designList);
+    return designList;
+}
+
+async function getTemplates() {
+    const ApiInstance = new Api(getToken());
+    const user = getPayloadAsJson();
+    let templateListDb = [];
+    if (typeof (templateListDb = await ApiInstance.all('template')) === 'undefined') {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
+
+    let templateList = Enumerable.from(templateListDb.content)
+        .where((t) => t.Company_id === user.company)
+        .toArray();
+
+    console.log(templateList);
+    return templateList;
+}
+
+function makeImages() {
+    let tempList = [];
+    for (var a = 0; a < 5; a++) {
+        if (a === 4) {
+            tempList.push(testimg3);
+            return tempList;
+        }
+        tempList.push(testimg2);
+    }
+    return tempList;
+}
+
+async function makeInfoViewBoolList() {
+    const designList = await getDesigns();
+    if (typeof designList === 'undefined') return [];
+    const boolList = [];
+    for (var a = 0; a < designList.length; a++) {
+        boolList.push(false);
+    }
+
+    return boolList;
+}
+
+class imageData {
+    constructor(dataURL, width, height) {
+        this.dataURL = dataURL;
+        this.width = width;
+        this.height = height;
+    }
+}
 
 function UserPortal() {
     const user = getPayloadAsJson();
-    console.log(user);
     const theme = useTheme();
     const styles = useStyles();
+    const [designList, setdesignList] = React.useState([]);
+    const [templateList, settemplateList] = React.useState([]);
+    const [imgList, setimgList] = React.useState([]);
+    const [designView, setDesignView] = React.useState(false);
+    const [infoView, setInfoView] = React.useState([]);
+    const [templateView, settemplateView] = React.useState(false);
     const [isModerator] = useState(user.type === 'Moderator' ? true : false);
     const [openDrawer, setOpenDrawer] = useState(false);
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -114,9 +179,19 @@ function UserPortal() {
     const handleClickMenu = (event) => {
         setAnchorEl(event.currentTarget);
     };
+
     const handleCloseMenu = () => {
         setAnchorEl(null);
     };
+
+    React.useEffect(() => {
+        (async () => {
+            settemplateList(await getTemplates());
+            setimgList(makeImages());
+            setdesignList(await getDesigns());
+            setInfoView(await makeInfoViewBoolList());
+        })();
+    }, []);
 
     return (
         <React.Fragment>
@@ -129,7 +204,10 @@ function UserPortal() {
                     id="AppBar"
                 >
                     <Toolbar>
-                        <IconButton color={'primary'} onClick={handleDrawerOpen}>
+                        <IconButton
+                            color={'primary'}
+                            onClick={openDrawer ? handleDrawerClose : handleDrawerOpen}
+                        >
                             <MenuIcon />
                         </IconButton>
                         <img
@@ -191,23 +269,26 @@ function UserPortal() {
                                     </MenuItem>
                                     <Divider />
                                     <MenuItem
-                                        onClick={handleCloseMenu}
+                                        onClick={() => {
+                                            handleCloseMenu();
+                                            window.open('/user-portal-settings', '_blank').focus();
+                                        }}
                                         style={{ marginTop: '10px' }}
                                     >
-                                        Account gegevens wijzigen
+                                        Accountgegevens wijzigen
                                     </MenuItem>
                                     <MenuItem
                                         onClick={handleCloseMenu}
                                         style={{ marginTop: '10px' }}
                                     >
-                                        Login gegevens wijzigen
+                                        Logingegevens wijzigen
                                     </MenuItem>
                                     {isModerator ? (
                                         <MenuItem
                                             onClick={handleCloseMenu}
                                             style={{ marginTop: '10px' }}
                                         >
-                                            Hoofdgebruiker account wijzigen
+                                            Hoofdgebruikeraccount wijzigen
                                         </MenuItem>
                                     ) : (
                                         ''
@@ -241,19 +322,45 @@ function UserPortal() {
                         <ListItem
                             className="listItemButton"
                             onClick={() => {
+                                setDesignView(false);
+                                settemplateView(false);
+                                handleDrawerClose();
+                            }}
+                        >
+                            <Home style={{ marginRight: '20px' }}></Home>
+                            <Typography variant="h5">Home pagina</Typography>
+                        </ListItem>
+                        <Divider />
+                        <ListItem
+                            className="listItemButton"
+                            onClick={() => {
                                 window.open('/fotogalerij', '_blank').focus();
                             }}
                         >
                             <PhotoCamera style={{ marginRight: '20px' }}></PhotoCamera>
                             <Typography variant="h5">Fotogalerij</Typography>
                         </ListItem>
-                        <ListItem className="listItemButton">
-                            <Panorama style={{ marginRight: '20px' }}></Panorama>
-                            <Typography variant="h5">Alle templates</Typography>
-                        </ListItem>
-                        <ListItem className="listItemButton">
+                        <ListItem
+                            className="listItemButton"
+                            onClick={() => {
+                                setDesignView(!designView);
+                                settemplateView(false);
+                                handleDrawerClose();
+                            }}
+                        >
                             <Brush style={{ marginRight: '20px' }}></Brush>
                             <Typography variant="h5">Alle designs</Typography>
+                        </ListItem>
+                        <ListItem
+                            className="listItemButton"
+                            onClick={() => {
+                                setDesignView(false);
+                                settemplateView(!templateView);
+                                handleDrawerClose();
+                            }}
+                        >
+                            <Panorama style={{ marginRight: '20px' }}></Panorama>
+                            <Typography variant="h5">Alle templates</Typography>
                         </ListItem>
                     </List>
                     <Divider />
@@ -279,11 +386,227 @@ function UserPortal() {
                     </List>
                 </Drawer>
             </Box>
-            <div style={{ marginTop: '70px', marginLeft: '10px' }} id="userPortalMainPage">
-                fdsfds
+            <div style={{ marginTop: '70px' }} id="userPortalMainPage" onClick={handleDrawerClose}>
+                <Container maxWidth="md" className={styles.cardGrid}>
+                    <Grid container spacing={4}>
+                        {typeof designList !== 'undefined' && !templateView
+                            ? designList.map((design, index) => {
+                                  if (index < 5 || designView) {
+                                      return (
+                                          <Grid item xs={12} sm={3} md={4} key={index}>
+                                              <Card className={styles.card}>
+                                                  <CardMedia
+                                                      className={styles.cardMedia}
+                                                      title={'test'}
+                                                  >
+                                                      <img
+                                                          id="testimg"
+                                                          src={testimg2}
+                                                          style={{
+                                                              width: '300px',
+                                                          }}
+                                                      />
+                                                  </CardMedia>
+                                                  {!infoView[index] ? (
+                                                      <Button
+                                                          style={{
+                                                              position: 'absolute',
+                                                              top: '5px',
+                                                              left: '5px',
+                                                              background: 'rgb(63, 81, 181)',
+                                                          }}
+                                                          onClick={() => {
+                                                              setInfoView(
+                                                                  makeNewInfoViewBoolList(
+                                                                      index,
+                                                                      designList,
+                                                                      infoView
+                                                                  )
+                                                              );
+                                                          }}
+                                                      >
+                                                          <Info style={{ color: 'white' }} />
+                                                      </Button>
+                                                  ) : (
+                                                      <List
+                                                          style={{
+                                                              position: 'absolute',
+                                                              top: '0px',
+                                                              left: '0px',
+                                                              background: 'white',
+                                                              color: 'black',
+                                                              height: '85%',
+                                                          }}
+                                                          onClick={() => {
+                                                              setInfoView(
+                                                                  makeNewInfoViewBoolList(
+                                                                      index,
+                                                                      designList,
+                                                                      infoView
+                                                                  )
+                                                              );
+                                                          }}
+                                                      >
+                                                          <ListItem
+                                                              style={{
+                                                                  alignItems: 'center',
+                                                                  justifyContent: 'center',
+                                                                  fontSize: '20px',
+                                                              }}
+                                                          >
+                                                              Gegevens
+                                                          </ListItem>
+                                                          <Divider />
+                                                          <ListItem
+                                                              style={{
+                                                                  alignItems: 'center',
+                                                                  justifyContent: 'center',
+                                                              }}
+                                                          >
+                                                              {'Naam: ' + design.Name}
+                                                          </ListItem>
+                                                          <ListItem
+                                                              style={{
+                                                                  alignItems: 'center',
+                                                                  justifyContent: 'center',
+                                                              }}
+                                                          >
+                                                              {'Template naam: ' +
+                                                                  Enumerable.from(templateList)
+                                                                      .where(
+                                                                          (t) =>
+                                                                              t.Id ===
+                                                                              design.Template_id
+                                                                      )
+                                                                      .select((t) => t.Name)
+                                                                      .toArray()[0]}
+                                                          </ListItem>
+                                                          <ListItem
+                                                              style={{
+                                                                  alignItems: 'center',
+                                                                  justifyContent: 'center',
+                                                              }}
+                                                          >
+                                                              {'Gemaakt op: ' + design.Created_at}
+                                                          </ListItem>
+                                                          <ListItem
+                                                              style={{
+                                                                  alignItems: 'center',
+                                                                  justifyContent: 'center',
+                                                              }}
+                                                          >
+                                                              {'Laadst bijgewerkt: ' +
+                                                                  (design.Updated_at === ''
+                                                                      ? 'nooit'
+                                                                      : design.Updated_at)}
+                                                          </ListItem>
+                                                          <ListItem
+                                                              style={{
+                                                                  alignItems: 'center',
+                                                                  justifyContent: 'center',
+                                                              }}
+                                                          >
+                                                              {'Gevalideerd: ' +
+                                                                  (design.Verified === 0
+                                                                      ? 'nee'
+                                                                      : 'ja')}
+                                                          </ListItem>
+                                                      </List>
+                                                  )}
+                                                  <CardContent className={styles.cardContent}>
+                                                      <Typography
+                                                          gutterBottom
+                                                          variant="h6"
+                                                          align="center"
+                                                      >
+                                                          {design.Name}
+                                                      </Typography>
+                                                  </CardContent>
+                                              </Card>
+                                          </Grid>
+                                      );
+                                  }
+                              })
+                            : templateView
+                            ? templateList.map((template, index) => {
+                                  return (
+                                      <Grid item xs={12} sm={3} md={4} key={index}>
+                                          <Card className={styles.card}>
+                                              <CardMedia
+                                                  className={styles.cardMedia}
+                                                  title={'test'}
+                                              >
+                                                  <img
+                                                      id="testimg"
+                                                      src={testimg3}
+                                                      style={{ width: '300px' }}
+                                                  />
+                                              </CardMedia>
+                                              <CardContent className={styles.cardContent}>
+                                                  <Typography
+                                                      gutterBottom
+                                                      variant="h6"
+                                                      align="center"
+                                                  >
+                                                      {'test template card: ' + (index + 1)}
+                                                  </Typography>
+                                              </CardContent>
+                                          </Card>
+                                      </Grid>
+                                  );
+                              })
+                            : ''}
+                        {!templateView ? (
+                            <Grid item xs={12} sm={3} md={4} key={6}>
+                                <Card className={styles.card}>
+                                    <CardMedia className={styles.cardMedia} title={'test'}>
+                                        <img
+                                            id="testimg"
+                                            src={testimg1}
+                                            style={{ width: '300px' }}
+                                        />
+                                    </CardMedia>
+                                    <Button
+                                        style={{
+                                            position: 'absolute',
+                                            top: '210px',
+                                            left: '110px',
+                                            background: 'rgb(63, 81, 181)',
+                                        }}
+                                        onClick={() => {
+                                            window.open('/template-engine', '_blank').focus();
+                                        }}
+                                    >
+                                        <Add style={{ color: 'white' }} />
+                                    </Button>
+                                    <CardContent className={styles.cardContent}>
+                                        <Typography gutterBottom variant="h6" align="center">
+                                            {'Nieuwe design toevoegen'}
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        ) : (
+                            ''
+                        )}
+                    </Grid>
+                </Container>
             </div>
         </React.Fragment>
     );
+}
+
+function makeNewInfoViewBoolList(index, designList, infoView) {
+    const boolList = [];
+    for (var a = 0; a < designList.length; a++) {
+        if (a === index) {
+            boolList.push(!infoView[index]);
+            continue;
+        }
+        boolList.push(false);
+    }
+
+    return boolList;
 }
 
 export default CreateExport('/user-portal', UserPortal);
