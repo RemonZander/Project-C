@@ -26,8 +26,7 @@ import {
     ListItem,
     MenuItem,
     Menu,
-    Paper,
-    ImageList,
+    Popover,
 } from '@material-ui/core';
 import {
     Settings,
@@ -101,6 +100,22 @@ async function getDesigns() {
     return designList;
 }
 
+async function getTemplates() {
+    const ApiInstance = new Api(getToken());
+    const user = getPayloadAsJson();
+    let templateListDb = [];
+    if (typeof (templateListDb = await ApiInstance.all('template')) === 'undefined') {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return;
+    }
+
+    let templateList = Enumerable.from(templateListDb.content)
+        .where((t) => t.Company_id === user.company)
+        .toArray();
+
+    return templateList;
+}
+
 function makeImages() {
     let tempList = [];
     for (var a = 0; a < 5; a++) {
@@ -111,6 +126,18 @@ function makeImages() {
         tempList.push(testimg2);
     }
     return tempList;
+}
+
+async function makeInfoViewBoolList() {
+    const designList = await getDesigns();
+    if (typeof designList === 'undefined') return [];
+    const boolList = [];
+    console.log(designList);
+    for (var a = 0; a < designList.length; a++) {
+        boolList.push(false);
+    }
+
+    return boolList;
 }
 
 class imageData {
@@ -125,8 +152,12 @@ function UserPortal() {
     const user = getPayloadAsJson();
     const theme = useTheme();
     const styles = useStyles();
-    const [designList, SetdesignList] = React.useState([]);
-    const [imgList, SetimgList] = React.useState([]);
+    const [designList, setdesignList] = React.useState([]);
+    const [templateList, settemplateList] = React.useState([]);
+    const [imgList, setimgList] = React.useState([]);
+    const [designView, setDesignView] = React.useState(false);
+    const [infoView, setInfoView] = React.useState([]);
+    const [templateView, settemplateView] = React.useState(false);
     const [isModerator] = useState(user.type === 'Moderator' ? true : false);
     const [openDrawer, setOpenDrawer] = useState(false);
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -153,16 +184,14 @@ function UserPortal() {
 
     React.useEffect(() => {
         (async () => {
-            SetimgList(makeImages());
+            settemplateList(await getTemplates());
+            setimgList(makeImages());
+            setdesignList(await getDesigns());
+            setInfoView(await makeInfoViewBoolList());
         })();
     }, []);
 
-    React.useEffect(() => {
-        (async () => {
-            SetdesignList(await getDesigns());
-        })();
-    }, []);
-
+    console.log(infoView);
     return (
         <React.Fragment>
             <CssBaseline />
@@ -298,13 +327,27 @@ function UserPortal() {
                             <PhotoCamera style={{ marginRight: '20px' }}></PhotoCamera>
                             <Typography variant="h5">Fotogalerij</Typography>
                         </ListItem>
-                        <ListItem className="listItemButton">
-                            <Panorama style={{ marginRight: '20px' }}></Panorama>
-                            <Typography variant="h5">Alle templates</Typography>
-                        </ListItem>
-                        <ListItem className="listItemButton">
+                        <ListItem
+                            className="listItemButton"
+                            onClick={() => {
+                                setDesignView(!designView);
+                                settemplateView(false);
+                                handleDrawerClose();
+                            }}
+                        >
                             <Brush style={{ marginRight: '20px' }}></Brush>
                             <Typography variant="h5">Alle designs</Typography>
+                        </ListItem>
+                        <ListItem
+                            className="listItemButton"
+                            onClick={() => {
+                                setDesignView(false);
+                                settemplateView(!templateView);
+                                handleDrawerClose();
+                            }}
+                        >
+                            <Panorama style={{ marginRight: '20px' }}></Panorama>
+                            <Typography variant="h5">Alle templates</Typography>
                         </ListItem>
                     </List>
                     <Divider />
@@ -330,11 +373,66 @@ function UserPortal() {
                     </List>
                 </Drawer>
             </Box>
-            <div style={{ marginTop: '70px' }} id="userPortalMainPage">
+            <div style={{ marginTop: '70px' }} id="userPortalMainPage" onClick={handleDrawerClose}>
                 <Container maxWidth="md" className={styles.cardGrid}>
                     <Grid container spacing={4}>
-                        {typeof designList !== 'undefined'
+                        {typeof designList !== 'undefined' && !templateView
                             ? designList.map((design, index) => {
+                                  if (index < 5 || designView) {
+                                      return (
+                                          <Grid item xs={12} sm={3} md={4} key={index}>
+                                              <Card className={styles.card}>
+                                                  <CardMedia
+                                                      className={styles.cardMedia}
+                                                      title={'test'}
+                                                  >
+                                                      <img
+                                                          id="testimg"
+                                                          src={testimg2}
+                                                          style={{
+                                                              width: '300px',
+                                                              height: '420px',
+                                                          }}
+                                                      />
+                                                  </CardMedia>
+                                                  {!infoView[index] ? (
+                                                      <Button
+                                                          style={{
+                                                              position: 'absolute',
+                                                              top: '5px',
+                                                              left: '5px',
+                                                              background: 'rgb(63, 81, 181)',
+                                                          }}
+                                                          onClick={() => {
+                                                              setInfoView(
+                                                                  makeNewInfoViewBoolList(
+                                                                      index,
+                                                                      designList
+                                                                  )
+                                                              );
+                                                          }}
+                                                      >
+                                                          <Info style={{ color: 'white' }} />
+                                                      </Button>
+                                                  ) : (
+                                                      ''
+                                                  )}
+                                                  <CardContent className={styles.cardContent}>
+                                                      <Typography
+                                                          gutterBottom
+                                                          variant="h6"
+                                                          align="center"
+                                                      >
+                                                          {'test card: ' + (index + 1)}
+                                                      </Typography>
+                                                  </CardContent>
+                                              </Card>
+                                          </Grid>
+                                      );
+                                  }
+                              })
+                            : templateView
+                            ? templateList.map((template, index) => {
                                   return (
                                       <Grid item xs={12} sm={3} md={4} key={index}>
                                           <Card className={styles.card}>
@@ -344,7 +442,7 @@ function UserPortal() {
                                               >
                                                   <img
                                                       id="testimg"
-                                                      src={testimg2}
+                                                      src={testimg3}
                                                       style={{ width: '300px', height: '420px' }}
                                                   />
                                               </CardMedia>
@@ -364,7 +462,7 @@ function UserPortal() {
                                                       variant="h6"
                                                       align="center"
                                                   >
-                                                      {'test card: ' + (index + 1)}
+                                                      {'test template card: ' + (index + 1)}
                                                   </Typography>
                                               </CardContent>
                                           </Card>
@@ -372,37 +470,55 @@ function UserPortal() {
                                   );
                               })
                             : ''}
-                        <Grid item xs={12} sm={3} md={4} key={6}>
-                            <Card className={styles.card}>
-                                <CardMedia className={styles.cardMedia} title={'test'}>
-                                    <img
-                                        id="testimg"
-                                        src={testimg1}
-                                        style={{ width: '300px', height: '420px' }}
-                                    />
-                                </CardMedia>
-                                <Button
-                                    style={{
-                                        position: 'absolute',
-                                        top: '210px',
-                                        left: '110px',
-                                        background: 'rgb(63, 81, 181)',
-                                    }}
-                                >
-                                    <Add style={{ color: 'white' }} />
-                                </Button>
-                                <CardContent className={styles.cardContent}>
-                                    <Typography gutterBottom variant="h6" align="center">
-                                        {'Nieuwe design toevoegen'}
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        </Grid>
+                        {!templateView ? (
+                            <Grid item xs={12} sm={3} md={4} key={6}>
+                                <Card className={styles.card}>
+                                    <CardMedia className={styles.cardMedia} title={'test'}>
+                                        <img
+                                            id="testimg"
+                                            src={testimg1}
+                                            style={{ width: '300px', height: '420px' }}
+                                        />
+                                    </CardMedia>
+                                    <Button
+                                        style={{
+                                            position: 'absolute',
+                                            top: '210px',
+                                            left: '110px',
+                                            background: 'rgb(63, 81, 181)',
+                                        }}
+                                    >
+                                        <Add style={{ color: 'white' }} />
+                                    </Button>
+                                    <CardContent className={styles.cardContent}>
+                                        <Typography gutterBottom variant="h6" align="center">
+                                            {'Nieuwe design toevoegen'}
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        ) : (
+                            ''
+                        )}
                     </Grid>
                 </Container>
             </div>
         </React.Fragment>
     );
+}
+
+function makeNewInfoViewBoolList(index, designList) {
+    const boolList = [];
+    console.log(designList);
+    for (var a = 0; a < designList.length; a++) {
+        if (a === index) {
+            boolList.push(true);
+            continue;
+        }
+        boolList.push(false);
+    }
+
+    return boolList;
 }
 
 export default CreateExport('/user-portal', UserPortal);
