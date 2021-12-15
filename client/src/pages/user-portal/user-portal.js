@@ -236,23 +236,26 @@ function UserPortal() {
                                     </MenuItem>
                                     <Divider />
                                     <MenuItem
-                                        onClick={handleCloseMenu}
+                                        onClick={() => {
+                                            handleCloseMenu();
+                                            window.open('/user-portal-settings', '_blank').focus();
+                                        }}
                                         style={{ marginTop: '10px' }}
                                     >
-                                        Account gegevens wijzigen
+                                        Accountgegevens wijzigen
                                     </MenuItem>
                                     <MenuItem
                                         onClick={handleCloseMenu}
                                         style={{ marginTop: '10px' }}
                                     >
-                                        Login gegevens wijzigen
+                                        Logingegevens wijzigen
                                     </MenuItem>
                                     {isModerator ? (
                                         <MenuItem
                                             onClick={handleCloseMenu}
                                             style={{ marginTop: '10px' }}
                                         >
-                                            Hoofdgebruiker account wijzigen
+                                            Hoofdgebruikeraccount wijzigen
                                         </MenuItem>
                                     ) : (
                                         ''
@@ -332,7 +335,7 @@ function UserPortal() {
                                 <CardMedia className={styles.cardMedia} title={'test'}>
                                     <img
                                         id="testimg"
-                                        src={imgList[0].dataURL}
+                                        src={imgList[0]}
                                         style={{ width: '200px', height: '280px' }}
                                     />
                                 </CardMedia>
