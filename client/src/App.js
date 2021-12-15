@@ -1,5 +1,6 @@
 import './App.css';
 import user_portal from './pages/user-portal/user-portal';
+import user_portal_settings from './pages/user-portal/user-portal-settings';
 import admin_portal from './pages/admin-portal/admin-portal';
 import LoginPage from './pages/login/login';
 import ForgotPasswordPage from './pages/forgot password/forgot_pass';
@@ -16,6 +17,7 @@ const pages = [
     TemplateEngine,
     ontwerp_pagina,
     fotolibraryPagina,
+    user_portal_settings,
 ];
 
 function App() {
