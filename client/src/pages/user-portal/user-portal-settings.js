@@ -36,14 +36,13 @@ function UserPortalSettings() {
     const [openDrawer, setOpenDrawer] = useState(false);
     const [anchorEl, setAnchorEl] = React.useState(null);
     const [pass, setPass] = React.useState();
-    
+
     React.useEffect(() => {
         (async () => {
             setPass(await GetUserPassword(user));
         })();
     }, []);
 
-    console.log(user);
     return(
         <React.Fragment>
             <CssBaseline />
@@ -87,8 +86,8 @@ function UserPortalSettings() {
                     </Toolbar>
                 </AppBar>
             </Box>
-            <div style={{ display: 'flex', marginTop: '70px', marginLeft: '10px', marginRight: '10px', justifyContent: "center" }} id="userPortalMainPage" anchorEl={anchorEl}>
-                <List alignItems='center' width='85%'>
+            <Box sx={{ display: 'flex', marginTop: '70px', alignItems: 'center', flexDirection: 'column' }} id="userPortalMainPage" anchorEl={anchorEl}>
+                <List alignItems='center'>
                     <ListItem style={{ paddingLeft: '200px', paddingRight: '200px' }}>
                         <AccountCircle style={{ fontSize: '170px', marginRight: '15px' }}/>
                         <Typography variant='h6'>
@@ -99,21 +98,28 @@ function UserPortalSettings() {
                     </ListItem>
                     <Divider />
                 </List>
-                <List alignItems='center' width='85%' marginTop='70px'>
-                    <ListItem>
+                <List>
+                    <ListItem style={{ paddingTop: '50px', paddingBottom: '20px', paddingRight: '300px' }}>
                         <Typography variant='h6'>
-                            {'Naam: '}
+                            {'Naam: '} &emsp;&emsp;&emsp;&nbsp;
                             {user.naam}
                         </Typography>
-                        
                     </ListItem>
-                    <ListItem>
+                    <ListItem style={{ paddingBottom: '50px', paddingRight: '300px' }}>
                         <Typography variant='h6'>
-                            {pass}
+                            {'E-mail: '} &emsp;&emsp;&emsp; 
+                            {user.email}
+                        </Typography>
+                    </ListItem>
+                    <Divider />
+                    <ListItem style={{ paddingTop: '50px', paddingRight: '500px' }}>
+                        <Typography variant='h6'>
+                            {'Huidig wachtwoord: '} &emsp;&emsp;
+                            {HashPassword(pass)}
                         </Typography>
                     </ListItem>
                 </List>
-            </div>
+            </Box>
         </React.Fragment>
     );
 }
@@ -121,14 +127,22 @@ function UserPortalSettings() {
 export default CreateExport('/user-portal-settings', UserPortalSettings);
 
 async function GetUserPassword(userInstance) {
-    let userListDb = [];
+    let userDataDb = [];
     const ApiInstance = new Api(getToken());
-    if (typeof (userListDb = await ApiInstance.all('user')) === 'undefined') {
+    if (typeof (userDataDb = await ApiInstance.read('user', userInstance.sub)) === 'undefined') {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
         return;
     }
-    console.log(userListDb.content);
-    let userPassword = Enumerable.from(userListDb.content).where((u) => u.Email === userInstance.email).toArray()[0];
-    console.log(userPassword);
-    return userPassword//.Password;
+    console.log(userDataDb.content);
+    console.log(userInstance);
+    return userDataDb.content[0].Password;
+}
+
+function HashPassword(password) {
+    console.log(password);
+    let hashPass = '';
+    for (let i = 0; i < password.length; i++) {
+        hashPass = hashPass + '*';
+    }
+    return hashPass;
 }
