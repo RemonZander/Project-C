@@ -7,6 +7,8 @@
 .env.development
 .env.production
 .vscode
+.env.development
+.env.production
 
 # User-specific files
 *.rsuser

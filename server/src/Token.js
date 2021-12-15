@@ -1,44 +1,52 @@
-const crypto = require('crypto');
+const crypto = require("crypto");
 
 class Token {
-    _encodeObjectToJson(object) {
-        try {
-            const jsonString = JSON.stringify(object);
+  _encodeObjectToJson(object) {
+    try {
+      const jsonString = JSON.stringify(object);
 
-            return Buffer.from(jsonString).toString('base64').replaceAll('=', '')
-        } catch (error) {
-            throw error;
-        }
+      return Buffer.from(jsonString).toString("base64").replaceAll("=", "");
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  _createSignature(alg, encodedHeader, encodedPayload) {
+    if (alg === "HS256") {
+      const hmac = crypto.createHmac("sha256", process.env.SECRET_KEY);
+      hmac.update(`${encodedHeader}.${encodedPayload}`);
+
+      return hmac.digest("base64").replaceAll("=", "");
     }
 
-    _createSignature(alg, encodedHeader, encodedPayload) {
-        if (alg === "HS256") {
-            const hmac = crypto.createHmac('sha256', process.env.SECRET_KEY);
-            hmac.update(`${encodedHeader}.${encodedPayload}`);
+    throw Error("No valid algorithm specified");
+  }
 
-            return hmac.digest('base64').replaceAll('=', '');
-        }
+  createJWT(payload) {
+    const encodedHeader = this._encodeObjectToJson({ alg: "HS256" });
 
-        throw Error("No valid algorithm specified");
-    }
+    const encodedPayload = this._encodeObjectToJson(payload);
 
-    createJWT(payload) {
-        const encodedHeader = this._encodeObjectToJson({alg: "HS256"});
+    const signature = this._createSignature(
+      "HS256",
+      encodedHeader,
+      encodedPayload
+    );
 
-        const encodedPayload = this._encodeObjectToJson(payload);
+    return `${encodedHeader}.${encodedPayload}.${signature}`;
+  }
 
-        const signature = this._createSignature("HS256", encodedHeader, encodedPayload);
+  verifyJWT(token) {
+    const tokenParts = token.split(".");
 
-        return `${encodedHeader}.${encodedPayload}.${signature}`;
-    }
+    const signature = this._createSignature(
+      "HS256",
+      tokenParts[0],
+      tokenParts[1]
+    );
 
-    verifyJWT(token) {
-        const tokenParts = token.split('.');
-
-        const signature = this._createSignature("HS256", tokenParts[0], tokenParts[1]);
-
-        return tokenParts[2] === signature;
-    }
+    return tokenParts[2] === signature;
+  }
 }
 
 module.exports = Token;

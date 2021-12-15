@@ -1,4 +1,5 @@
 import { readFileAsDataUrl } from './FileReader';
+import { getToken } from './Token';
 
 export default class Api {
     constructor(token, serverUrl = process.env.REACT_APP_SERVER_URL) {
@@ -37,12 +38,12 @@ export default class Api {
         });
     }
 
-    async createImage(file) {
+    async createImage(file, companyId = null) {
         const result = await readFileAsDataUrl(file);
-
         return await this._doFetch(this.serverUrl + `/image/create`, 'POST', {
             name: file.name,
             image: result,
+            companyId: companyId,
         });
     }
 

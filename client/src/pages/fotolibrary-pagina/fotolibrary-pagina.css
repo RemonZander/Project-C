@@ -1,14 +1,6 @@
-.fotogalerijHeader {
-    font-family: Arial, Helvetica, sans-serif;
-    margin-left: 1.5%;
-    margin-right: 45%;
-    font-size: 35px;
-}
-
 .searchbar input[type='text'] {
     float: right;
-    padding: 6px;
-    border: none;
+    border: solid;
     margin: 8px 16px 16px;
     font-size: 17px;
     position: relative;
