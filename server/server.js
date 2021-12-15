@@ -32,6 +32,7 @@ server.on("request", (req, res) => {
   ]);
   req.setEncoding("utf-8");
 
+  // Serves static files TODO: Handle server letting the routing done via the client
   if (process.env.NODE_ENV === "production") {
     req.addListener('end', () => {
       fileServer.serve(req, res);
@@ -40,7 +41,6 @@ server.on("request", (req, res) => {
 
   const reqHelper = new RequestHelper(req);
   const resHelper = new ResponseHelper(res);
-
 
   if (req.url.startsWith("/storage")) {
     fs.readFile(__dirname + req.url, function (err, data) {
