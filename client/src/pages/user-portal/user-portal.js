@@ -27,6 +27,7 @@ import {
     MenuItem,
     Menu,
     Paper,
+    ImageList,
 } from '@material-ui/core';
 import {
     Settings,
@@ -38,12 +39,14 @@ import {
     Menu as MenuIcon,
     ContactSupport,
     AccountCircle,
+    Info,
+    Add,
 } from '@material-ui/icons';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { useState, useEffect } from 'react';
 import { getPayloadAsJson, getToken } from '../../helpers/Token';
 import Api from '../../helpers/Api';
-import Image from 'image-js';
+//import Image from 'image-js';
 
 const useStyles = makeStyles((theme) => ({
     icon: {
@@ -53,8 +56,9 @@ const useStyles = makeStyles((theme) => ({
         padding: '20px 0',
     },
     card: {
-        width: '200px',
+        width: '300px',
         height: '100%',
+        position: 'relative',
     },
     cardMedia: {},
     cardContent: {
@@ -93,20 +97,20 @@ async function getDesigns() {
         .where((d) => Enumerable.from(templateIdList).contains(d.Template_id))
         .orderBy((d) => d.Template_id)
         .toArray();
+
+    return designList;
 }
 
-async function makeImages() {
-    let templist = [];
-    let img = await Image.load(testimg1);
-    let temp = new imageData(await img.toDataURL(), img.width, img.height);
-    templist.push(temp);
-    img = await Image.load(testimg2);
-    temp = new imageData(await img.toDataURL(), img.width, img.height);
-    templist.push(temp);
-    img = await Image.load(testimg3);
-    temp = new imageData(await img.toDataURL(), img.width, img.height);
-    templist.push(temp);
-    return templist;
+function makeImages() {
+    let tempList = [];
+    for (var a = 0; a < 5; a++) {
+        if (a === 4) {
+            tempList.push(testimg3);
+            return tempList;
+        }
+        tempList.push(testimg2);
+    }
+    return tempList;
 }
 
 class imageData {
@@ -149,7 +153,7 @@ function UserPortal() {
 
     React.useEffect(() => {
         (async () => {
-            SetimgList(await makeImages());
+            SetimgList(makeImages());
         })();
     }, []);
 
@@ -159,7 +163,6 @@ function UserPortal() {
         })();
     }, []);
 
-    console.log(imgList[0]);
     return (
         <React.Fragment>
             <CssBaseline />
@@ -327,21 +330,70 @@ function UserPortal() {
                     </List>
                 </Drawer>
             </Box>
-            <div style={{ marginTop: '70px', marginLeft: '10px' }} id="userPortalMainPage">
+            <div style={{ marginTop: '70px' }} id="userPortalMainPage">
                 <Container maxWidth="md" className={styles.cardGrid}>
                     <Grid container spacing={4}>
-                        <Grid item xs={12} sm={6} md={4} key={0}>
+                        {typeof designList !== 'undefined'
+                            ? designList.map((design, index) => {
+                                  return (
+                                      <Grid item xs={12} sm={3} md={4} key={index}>
+                                          <Card className={styles.card}>
+                                              <CardMedia
+                                                  className={styles.cardMedia}
+                                                  title={'test'}
+                                              >
+                                                  <img
+                                                      id="testimg"
+                                                      src={testimg2}
+                                                      style={{ width: '300px', height: '420px' }}
+                                                  />
+                                              </CardMedia>
+                                              <Button
+                                                  style={{
+                                                      position: 'absolute',
+                                                      top: '5px',
+                                                      left: '5px',
+                                                      background: 'rgb(63, 81, 181)',
+                                                  }}
+                                              >
+                                                  <Info style={{ color: 'white' }} />
+                                              </Button>
+                                              <CardContent className={styles.cardContent}>
+                                                  <Typography
+                                                      gutterBottom
+                                                      variant="h6"
+                                                      align="center"
+                                                  >
+                                                      {'test card: ' + (index + 1)}
+                                                  </Typography>
+                                              </CardContent>
+                                          </Card>
+                                      </Grid>
+                                  );
+                              })
+                            : ''}
+                        <Grid item xs={12} sm={3} md={4} key={6}>
                             <Card className={styles.card}>
                                 <CardMedia className={styles.cardMedia} title={'test'}>
                                     <img
                                         id="testimg"
-                                        src={imgList[0]}
-                                        style={{ width: '200px', height: '280px' }}
+                                        src={testimg1}
+                                        style={{ width: '300px', height: '420px' }}
                                     />
                                 </CardMedia>
+                                <Button
+                                    style={{
+                                        position: 'absolute',
+                                        top: '210px',
+                                        left: '110px',
+                                        background: 'rgb(63, 81, 181)',
+                                    }}
+                                >
+                                    <Add style={{ color: 'white' }} />
+                                </Button>
                                 <CardContent className={styles.cardContent}>
                                     <Typography gutterBottom variant="h6" align="center">
-                                        {'test img card'}
+                                        {'Nieuwe design toevoegen'}
                                     </Typography>
                                 </CardContent>
                             </Card>
