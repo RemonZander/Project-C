@@ -113,7 +113,7 @@ CREATE TABLE `user` (
   `Password` varchar(50) NOT NULL,
   `Name` varchar(50) NOT NULL,
   `Role_Id` int(11) NOT NULL,
-  `Comapany_Id` int(11) NOT NULL
+  `Company_Id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -160,7 +160,7 @@ ALTER TABLE `user`
   ADD PRIMARY KEY (`Id`),
   ADD UNIQUE KEY `Email` (`Email`),
   ADD KEY `user_ibfk_1` (`Role_Id`),
-  ADD KEY `user_ibfk_2` (`Comapany_Id`);
+  ADD KEY `user_ibfk_2` (`Company_Id`);
 
 --
 -- AUTO_INCREMENT voor geëxporteerde tabellen
@@ -223,7 +223,7 @@ ALTER TABLE `template`
 --
 ALTER TABLE `user`
   ADD CONSTRAINT `user_ibfk_1` FOREIGN KEY (`Role_Id`) REFERENCES `role` (`Id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `user_ibfk_2` FOREIGN KEY (`Comapany_Id`) REFERENCES `company` (`Id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `user_ibfk_2` FOREIGN KEY (`Company_Id`) REFERENCES `company` (`Id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

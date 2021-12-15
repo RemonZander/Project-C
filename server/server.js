@@ -5,10 +5,18 @@ const ResponseHelper = require("./src/ResponseHelper");
 const Token = new (require("./src/Token"))();
 const fs = require("fs");
 const path = require("path");
+const statik = require('node-static');
 
 // Create a local server to receive data from
-const http = require("http");
-const server = http.createServer();
+let protocol = process.env.ENABLE_SSL === 'true' ? require("https") : require("http");
+let options = process.env.ENABLE_SSL === 'true' ? {
+  key: fs.readFileSync(path.normalize('./' + process.env.SSL_KEY)),
+  cert: fs.readFileSync(path.normalize('./' + process.env.SSL_CERT))
+} : {}
+
+const server = protocol.createServer(options);
+
+const fileServer = new statik.Server('./public');
 
 const routes = require("./routes");
 
@@ -24,27 +32,15 @@ server.on("request", (req, res) => {
   ]);
   req.setEncoding("utf-8");
 
+  if (process.env.NODE_ENV === "production") {
+    req.addListener('end', () => {
+      fileServer.serve(req, res);
+    }).resume();
+  }
+
   const reqHelper = new RequestHelper(req);
   const resHelper = new ResponseHelper(res);
 
-  if (process.env.NODE_ENV === "production") {
-    if (req.url === "/") {
-      fs.readFile(
-        path.normalize(__dirname + "/index.html"),
-        function (err, data) {
-          if (err) {
-            resHelper.responseError(err);
-            return;
-          }
-
-          res.writeHead(200);
-          res.end(data);
-        }
-      );
-
-      return;
-    }
-  }
 
   if (req.url.startsWith("/storage")) {
     fs.readFile(__dirname + req.url, function (err, data) {
