@@ -278,14 +278,20 @@ function UserPortal() {
                                         Accountgegevens wijzigen
                                     </MenuItem>
                                     <MenuItem
-                                        onClick={handleCloseMenu}
+                                        onClick={() => {
+                                            handleCloseMenu();
+                                            window.open('/user-portal-settings', '_blank').focus();
+                                        }}
                                         style={{ marginTop: '10px' }}
                                     >
                                         Logingegevens wijzigen
                                     </MenuItem>
                                     {isModerator ? (
                                         <MenuItem
-                                            onClick={handleCloseMenu}
+                                            onClick={() => {
+                                                handleCloseMenu();
+                                                window.open('/user-portal-settings', '_blank').focus();
+                                            }}
                                             style={{ marginTop: '10px' }}
                                         >
                                             Hoofdgebruikeraccount wijzigen
