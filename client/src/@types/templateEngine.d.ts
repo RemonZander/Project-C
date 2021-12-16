@@ -9,8 +9,8 @@ export interface ImagesDataObject extends TemplateDataObject {}
 export interface JavascriptDataObject extends TemplateDataObject {}
 
 export interface TemplateFiles {
-    html: Array<TemplateDataObject>,
-    css: Array<TemplateDataObject>,
-    images: Array<TemplateDataObject>,
-    js: Array<TemplateDataObject>,
+    html: Array<HtmlDataObject>,
+    css: Array<CssDataObject>,
+    images: Array<ImagesDataObject>,
+    js: Array<JavascriptDataObject>,
 }

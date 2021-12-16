@@ -6,7 +6,7 @@ import { Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField } f
 import { getPayloadAsJson } from '../../helpers/Token';
 import { PageProps } from '../../@types/app';
 import { createDataObject } from '../../helpers/TemplateEngine';
-import { TemplateFiles } from '../../@types/templateEngine';
+import { HtmlDataObject, ImagesDataObject, TemplateFiles } from '../../@types/templateEngine';
 
 /*
 Uitleg:
@@ -23,8 +23,8 @@ const Input = styled('input')({
 
 function TemplateEngine(props: PageProps) {
     const [templatePos, setTemplatePos] = useState(0);
-    const [templateFiles, setTemplateFiles] = useState({});
-    const [templateImages, setTemplateImages] = useState([]);
+    const [templateFiles, setTemplateFiles] = useState<Array<HtmlDataObject>>([]);
+    const [templateImages, setTemplateImages] = useState<Array<ImagesDataObject>>([]);
     const [entryPoints, setEntryPoints] = useState([]);
     const [templateDoc, setTemplateDoc] = useState(null);
     const [selectedElement, setSelectedElement] = useState(null);
