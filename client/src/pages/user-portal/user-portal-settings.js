@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { CreateExport } from '../../helpers/Export';
-import { getPayloadAsJson, getToken } from '../../helpers/Token';
-const user = getPayloadAsJson();
+import { getPayloadAsJson } from '../../helpers/Token';
 
 function UserPortalSettings() {
-    console.log(user);
+    const user = getPayloadAsJson();
+
     return(
         <div>test</div>
     );
