@@ -319,18 +319,17 @@ function UserPortal() {
                     </DrawerHeader>
                     <Divider />
                     <List>
-                        <ListItem
+                        {designView || templateView ? <><ListItem
                             className="listItemButton"
                             onClick={() => {
                                 setDesignView(false);
                                 settemplateView(false);
                                 handleDrawerClose();
-                            }}
+                            } }
                         >
                             <Home style={{ marginRight: '20px' }}></Home>
                             <Typography variant="h5">Home pagina</Typography>
-                        </ListItem>
-                        <Divider />
+                        </ListItem><Divider /></> : ''}
                         <ListItem
                             className="listItemButton"
                             onClick={() => {
@@ -435,7 +434,7 @@ function UserPortal() {
                                                               left: '0px',
                                                               background: 'white',
                                                               color: 'black',
-                                                              height: '85%',
+                                                              height: '80%',
                                                           }}
                                                           onClick={() => {
                                                               setInfoView(
@@ -519,7 +518,20 @@ function UserPortal() {
                                                           variant="h6"
                                                           align="center"
                                                       >
-                                                          {design.Name}
+                                                          {design.Name} <br />
+                                                          {design.Verified === 0 ? <Button
+                                                              variant="contained"
+                                                              color="primary"
+
+                                                          >
+                                                              Bewerken
+                                                          </Button> : isModerator ? <Button
+                                                              variant="contained"
+                                                              color="primary"
+
+                                                          >
+                                                              Valideren
+                                                          </Button> : ''}
                                                       </Typography>
                                                   </CardContent>
                                               </Card>
@@ -574,7 +586,7 @@ function UserPortal() {
                                             background: 'rgb(63, 81, 181)',
                                         }}
                                         onClick={() => {
-                                            window.open('/template-engine', '_blank').focus();
+                                            window.open('/template-editor', '_blank').focus();
                                         }}
                                     >
                                         <Add style={{ color: 'white' }} />
