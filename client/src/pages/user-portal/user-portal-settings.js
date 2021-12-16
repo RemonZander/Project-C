@@ -82,47 +82,7 @@ function UserPortalSettings() {
 
     return (
         <React.Fragment>
-            <CssBaseline />
-            <Box sx={{ display: 'flex' }}>
-                <AppBar
-                    position="fixed"
-                    open={openDrawer}
-                    style={{ background: 'white' }}
-                    id="AppBar"
-                >
-                    <Toolbar>
-                        <img
-                            src={kyndalogo}
-                            alt="kynda logo"
-                            width="90"
-                            height="30"
-                            style={{ marginRight: '20px', marginLeft: '10px' }}
-                        />
-                        <Typography variant="h5" style={{ color: 'black' }}>
-                            User
-                        </Typography>
-                        <Typography variant="h5" style={{ color: 'black', marginLeft: '6px' }}>
-                            portal
-                        </Typography>
-                        <Typography variant="h5" style={{ color: 'black', marginLeft: '6px' }}>
-                            instellingen
-                        </Typography>
-                        <Grid container spacing={2} justifyContent="flex-end">
-                            <Grid item>
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => {
-                                        window.open('/user-portal', '_self');
-                                    }}
-                                >
-                                    Pagina sluiten
-                                </Button>
-                            </Grid>
-                        </Grid>
-                    </Toolbar>
-                </AppBar>
-            </Box>
+            <CssBaseline />            
             <Box
                 sx={{
                     display: 'flex',
