@@ -21,10 +21,11 @@ import {
     Divider,
     TextField,
 } from '@material-ui/core';
-import { AccountCircle, BorderBottom } from '@material-ui/icons';
+import { AccountCircle, BorderBottom, Security, SquareFoot } from '@material-ui/icons';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { useState, useEffect } from 'react';
 import Enumerable from 'linq';
+import { red } from '@material-ui/core/colors';
 
 function UserPortalSettings() {
     const user = getPayloadAsJson();
@@ -32,13 +33,33 @@ function UserPortalSettings() {
     const [openDrawer, setOpenDrawer] = useState(false);
     const [anchorEl, setAnchorEl] = React.useState(null);
     const [pass, setPass] = React.useState();
+
+    const [currentPassInput, setCurrentPassInput] = React.useState('');
+    const [newPassInput, setNewPassInput] = React.useState('');
+    const [confirmPassInput, setConfirmPassInput] = React.useState('');
+    const [passErrorMsg, setPassErrorMsg] = React.useState(['', '', '']);
+
     const [userList, setUserList] = useState([]);
+
+    const handleInputChangeCurrentPass = (event) => {
+        console.log(event.target.value);
+        setCurrentPassInput(event.target.value);
+    };
+
+    const handleInputChangeNewPass = (event) => {
+        console.log(event.target.value);
+        setNewPassInput(event.target.value);
+    };
+
+    const handleInputChangeConfirmPass = (event) => {
+        console.log(event.target.value);
+        setConfirmPassInput(event.target.value);
+    };
 
     React.useEffect(() => {
         (async () => {
             const ApiInstance = new Api(getToken());
 
-            console.log(user);
             setPass(await GetUserPassword(user));
 
             const userDataDb = await ApiInstance.all('user');
@@ -122,39 +143,41 @@ function UserPortalSettings() {
                 </List>
                 <List>
                     <ListItem
-                        style={{ paddingTop: '50px', paddingBottom: '20px', paddingRight: '300px' }}
+                        style={{ paddingTop: '50px', paddingBottom: '20px', paddingLeft: '200px', paddingRight: '200px' }}
                     >
                         <Typography variant="h6">
                             {'Naam: '} &emsp;&emsp;&emsp;&nbsp;
                             {user.naam}
                         </Typography>
                     </ListItem>
-                    <ListItem style={{ paddingBottom: '50px', paddingRight: '300px' }}>
+                    <ListItem style={{ paddingBottom: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
                         <Typography variant="h6">
                             {'E-mail: '} &emsp;&emsp;&emsp;
                             {user.email}
                         </Typography>
                     </ListItem>
                     <Divider />
-                    <ListItem style={{ paddingTop: '50px', paddingRight: '500px' }}>
+                    <ListItem style={{ paddingTop: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
                         <Typography variant="h6">
-                            {'Huidig wachtwoord: '} &emsp;&emsp;
-                            {}
+                            {'Huidig wachtwoord: '} &emsp;&emsp;&emsp;
+                            <TextField required error={passErrorMsg[0] !== ''} helperText={passErrorMsg[0]} type={'password'} style={{ Security: 'square' }} value={currentPassInput} onChange={handleInputChangeCurrentPass}  />
                         </Typography>
                     </ListItem>
-                    <ListItem style={{ paddingTop: '50px', paddingRight: '500px' }}>
-                        <Typography variant="h6">{'Nieuw wachtwoord: '} &emsp;&emsp;</Typography>
-                        <TextField required />
+                    <ListItem style={{ paddingTop: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
+                        <Typography variant="h6">{'Nieuw wachtwoord: '} &emsp;&emsp;&emsp;</Typography>
+                        <TextField required error={passErrorMsg[1] !== ''} helperText={passErrorMsg[1]} type={'password'} style={{ Security: 'square' }} value={newPassInput} onChange={handleInputChangeNewPass}  />
                     </ListItem>
-                    <ListItem style={{ paddingTop: '50px', paddingRight: '500px' }}>
+                    <ListItem style={{ paddingTop: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
                         <Typography variant="h6">{'Bevestig wachtwoord: '} &emsp;&emsp;</Typography>
-                        <TextField required />
+                        <TextField required error={passErrorMsg[2] !== ''} helperText={passErrorMsg[2]} type={'password'} style={{ Security: 'square' }} value={confirmPassInput} onChange={handleInputChangeConfirmPass}  />
                     </ListItem>
                     <Typography
                         align="center"
-                        style={{ paddingTop: '50px', paddingRight: '500px', paddingBottom: '50px' }}
+                        style={{ paddingTop: '50px', paddingBottom: '50px', paddingLeft: '200px', paddingRight: '200px' }}
                     >
-                        <Button variant="contained" color="primary">
+                        <Button variant="contained" color="primary" onClick={() => {
+                            ChangePass(pass, currentPassInput, newPassInput, confirmPassInput, setPassErrorMsg);
+                        }}>
                             Toepassen
                         </Button>
                     </Typography>
@@ -163,7 +186,6 @@ function UserPortalSettings() {
                 <List>
                     {user.type === 'Moderator'
                         ? userList.map((user) => {
-                              console.log(user);
                               return (
                                   <ListItem>
                                       <AccountCircle style={{ marginRight: '15px' }} />
@@ -197,11 +219,17 @@ async function GetUserPassword(userInstance) {
     return userDataDb.content[0].Password;
 }
 
-function HashPassword(password) {
-    console.log(password);
-    let hashPass = '';
-    for (let i = 0; i < password.length; i++) {
-        hashPass = hashPass + '*';
-    }
-    return hashPass;
+function ChangePass(userPassword, currentPass, newPass, confirmPass, setPassError) {
+    console.log(currentPass);
+    console.log(newPass);
+    console.log(confirmPass);
+
+    setPassError([
+        currentPass === '' ? 'Dit veld is verplicht' : currentPass !== userPassword ? 'Het wachtwoord is onjuist' : '', 
+        newPass === '' ? 'Dit veld is verplicht' : '', 
+        confirmPass === '' ? 'Dit veld is verplicht' : newPass !== '' ? 'U heeft geen nieuw wachtwoord opgegeven' : newPass !== confirmPass ? 'input verkeerd temp' : ''
+    ]);
+
+    // check for password format; minimaal 8 tekens, 1+ hoofdletter, 1+ cijfer & 1+ speciaal teken
+    
 }
