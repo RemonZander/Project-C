@@ -42,17 +42,14 @@ function UserPortalSettings() {
     const [userList, setUserList] = useState([]);
 
     const handleInputChangeCurrentPass = (event) => {
-        console.log(event.target.value);
         setCurrentPassInput(event.target.value);
     };
 
     const handleInputChangeNewPass = (event) => {
-        console.log(event.target.value);
         setNewPassInput(event.target.value);
     };
 
     const handleInputChangeConfirmPass = (event) => {
-        console.log(event.target.value);
         setConfirmPassInput(event.target.value);
     };
 
@@ -62,12 +59,17 @@ function UserPortalSettings() {
 
             setPass(await GetUserPassword(user));
 
-            const userDataDb = await ApiInstance.all('user');
+            let userDataDb = [];
+
+            if (typeof(userDataDb = await ApiInstance.all('user')) === 'undefined') {
+                window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+                return;
+            }
             const allUsers = userDataDb.content;
             let usersOfCompany = [];
             for (let userIndex = 0; userIndex < allUsers.length; userIndex++) {
                 if (
-                    allUsers[userIndex].Company_Id === user.company &&
+                    //allUsers[userIndex].Company_Id === user.company &&
                     allUsers[userIndex].Email !== user.email
                 ) {
                     usersOfCompany.push(allUsers[userIndex]);
@@ -127,7 +129,7 @@ function UserPortalSettings() {
                     alignItems: 'center',
                     flexDirection: 'column',
                 }}
-                id="userPortalMainPage"
+                id="userPortalSettingsPage"
                 anchorEl={anchorEl}
             >
                 <List alignItems="center">
@@ -169,14 +171,14 @@ function UserPortalSettings() {
                     </ListItem>
                     <ListItem style={{ paddingTop: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
                         <Typography variant="h6">{'Bevestig wachtwoord: '} &emsp;&emsp;</Typography>
-                        <TextField required error={passErrorMsg[2] !== ''} helperText={passErrorMsg[2]} type={'password'} style={{ Security: 'square' }} value={confirmPassInput} onChange={handleInputChangeConfirmPass}  />
+                        <TextField id="confirmPass" required error={passErrorMsg[2] !== ''} helperText={passErrorMsg[2]} type={'password'} style={{ Security: 'square' }} value={confirmPassInput} onChange={handleInputChangeConfirmPass}  />
                     </ListItem>
                     <Typography
                         align="center"
                         style={{ paddingTop: '50px', paddingBottom: '50px', paddingLeft: '200px', paddingRight: '200px' }}
                     >
                         <Button variant="contained" color="primary" onClick={() => {
-                            ChangePass(pass, currentPassInput, newPassInput, confirmPassInput, setPassErrorMsg);
+                            ChangePass(user.sub, pass, currentPassInput, newPassInput, confirmPassInput, setPassErrorMsg);
                         }}>
                             Toepassen
                         </Button>
@@ -185,18 +187,27 @@ function UserPortalSettings() {
                 </List>
                 <List>
                     {user.type === 'Moderator'
-                        ? userList.map((user) => {
-                              return (
-                                  <ListItem>
-                                      <AccountCircle style={{ marginRight: '15px' }} />
-                                      <Typography variant="h6">
-                                          {user.Name}
-                                          <br />
-                                          {user.Email}
-                                      </Typography>
-                                  </ListItem>
-                              );
-                          })
+                    ? userList.map((user, index) => {
+                        if (index % 2 === 0) {
+                            return (
+                                <><ListItem >
+                                    <AccountCircle style={{ fontSize: '60px', marginRight: '15px' }} />
+                                    <Typography variant="h6">
+                                        {userList[index].Name}
+                                        <br />
+                                        {userList[index].Email}
+                                    </Typography>
+                                    <Divider />
+                                    <AccountCircle style={{ fontSize: '60px', marginRight: '15px' }} />
+                                    <Typography variant="h6">
+                                        {userList[index + 1].Name}
+                                        <br />
+                                        {userList[index + 1].Email}
+                                    </Typography>
+                                    </ListItem><Divider /></>
+                            );
+                        }
+                            })
                         : ''}
                 </List>
             </Box>
@@ -219,7 +230,7 @@ async function GetUserPassword(userInstance) {
     return userDataDb.content[0].Password;
 }
 
-function ChangePass(userPassword, currentPass, newPass, confirmPass, setPassError) {
+async function ChangePass(userId, userPassword, currentPass, newPass, confirmPass, setPassError) {
     console.log(currentPass);
     console.log(newPass);
     console.log(confirmPass);
@@ -227,9 +238,40 @@ function ChangePass(userPassword, currentPass, newPass, confirmPass, setPassErro
     setPassError([
         currentPass === '' ? 'Dit veld is verplicht' : currentPass !== userPassword ? 'Het wachtwoord is onjuist' : '', 
         newPass === '' ? 'Dit veld is verplicht' : '', 
-        confirmPass === '' ? 'Dit veld is verplicht' : newPass !== '' ? 'U heeft geen nieuw wachtwoord opgegeven' : newPass !== confirmPass ? 'input verkeerd temp' : ''
+        confirmPass === '' ? 'Dit veld is verplicht' : newPass === '' ? 'U heeft geen nieuw wachtwoord opgegeven' : newPass !== confirmPass ? 'Wachtwoorden zijn ongelijk' : ''
     ]);
 
+
     // check for password format; minimaal 8 tekens, 1+ hoofdletter, 1+ cijfer & 1+ speciaal teken
-    
+    if (newPass !== confirmPass || currentPass !== userPassword) return;
+
+    console.log(newPass.length);
+    if (['!', '@', '#', '$', '%', '^', '&', ' *', '(', ')', '-', '_', '=', '+', '[', ']', '{', '}', `|`, ';', ':', "'", '"', ',', '<', '.', '>', '/', '?', '`', '~'].some(s => newPass.includes(s)) &&
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].some(s => newPass.includes(s)) && newPass.length > 7) {
+        console.log('succes');
+        const ApiInstance = new Api(getToken());
+        let userDataDb = [];
+        if (typeof (userDataDb = await ApiInstance.read('user', userId)) === 'undefined') {
+            window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+            return;
+        }
+        let result = [];
+        if (typeof (result = await ApiInstance.update('user', userId,
+            [
+                userDataDb.content[0].Email,
+                newPass,
+                userDataDb.content[0].Role_Id,
+                userDataDb.content[0].Name,
+                userDataDb.content[0].Company_Id
+            ])) === 'undefined') {
+            window.alert(
+                'De verbinding met de database is verbroken. Probeer het later opnieuw.'
+            );
+            return;
+        }
+    }
+    else {
+        console.log('fail');
+    }
+
 }
