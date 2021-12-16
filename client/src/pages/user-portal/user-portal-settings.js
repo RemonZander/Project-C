@@ -190,20 +190,24 @@ function UserPortalSettings() {
                     ? userList.map((user, index) => {
                         if (index % 2 === 0) {
                             return (
-                                <><ListItem >
-                                    <AccountCircle style={{ fontSize: '60px', marginRight: '15px' }} />
-                                    <Typography variant="h6">
-                                        {userList[index].Name}
-                                        <br />
-                                        {userList[index].Email}
-                                    </Typography>
-                                    <Divider />
-                                    <AccountCircle style={{ fontSize: '60px', marginRight: '15px' }} />
-                                    <Typography variant="h6">
-                                        {userList[index + 1].Name}
-                                        <br />
-                                        {userList[index + 1].Email}
-                                    </Typography>
+                                <><ListItem style={{ alignItems: 'center', justifyContent: 'center' }}>
+                                    <ListItem style={{ alignItems: 'center' }}>
+                                        <AccountCircle style={{ fontSize: '60px', marginRight: '15px' }} />
+                                        <Typography variant="h6">
+                                            {userList[index].Name}
+                                            <br />
+                                            {userList[index].Email}
+                                        </Typography>
+                                    </ListItem>
+                                    <ListItem style={{ alignItems: 'center', marginLeft: '100px' }}>
+                                        <AccountCircle style={{ fontSize: '60px', marginRight: '15px' }} />
+                                        <Typography variant="h6">
+                                            {userList[index + 1].Name}
+                                            <br />
+                                            {userList[index + 1].Email}
+                                        </Typography>
+                                    </ListItem>
+                                    
                                     </ListItem><Divider /></>
                             );
                         }
