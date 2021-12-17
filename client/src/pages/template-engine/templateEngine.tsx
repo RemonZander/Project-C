@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
 import { Box, Grid, styled } from '@material-ui/core';
-import { Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
+import { Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
 import { getPayloadAsJson } from '../../helpers/Token';
 import { PageProps } from '../../@types/app';
 import { createDataObject } from '../../helpers/TemplateEngine';
@@ -29,31 +29,32 @@ function TemplateEngine(props: PageProps) {
     const [templateDoc, setTemplateDoc] = useState(null);
     const [selectedElement, setSelectedElement] = useState(null);
     const [textFieldValue, setTextFieldValue] = useState("");
-    const [textFieldLimit, setTextFieldLimit] = useState(null);
-    const [textWrap, setTextWrap] = useState(-1);
-    const [textAlign, setTextAlign] = useState(-1);
+    const [textWrap, setTextWrap] = useState("");
+    const [textAlign, setTextAlign] = useState("");
+    const [isElementEditable, setIsElementEditable] = useState(false);
     const [fixApplied, setFixApplied] = useState(false);
+    
+    const textFieldRef = useRef(null);
+    const wrapOptionsRef = useRef(null);
+    const alignOptionsRef = useRef(null);
+    const editableCheckboxRef = useRef(null);
+    
+    const keyword = 'editable';
 
     const textFieldRef = useRef(null);
 
     useEffect(() => {
-        if (selectedElement !== null && textFieldRef !== null) {
-            // Sets the default value of the text field
-            textFieldRef.value = textFieldValue;
-
-            if (textAlign === 0 || textAlign === -1) {
-                selectedElement.style.textAlign = 'left';
-            } else if (textAlign === 1) {
-                selectedElement.style.textAlign = 'center';
-            } else if (textAlign === 2) {
-                selectedElement.style.textAlign = 'right';
-            }
-
-            if (textWrap === 0 || textWrap === -1) {
-                selectedElement.style.whiteSpace = 'normal';
-            } else if (textWrap === 1) {
-                selectedElement.style.whiteSpace = 'nowrap';
-            }
+        if (textFieldRef.current !== null) {
+            textFieldRef.current.value = textFieldValue;
+        }
+        if (wrapOptionsRef.current !== null) {
+            wrapOptionsRef.current.value = textWrap;
+        }
+        if (alignOptionsRef.current !== null) {
+            alignOptionsRef.current.value = textAlign;
+        }
+        if (editableCheckboxRef.current !== null) {
+            editableCheckboxRef.current.checked = selectedElement.classList.contains(keyword);
         }
     })
 
@@ -65,90 +66,104 @@ function TemplateEngine(props: PageProps) {
         // Needs some refinement in some areas (mainly lessen the amount of for loops if possible)
 
         const exportFiles = e.target.files;
-        (async () => {
-            let files: TemplateFiles = {
-                html: [],
-                css: [],
-                images: [],
-                js: [],
-            };
 
-            // TODO: Should only ready 1 template and process whenever a new template gets into the screen. Cache like behaviour.
-            for (let i = 0; i < exportFiles.length; i++) {
-                const file = exportFiles[i];
-
-                if (file.type === 'text/html') {
-                    files['html'].push(createDataObject(file, await readFile(file)));
-                } else if (file.type === 'text/css') {
-                    files['css'].push(createDataObject(file, await readFile(file)));
-                } else if (file.type === 'text/javascript') {
-                    files['js'].push(createDataObject(file, await readFile(file)));
-                } else if (['image/png', 'image/jpg', 'image/jpeg'].includes(file.type)) {
-                    files['images'].push(createDataObject(file, await readFileAsDataUrl(file)));
-                } else {
-                    return;
-                }
-            }
-
-            let fontDataLoaded = false;
-
-            if (!(files['js'].some(obj => obj.name === 'FontData.js'))) {
-                alert("Geen fontdata script gevonden. Tekst kan overlappen.");
-            } else {
-                fontDataLoaded = true;
-            }
-
-            // For every template found in the export directory
-            for (let i = 0; i < files['html'].length; i++) {
-                const htmlObj = files['html'][i];
-
-                const doc = new DOMParser().parseFromString(htmlObj.data, 'text/html');
-
-                Array.from(doc.getElementsByTagName('head')[0].children).forEach(child => {
-                    if (child.tagName === 'LINK' || child.tagName === 'SCRIPT') child.remove();
-                })
-
-                // Add the contents of the css files as a style element to the html document
-                for (let i = 0; i < files['css'].length; i++) {
-                    const node = document.createElement('style');
-                    const css =
-                        files['css'][i]['data'] +
-                        `
-                            .selectable:hover {
-                                outline: 2rem solid black !important;
-                                outline-radius: 0.8rem !important;
-                                cursor: pointer !important;
-                            }
-                        `;
-
-                    node.innerHTML = css.replace(/\r?\n|\r/g, '');
-                    doc.getElementsByTagName('head')[0].appendChild(node);
-                }
-
-                if (fontDataLoaded) {
-                    for (let i = 0; i < files['js'].length; i++) {
-                        const node = document.createElement('script');
-                        const js = files['js'][i]['data'];
-
-                        const newJs = js.replace(js.substring(js.indexOf('document'), js.lastIndexOf(';') + 1), `
-                        const head = document.getElementsByTagName('head')[0];
-                        const styleNode = document.createElement('style');
-                        styleNode.innerHTML = buildFontRule(nameArray[i], dataArray[i], fontStyle[i][j], fontWeight[i], fontStretch[i]);
-                        head.appendChild(styleNode);
-                    `)
-
-                        node.innerHTML = newJs;
-
-                        doc.getElementsByTagName('head')[0].appendChild(node);
+        if (e.target.files.length !== 0) {
+            (async () => {
+                let files = {
+                    html: [],
+                    css: [],
+                    images: [],
+                    js: [],
+                };
+    
+                const createObj = (file, data) => {
+                    return {
+                        name: file.name,
+                        data: data,
+                    };
+                };
+    
+                // TODO: Should only ready 1 template and process whenever a new template gets into the screen. Cache like behaviour.
+                for (let i = 0; i < exportFiles.length; i++) {
+                    const file = exportFiles[i];
+    
+                    if (file.type === 'text/html') {
+                        files['html'].push(createObj(file, await readFile(file)));
+                    } else if (file.type === 'text/css') {
+                        files['css'].push(createObj(file, await readFile(file)));
+                    } else if (file.type === 'text/javascript') {
+                        files['js'].push(createObj(file, await readFile(file)));
+                    } else if (['image/png', 'image/jpg', 'image/jpeg'].includes(file.type)) {
+                        files['images'].push(createObj(file, await readFileAsDataUrl(file)));
+                    } else {
+                        return;
                     }
                 }
-
-                files['html'][i]['data'] = new XMLSerializer().serializeToString(doc);
-            }
-
-            setTemplateFiles(files['html']);
-            setTemplateImages(files['images']);
-        })();
+    
+                let fontDataLoaded = false;
+    
+                if (!(files['js'].some(obj => obj.name === 'FontData.js'))) {
+                    alert("Geen fontdata script gevonden. Tekst kan overlappen.");
+                } else {
+                    fontDataLoaded = true;
+                }
+    
+                // For every template found in the export directory
+                for (let i = 0; i < files['html'].length; i++) {
+                    const htmlObj = files['html'][i];
+    
+                    const doc = new DOMParser().parseFromString(htmlObj.data, 'text/html');
+    
+                    Array.from(doc.getElementsByTagName('head')[0].children).forEach(child => {
+                        if (child.tagName === 'LINK' || child.tagName === 'SCRIPT') child.remove();
+                    })
+    
+                    // Add the contents of the css files as a style element to the html document
+                    for (let i = 0; i < files['css'].length; i++) {
+                        const node = document.createElement('style');
+                        const css =
+                            files['css'][i]['data'] +
+                            `
+                                .selectable:hover {
+                                    outline: 2rem solid black !important;
+                                    outline-radius: 0.8rem !important;
+                                    cursor: pointer !important;
+                                }
+                                .editable {
+                                    outline: 2rem solid black !important;
+                                    outline-radius: 0.8rem !important;
+                                }
+                            `;
+    
+                        node.innerHTML = css.replace(/\r?\n|\r/g, '');
+                        doc.getElementsByTagName('head')[0].appendChild(node);
+                    }
+    
+                    if (fontDataLoaded) {
+                        for (let i = 0; i < files['js'].length; i++) {
+                            const node = document.createElement('script');
+                            const js = files['js'][i]['data'];
+    
+                            const newJs = js.replace(js.substring(js.indexOf('document'), js.lastIndexOf(';') + 1), `
+                            const head = document.getElementsByTagName('head')[0];
+                            const styleNode = document.createElement('style');
+                            styleNode.innerHTML = buildFontRule(nameArray[i], dataArray[i], fontStyle[i][j], fontWeight[i], fontStretch[i]);
+                            head.appendChild(styleNode);
+                        `)
+    
+                            node.innerHTML = newJs;
+    
+                            doc.getElementsByTagName('head')[0].appendChild(node);
+                        }
+                    }
+    
+                    files['html'][i]['data'] = new XMLSerializer().serializeToString(doc);
+                }
+    
+                setTemplateFiles(files['html']);
+                setTemplateImages(files['images']);
+            })();
+        }
     }
 
     // function buttonHandler(buttonName, templatePosition, templateFiles) {
@@ -263,15 +278,20 @@ function TemplateEngine(props: PageProps) {
                 })
 
                 span.innerText = span.innerText.trim();
+
+                // Default styling values
                 span.style.display = "block";
                 span.style.lineHeight = 1;
+                span.style.whiteSpace = "normal";
+                span.style.textAlign = "left";
                 span.className += " selectable";
 
                 span.onclick = (e) => {
                     setSelectedElement(e.target);
                     setTextFieldValue(e.target.innerText);
-                    setTextWrap(-1);
-                    setTextAlign(-1);
+                    setTextWrap(e.target.style.whiteSpace);
+                    setTextAlign(e.target.style.textAlign);
+                    setIsElementEditable(e.target.classList.contains(keyword))
                 }
 
                 point.element.appendChild(span);
@@ -289,11 +309,21 @@ function TemplateEngine(props: PageProps) {
     }
 
     function handleWrapping(e) {
+        selectedElement.style.whiteSpace = e.target.value;
         setTextWrap(e.target.value);
     }
 
     function handleAlign(e) {
+        selectedElement.style.textAlign = e.target.value;
         setTextAlign(e.target.value);
+    }
+
+    function handleCheckboxEditable(e) {
+        const list = selectedElement.classList;
+
+        e.target.checked ? list.add(keyword) : list.remove(keyword);
+
+        setIsElementEditable(list.contains(keyword))
     }
 
     function handleSaveText(e) {
@@ -354,6 +384,7 @@ function TemplateEngine(props: PageProps) {
                                     multiline
                                     rows={4}
                                     variant="filled"
+                                    value={textFieldValue}
                                     onChange={handleTextChange}
                                     style={{ width: "100%" }}
                                     ref={textFieldRef}
@@ -366,10 +397,10 @@ function TemplateEngine(props: PageProps) {
                                         label="Wrap"
                                         value={textWrap}
                                         onChange={handleWrapping}
+                                        ref={wrapOptionsRef}
                                     >
-                                        <MenuItem value={-1}>Default (Wrap)</MenuItem>
-                                        <MenuItem value={0}>Wrap</MenuItem>
-                                        <MenuItem value={1}>No wrap</MenuItem>
+                                        <MenuItem value={"normal"}>Wrap</MenuItem>
+                                        <MenuItem value={"nowrap"}>No wrap</MenuItem>
                                     </Select>
                                 </FormControl>
                                 <FormControl style={{ width: "100%" }}>
@@ -380,13 +411,23 @@ function TemplateEngine(props: PageProps) {
                                         label="Align"
                                         value={textAlign}
                                         onChange={handleAlign}
+                                        ref={alignOptionsRef}
                                     >
-                                        <MenuItem value={-1}>Default (Left)</MenuItem>
-                                        <MenuItem value={0}>Left</MenuItem>
-                                        <MenuItem value={1}>Center</MenuItem>
-                                        <MenuItem value={2}>Right</MenuItem>
+                                        <MenuItem value={"left"}>Left</MenuItem>
+                                        <MenuItem value={"center"}>Center</MenuItem>
+                                        <MenuItem value={"right"}>Right</MenuItem>
                                     </Select>
                                 </FormControl>
+                                <FormControlLabel
+                                    label="Editable by customer" 
+                                    control={
+                                        <Checkbox 
+                                            checked={isElementEditable} 
+                                            onChange={handleCheckboxEditable} 
+                                            ref={editableCheckboxRef}  
+                                        />
+                                    } 
+                                />
                                 <Button variant="contained" component="span" color="success" onClick={handleSaveText} style={{ width: "100%" }}>
                                     Done
                                 </Button>
