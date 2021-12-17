@@ -1,4 +1,4 @@
-export const readFile = (file) => {
+export const readFile = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
@@ -10,7 +10,7 @@ export const readFile = (file) => {
     });
 };
 
-export const readFileAsDataUrl = (file) => {
+export const readFileAsDataUrl = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
@@ -22,7 +22,7 @@ export const readFileAsDataUrl = (file) => {
     });
 };
 
-export const readFiles = (files, func) => {
+export const readFiles = (files: Array<File>, func: Function): Promise<any[]> => {
     let promises = [];
 
     for (let i = 0; i < files.length; i++) {

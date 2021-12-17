@@ -4,6 +4,9 @@ import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
 import { Box, Grid, styled } from '@material-ui/core';
 import { Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
 import { getPayloadAsJson } from '../../helpers/Token';
+import { PageProps } from '../../@types/app';
+import { createDataObject } from '../../helpers/TemplateEngine';
+import { HtmlDataObject, ImagesDataObject, TemplateFiles } from '../../@types/templateEngine';
 
 /*
 Uitleg:
@@ -18,10 +21,10 @@ const Input = styled('input')({
     display: 'none',
 });
 
-function TemplateEngine(props) {
+function TemplateEngine(props: PageProps) {
     const [templatePos, setTemplatePos] = useState(0);
-    const [templateFiles, setTemplateFiles] = useState([]);
-    const [templateImages, setTemplateImages] = useState([]);
+    const [templateFiles, setTemplateFiles] = useState<Array<HtmlDataObject>>([]);
+    const [templateImages, setTemplateImages] = useState<Array<ImagesDataObject>>([]);
     const [entryPoints, setEntryPoints] = useState([]);
     const [templateDoc, setTemplateDoc] = useState(null);
     const [selectedElement, setSelectedElement] = useState(null);
@@ -161,17 +164,17 @@ function TemplateEngine(props) {
         }
     }
 
-    function buttonHandler(buttonName, templatePosition, templateFiles) {
-        if (buttonName === 'previous') {
-            if (templatePosition === 0) {
-                return { display: 'none' };
-            }
-        } else {
-            if (templatePosition === templateFiles.length - 1) {
-                return { display: 'none' };
-            }
-        }
-    }
+    // function buttonHandler(buttonName, templatePosition, templateFiles) {
+    //     if (buttonName === 'previous') {
+    //         if (templatePosition === 0) {
+    //             return { display: 'none' };
+    //         }
+    //     } else {
+    //         if (templatePosition === templateFiles.length - 1) {
+    //             return { display: 'none' };
+    //         }
+    //     }
+    // }
 
     function handleTemplateLoad(e) {
         const doc = e.target.contentDocument;
@@ -179,7 +182,7 @@ function TemplateEngine(props) {
         const imgTags = doc.getElementsByTagName('img');
 
         // Returns an object that includes the name and the dataUrl (signed as data)
-        const findImageByUrl = (url) => templateImages.find(imgObj => imgObj['name'] === url.split('/').at(-1));
+        const findImageByUrl = (url: string) => templateImages.find(imgObj => imgObj['name'] === url.split('/').at(-1));
 
         // Replace image tags sources with data urls
         for (let i = 0; i < imgTags.length; i++) {
