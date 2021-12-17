@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { useEffect, useRef, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
@@ -6,7 +8,7 @@ import { Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, 
 import { getPayloadAsJson } from '../../helpers/Token';
 import { PageProps } from '../../@types/app';
 import { createDataObject } from '../../helpers/TemplateEngine';
-import { HtmlDataObject, ImagesDataObject, TemplateFiles } from '../../@types/templateEngine';
+import { HtmlDataObject, IEntryPoint, ImagesDataObject, TemplateFiles } from '../../@types/templateEngine';
 
 /*
 Uitleg:
@@ -25,7 +27,7 @@ function TemplateEngine(props: PageProps) {
     const [templatePos, setTemplatePos] = useState(0);
     const [templateFiles, setTemplateFiles] = useState<Array<HtmlDataObject>>([]);
     const [templateImages, setTemplateImages] = useState<Array<ImagesDataObject>>([]);
-    const [entryPoints, setEntryPoints] = useState([]);
+    const [entryPoints, setEntryPoints] = useState<Array<IEntryPoint>>([]);
     const [templateDoc, setTemplateDoc] = useState(null);
     const [selectedElement, setSelectedElement] = useState(null);
     const [textFieldValue, setTextFieldValue] = useState("");
@@ -43,16 +45,16 @@ function TemplateEngine(props: PageProps) {
 
     useEffect(() => {
         if (textFieldRef.current !== null) {
-            textFieldRef.current.value = textFieldValue;
+            (textFieldRef.current as HTMLInputElement).value = textFieldValue;
         }
         if (wrapOptionsRef.current !== null) {
-            wrapOptionsRef.current.value = textWrap;
+            (wrapOptionsRef.current as HTMLInputElement).value = textWrap;
         }
         if (alignOptionsRef.current !== null) {
-            alignOptionsRef.current.value = textAlign;
+            (alignOptionsRef.current as HTMLInputElement).value = textAlign;
         }
         if (editableCheckboxRef.current !== null) {
-            editableCheckboxRef.current.checked = selectedElement.classList.contains(keyword);
+            (editableCheckboxRef.current as HTMLInputElement).checked = selectedElement.classList.contains(keyword);
         }
     })
 
@@ -67,19 +69,17 @@ function TemplateEngine(props: PageProps) {
 
         if (e.target.files.length !== 0) {
             (async () => {
-                let files = {
+                let files: TemplateFiles = {
                     html: [],
                     css: [],
                     images: [],
                     js: [],
                 };
     
-                const createObj = (file, data) => {
-                    return {
-                        name: file.name,
-                        data: data,
-                    };
-                };
+                const createObj = (file: File, data: string) => ({
+                    name: file.name,
+                    data: data,
+                })
     
                 // TODO: Should only ready 1 template and process whenever a new template gets into the screen. Cache like behaviour.
                 for (let i = 0; i < exportFiles.length; i++) {
@@ -197,19 +197,23 @@ function TemplateEngine(props: PageProps) {
 
         // Self calling function that returns the entry points for use further down the code
         // It also adds ids, classes and events to the elements it goes through
-        const entryPoints = (function getEntryPointsRecursive(container, entryPoints = [], closesElementWithId = "") {
+        const entryPoints = (function getEntryPointsRecursive(container: HTMLElement, entryPoints: Array<IEntryPoint> = [], closesElementWithId: string = "") {
             const children = container.children;
             const entryPoint = entryPoints.filter(point => point.id === closesElementWithId)[0];
 
             for (let i = 0; i < children.length; i++) {
-                const child = children[i];
+                const child = children[i] as HTMLElement;
                 const childStyles = getComputedStyle(child);
 
                 if (childStyles.backgroundImage !== 'none') {
                     const url = childStyles.backgroundImage.split("\"")[1];
 
                     if (!(url.startsWith('data:'))) {
-                        child.style.backgroundImage = `url(${findImageByUrl(url)['data']})`;
+                        const image = findImageByUrl(url);
+
+                        if (image !== undefined) {
+                            child.style.backgroundImage = `url(${image['data']})`;
+                        }
                     }
                 }
 
@@ -228,11 +232,11 @@ function TemplateEngine(props: PageProps) {
                 }
 
                 if (child.tagName.toLowerCase() === "p") {
-                    entryPoint.pElements.push(child);
+                    entryPoint.pElements.push(child as HTMLParagraphElement);
                 }
 
                 if (child.tagName.toLowerCase() === "span") {
-                    entryPoint.spanElements.push(child);
+                    entryPoint.spanElements.push(child as HTMLSpanElement);
 
                     if (!entryPoint.spanClasses.includes(child.className)) {
                         entryPoint.spanClasses.push(child.className);

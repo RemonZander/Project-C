@@ -14,3 +14,11 @@ export interface TemplateFiles {
     images: Array<ImagesDataObject>,
     js: Array<JavascriptDataObject>,
 }
+
+export interface IEntryPoint {
+    id: string,
+    element: HTMLElement,
+    spanClasses: Array<string>,
+    pElements: Array<HTMLParagraphElement>,
+    spanElements: Array<HTMLSpanElement>,
+}

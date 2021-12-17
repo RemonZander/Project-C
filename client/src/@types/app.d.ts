@@ -4,7 +4,7 @@ export interface PageProps {
 
 export interface ICreateObject {
     url: string,
-    component: ArrowFunction,
+    component: any,
     auth: boolean,
     allowedUsers: Array<string>,
 }

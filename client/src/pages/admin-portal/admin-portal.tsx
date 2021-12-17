@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import * as React from 'react';
 import './admin-portal.css';
 import kyndaLetter from './kyndaletter.png';

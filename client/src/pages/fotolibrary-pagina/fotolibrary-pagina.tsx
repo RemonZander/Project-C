@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import './fotolibrary-pagina.css';
 import {
     Typography,

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import * as React from 'react';
 import kyndalogo from './kynda.png';
 import { CreateExport } from '../../helpers/Export';

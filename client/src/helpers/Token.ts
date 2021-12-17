@@ -1,3 +1,5 @@
+import { IPayload } from "../@types/token";
+
 export const getToken = (): string | undefined => {
     try {
         return document.cookie.split(';').find((row) => row.startsWith('token='))?.split('=')[1];
@@ -6,7 +8,7 @@ export const getToken = (): string | undefined => {
     }
 };
 
-export const getPayloadAsJson = (): string | null => {
+export const getPayloadAsJson = (): IPayload | null => {
     return tokenExists() ? JSON.parse(Buffer.from(getToken()!.split('.')[1], 'base64').toString()) : null
 };
 

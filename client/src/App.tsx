@@ -5,7 +5,6 @@ import admin_portal from './pages/admin-portal/admin-portal';
 import LoginPage from './pages/login/login';
 import ForgotPasswordPage from './pages/forgot password/forgot_pass';
 import TemplateEngine from './pages/template-engine/templateEngine';
-import ontwerp_pagina from './pages/ontwerp-pagina/ontwerp-pagina';
 import { useEffect, useState } from 'react';
 import fotolibraryPagina from './pages/fotolibrary-pagina/fotolibrary-pagina';
 import { ICreateObject } from './@types/app';
@@ -16,7 +15,6 @@ const pages: Array<ICreateObject> = [
     user_portal,
     admin_portal,
     TemplateEngine,
-    ontwerp_pagina,
     fotolibraryPagina,
     user_portal_settings,
 ];

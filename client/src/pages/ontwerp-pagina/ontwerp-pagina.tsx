@@ -1,4 +1,6 @@
-﻿import * as React from 'react';
+﻿// @ts-nocheck
+
+import * as React from 'react';
 import './ontwerp-pagina.css';
 import kyndaletter from './kyndaletter.png';
 import cog from './cog69420.png';
