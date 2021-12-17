@@ -1,18 +1,15 @@
-export const getToken = () => {
+export const getToken = (): string | undefined => {
     try {
-        return document.cookie
-            .split(';')
-            .find((row) => row.startsWith('token='))
-            .split('=')[1];
+        return document.cookie.split(';').find((row) => row.startsWith('token='))?.split('=')[1];
     } catch (error) {
-        return false;
+        return undefined;
     }
 };
 
-export const getPayloadAsJson = () => {
-    return JSON.parse(Buffer.from(getToken().split('.')[1], 'base64').toString());
+export const getPayloadAsJson = (): string | null => {
+    return tokenExists() ? JSON.parse(Buffer.from(getToken()!.split('.')[1], 'base64').toString()) : null
 };
 
-export const tokenExists = () => {
-    return getToken() instanceof String;
+export const tokenExists = (): boolean => {
+    return getToken() !== undefined;
 };

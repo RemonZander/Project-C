@@ -8,8 +8,9 @@ import TemplateEngine from './pages/template-engine/templateEngine';
 import ontwerp_pagina from './pages/ontwerp-pagina/ontwerp-pagina';
 import { useEffect, useState } from 'react';
 import fotolibraryPagina from './pages/fotolibrary-pagina/fotolibrary-pagina';
+import { ICreateObject } from './@types/app';
 
-const pages = [
+const pages: Array<ICreateObject> = [
     LoginPage,
     ForgotPasswordPage,
     user_portal,
@@ -23,34 +24,30 @@ const pages = [
 function App() {
     const pathName = window.location.pathname;
 
-    const [isUserAuth, setIsUserAuth] = useState(null);
+    const [isUserAuth, setIsUserAuth] = useState(false);
     const [userType, setUserType] = useState(null);
 
     useEffect(() => {
-        const cookieString = document.cookie;
+        const token = document.cookie.split(';').find((row) => row.startsWith('token='))?.split('=')[1];
 
-        if (cookieString !== '') {
-            const token = cookieString
-                .split(';')
-                .find((row) => row.startsWith('token='))
-                .split('=')[1];
+        if (token !== undefined) {
 
             fetch(process.env.REACT_APP_SERVER_URL + '/auth', {
                 method: 'GET',
                 headers: { Authorization: 'Bear ' + token },
             })
-                .then((res) => res.json())
-                .then((data) => {
-                    const payload = JSON.parse(
-                        Buffer.from(data.content.token.split('.')[1], 'base64').toString()
-                    );
+            .then((res) => res.json())
+            .then((data) => {
+                const payload = JSON.parse(
+                    Buffer.from(data.content.token.split('.')[1], 'base64').toString()
+                );
 
-                    if (token === data.content.token) {
-                        setIsUserAuth(true);
-                        setUserType(payload.type);
-                    }
-                })
-                .catch((err) => console.error(err));
+                if (token === data.content.token) {
+                    setIsUserAuth(true);
+                    setUserType(payload.type);
+                }
+            })
+            .catch((err) => console.error(err));
         }
     }, [isUserAuth, userType]);
 
@@ -59,7 +56,7 @@ function App() {
 
         if (pathName === page.url) {
             let queryParamsString = window.location.search;
-            let queryParamsObject = {};
+            let queryParamsObject: {[key: string]: string | boolean | number} = {};
 
             if (queryParamsString !== '') {
                 const params = queryParamsString.slice(1, queryParamsString.length).split('&');
@@ -69,8 +66,8 @@ function App() {
 
                     const sepIndex = param.indexOf('=');
 
-                    const key = param.slice(0, sepIndex);
-                    let val = param.slice(sepIndex + 1, param.length);
+                    const key: string = param.slice(0, sepIndex);
+                    let val: string | boolean | number = param.slice(sepIndex + 1, param.length);
 
                     const possibleNumber = parseInt(val, 10);
 

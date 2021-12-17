@@ -2,7 +2,7 @@ export const readFile = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
-        reader.onload = (e) => resolve(e.target.result);
+        reader.onload = (e) => resolve(e.target!.result as string);
 
         reader.onerror = (e) => reject(e.target);
 
@@ -14,7 +14,7 @@ export const readFileAsDataUrl = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
-        reader.onload = (e) => resolve(e.target.result);
+        reader.onload = (e) => resolve(e.target!.result as string);
 
         reader.onerror = (e) => reject(e.target);
 
