@@ -99,7 +99,6 @@ async function getDesigns() {
         .orderBy((d) => d.Template_id)
         .toArray();
 
-    console.log(designList);
     return designList;
 }
 
@@ -116,7 +115,6 @@ async function getTemplates() {
         .where((t) => t.Company_id === user.company)
         .toArray();
 
-    console.log(templateList);
     return templateList;
 }
 
@@ -731,7 +729,6 @@ function UserPortal() {
                         {user.type === 'Moderator'
                             ? userList.map((user, index) => {
                                 if (index % 2 === 0) {
-                                    console.log(index + ' ' + userList.length);
                                     return (
                                         <><ListItem style={{ alignItems: 'center', justifyContent: 'center', marginRight: '50px' }}>
                                             {index === userList.length - 1 && userList.length % 2 !== 0 ? <><ListItem id={'userField' + index} style={{ alignItems: 'center', width: '50%' }}
@@ -821,9 +818,9 @@ function UserPortal() {
                     <List>
                         <ListItem>
                             <AccountCircle style={{ fontSize: '100px', marginRight: '15px' }} />
-                            <div style={{ fontSize: '20px' }}>Naam: <TextField required /><br />
-                                Email: <TextField required /><br />
-                                Wachtwoord: <TextField required />
+                                <div style={{ fontSize: '20px' }}>Naam: &emsp;&emsp;&emsp;&emsp;&emsp;<TextField required /><br />
+                                    Email: &emsp;&emsp;&emsp;&emsp;&emsp;<TextField required /><br />
+                                    Wachtwoord: &emsp;&emsp;<TextField required />
                             </div>
                         </ListItem>
                     </List>
@@ -924,6 +921,7 @@ async function ChangePass(userId, userPassword, currentPass, newPass, confirmPas
         confirmPass === '' ? 'Dit veld is verplicht' : newPass === '' ? 'U heeft geen nieuw wachtwoord opgegeven' : newPass !== confirmPass ? 'Wachtwoorden zijn ongelijk' : ''
     ]);
 
+    console.log('ww: ' + currentPass + ' new pass: ' + newPass + ' confirm new pass: ' + confirmPass);
 
     // check for password format; minimaal 8 tekens, 1+ hoofdletter, 1+ cijfer & 1+ speciaal teken
     if (newPass !== confirmPass || currentPass !== userPassword) return;
@@ -953,7 +951,10 @@ async function ChangePass(userId, userPassword, currentPass, newPass, confirmPas
         }
     }
     else {
-        console.log('fail');
+        setPassError(['',
+            'Het wachtwoord voldoet niet aan de minimale eisen.',
+            'Het wachtwoord voldoet niet aan de minimale eisen.'
+        ]);
     }
 
 }
