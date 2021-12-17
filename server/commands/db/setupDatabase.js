@@ -64,17 +64,37 @@ for (let i = 0; i < sqlData.length; i++) {
     `INSERT INTO role (Name) VALUES ('Admin'), ('Moderator'), ('Employee')`
   );
 
-  await conn.runStatement(
-    `INSERT INTO user
+    await conn.runStatement(
+        `INSERT INTO user
         (Email, Password, Role_Id, Name, Company_Id) VALUES
         ('admin@gmail.com', 'Admin1!', 1, 'Amadeus Mozart', -1),
         ('moderator1@gmail.com', 'Moderator1!', 2, 'Liesje Lompkop', 1),
-        ('moderator2@gmail.com', 'Moderator1!', 2, 'Pieter Pisnicht', 2),
+        ('moderator2@gmail.com', 'Moderator1!', 2, 'Pieter Plasinjebroek', 2),
         ('moderator3@gmail.com', 'Moderator1!', 2, 'Karen Kartoffeln', 3),
         ('user1@gmail.com', 'User1!', 3, 'Pollination Technician 1', 1),
-        ('user2@gmail.com', 'User1!', 3, 'Helma Hobbelkut', 2),
-        ('user3@gmail.com', 'User1!', 3, 'Qwerty Azerty', 3)`
-  );
+        ('user2@gmail.com', 'User1!', 3, 'Helma Hobbeltrut', 2),
+        ('user3@gmail.com', 'User1!', 3, 'Qwerty Azerty', 3),
+        ('user4@gmail.com', 'User1!', 3, 'Helena Hoopstrooi', 1),
+        ('user5@gmail.com', 'User1!', 3, 'Barend Ballebak', 2),
+        ('user6@gmail.com', 'User1!', 3, 'Liza Lepelaar', 3),
+        ('user7@gmail.com', 'User1!', 3, 'Peter Petroleum', 1),
+        ('user8@gmail.com', 'User1!', 3, 'Agnes Crumplebottom', 2),
+        ('user9@gmail.com', 'User1!', 3, 'Bella Goth', 3),
+        ('user10@gmail.com', 'User1!', 3, 'Mortimer Goth', 1),
+        ('user11@gmail.com', 'User1!', 3, 'Katrina Caliente', 2),
+        ('user12@gmail.com', 'User1!', 3, 'Sarah Suikerspin', 3),
+        ('user13@gmail.com', 'User1!', 3, 'Eva Appelboom', 1),
+        ('user14@gmail.com', 'User1!', 3, 'Jelte Jeukkruis', 2),
+        ('user16@gmail.com', 'User1!', 3, 'Samira Skelterbaan', 1),
+        ('user18@gmail.com', 'User1!', 3, 'Patricia Penicilline', 3),
+        ('user19@gmail.com', 'User1!', 3, 'Cory Cannabis', 1),
+        ('user20@gmail.com', 'User1!', 3, 'Karel Keutelbos', 2),
+        ('user22@gmail.com', 'User1!', 3, 'Sam Spoorloos', 1),
+        ('user23@gmail.com', 'User1!', 3, 'Helma Hulpeloos', 2),
+        ('user25@gmail.com', 'User1!', 3, 'Pepijn Papierkreukel', 1),
+        ('user26@gmail.com', 'User1!', 3, 'Jolanda Jeminee', 2),
+        ('user27@gmail.com', 'User1!', 3, 'Kees Smetvrees', 3)`
+    );
 
   await conn.runStatement(
     `INSERT INTO company (Name, Phonenumber, Email, Country, City, Postcode, Streetname, Housenumber) VALUES
