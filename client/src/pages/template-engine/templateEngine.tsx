@@ -41,8 +41,6 @@ function TemplateEngine(props: PageProps) {
     
     const keyword = 'editable';
 
-    const textFieldRef = useRef(null);
-
     useEffect(() => {
         if (textFieldRef.current !== null) {
             textFieldRef.current.value = textFieldValue;
