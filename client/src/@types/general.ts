@@ -54,14 +54,47 @@ export class Template {
         this.Filepath = template.Filepath;
     }
 
-    public static makeTemplateArray(template: [template: { Company_id: number, Filepath: string, Id: number, Name: string }]) {
+    public static makeTemplateArray(templates: [template: { Company_id: number, Filepath: string, Id: number, Name: string }]) {
         const tempArray = new Array<Template>();
-        for (var a = 0; a < template.length; a++) {
+        for (var a = 0; a < templates.length; a++) {
             tempArray.push(new Template({
-                Company_id: template[a].Company_id,
-                Filepath: template[a].Filepath,
-                Id: template[a].Id,
-                Name: template[a].Name,
+                Company_id: templates[a].Company_id,
+                Filepath: templates[a].Filepath,
+                Id: templates[a].Id,
+                Name: templates[a].Name,
+            }));
+        }
+        return tempArray;
+    }
+}
+
+export class User {
+    Id: number;
+    Name: string;
+    Email: string;
+    Password: string;
+    Company_Id: number;
+    Role_Id: number;
+
+    public constructor(User: { Company_Id: number, Email: string, Id: number, Name: string, Password: string, Role_Id: number }) {
+        this.Id = User.Id;
+        this.Name = User.Name;
+        this.Email = User.Email;
+        this.Password = User.Password;
+        this.Company_Id = User.Company_Id;
+        this.Role_Id = User.Role_Id;
+    }
+
+    public static makeUserArray(Users: [User: { Company_Id: number, Email: string, Id: number, Name: string, Password: string, Role_Id: number }]) {
+        const tempArray = new Array<User>();
+        for (var a = 0; a < Users.length; a++) {
+            tempArray.push(new User({
+                Company_Id: Users[a].Company_Id,
+                Email: Users[a].Email,
+                Id: Users[a].Id,
+                Name: Users[a].Name,
+                Password: Users[a].Password,
+                Role_Id: Users[a].Role_Id,
             }));
         }
         return tempArray;

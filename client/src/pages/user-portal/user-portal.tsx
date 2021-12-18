@@ -1,4 +1,4 @@
-// @ts-nocheck
+//// @ts-nocheck
 
 import * as React from 'react';
 import './user-portal.css';
@@ -7,7 +7,7 @@ import testimg1 from './testimg1.png';
 import testimg2 from './testimg2.png';
 import testimg3 from './testimg3.png';
 import Enumerable from 'linq';
-import { Design, Template } from '../../@types/general';
+import { Design, Template, User } from '../../@types/general';
 import { CreateExport } from '../../helpers/Export';
 import {
     Typography,
@@ -49,6 +49,7 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { useState, useEffect } from 'react';
 import { getPayloadAsJson, getToken } from '../../helpers/Token';
 import Api from '../../helpers/Api';
+import { IPayload } from '../../@types/token';
 //import Image from 'image-js';
 
 const useStyles = makeStyles((theme) => ({
@@ -84,14 +85,14 @@ async function getDesigns() {
     let templateListDb = [];
     if (typeof (designListDb = await ApiInstance.all('design')) === 'undefined') {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
-        return;
+        return new Array<Design>();
     }
 
     //const designListAll = Design.makeDesignArray(designListDb.content);
 
     if (typeof (templateListDb = await ApiInstance.all('template')) === 'undefined') {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
-        return;
+        return new Array<Design>();
     }
     
     const templateIdList = Enumerable.from(Template.makeTemplateArray(templateListDb.content))
@@ -112,7 +113,7 @@ async function getTemplates() {
     let templateListDb = [];
     if (typeof (templateListDb = await ApiInstance.all('template')) === 'undefined') {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
-        return;
+        return new Array<Template>();
     }
 
     let templateList = Enumerable.from(Template.makeTemplateArray(templateListDb.content))
@@ -124,7 +125,7 @@ async function getTemplates() {
 
 async function makeInfoViewBoolList() {
     const designList = await getDesigns();
-    if (typeof designList === 'undefined') return [];
+    if (typeof designList === 'undefined') return new Array<boolean>();
     const boolList = [];
     for (var a = 0; a < designList.length; a++) {
         boolList.push(false);
@@ -134,13 +135,12 @@ async function makeInfoViewBoolList() {
 }
 
 function UserPortal() {
-    const user = getPayloadAsJson();
     const theme = useTheme();
     const styles = useStyles();
     const [designList, setdesignList] = React.useState(Array<Design>());
     const [templateList, settemplateList] = React.useState(Array<Template>());
     const [designView, setDesignView] = React.useState(false);
-    const [infoView, setInfoView] = React.useState([]);
+    const [infoView, setInfoView] = React.useState(Array<boolean>());
     const [templateView, settemplateView] = React.useState(false);
     const [settingsView, setSettingsView] = React.useState(false);
     const [isModerator] = useState(getPayloadAsJson()!.type === 'Moderator' ? true : false);
@@ -149,9 +149,9 @@ function UserPortal() {
     const [confirmPassInput, setConfirmPassInput] = React.useState('');
     const [currentPassInput, setCurrentPassInput] = React.useState('');
     const [passErrorMsg, setPassErrorMsg] = React.useState(['', '', '']);
-    const [userList, setUserList] = useState([]);
+    const [userList, setUserList] = useState(Array<User>());
     const [anchorEl, setAnchorEl] = React.useState(null);
-    const [pass, setPass] = React.useState();
+    const [pass, setPass] = React.useState('');
     const openMenu = Boolean(anchorEl);
     const handleDrawerOpen = () => {
         setOpenDrawer(true);
@@ -193,7 +193,7 @@ function UserPortal() {
 
             const ApiInstance = new Api(getToken()!);
 
-            setPass(await GetUserPassword(getPayloadAsJson()));
+            setPass(await GetUserPassword(getPayloadAsJson()!));
 
             let userDataDb = [];
 
@@ -201,8 +201,9 @@ function UserPortal() {
                 window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
                 return;
             }
-            const allUsers = userDataDb.content;
-            let usersOfCompany = [];
+
+            const allUsers = User.makeUserArray(userDataDb.content);
+            let usersOfCompany = new Array<User>();
             for (let userIndex = 0; userIndex < allUsers.length; userIndex++) {
                 if (
                     allUsers[userIndex].Company_Id === getPayloadAsJson()!.company &&
@@ -219,7 +220,7 @@ function UserPortal() {
         <React.Fragment>
             <CssBaseline />
             <Box sx={{ display: 'flex' }}>
-                <AppBar position="fixed" open={openDrawer} style={{ background: 'white' }} id="AppBar">
+                <AppBar position="fixed"style={{ background: 'white' }} id="AppBar">
                     <Toolbar>
                         <IconButton color={'primary'} onClick={openDrawer ? handleDrawerClose : handleDrawerOpen}>
                             <MenuIcon />
@@ -236,7 +237,7 @@ function UserPortal() {
                                 <Button variant="contained" color="primary"
                                     onClick={() => {
                                         document.cookie = document.cookie.substring(document.cookie.indexOf('token='), 6);
-                                        window.location.replace('/').focus();
+                                        window.location.replace('/');
                                     }}>
                                     Uitloggen
                                 </Button>
@@ -255,7 +256,7 @@ function UserPortal() {
                                     style={{ marginTop: '50px' }}>
                                     <MenuItem onClick={handleCloseMenu}>
                                         <AccountCircle style={{ fontSize: '110px', marginRight: '15px' }}/>
-                                        {user.naam}<br />{user.email}
+                                        {getPayloadAsJson()!.naam}<br />{getPayloadAsJson()!.email}
                                     </MenuItem>
                                     <Divider />
                                     <MenuItem onClick={() => {
@@ -289,7 +290,7 @@ function UserPortal() {
                         </Grid>
                     </Toolbar>
                 </AppBar>
-                <Drawer id="Drawer" sx={{ width: '400px', flexShrink: 0, '& .MuiDrawer-paper': { width: '400px', boxSizing: 'border-box', }, }}
+                <Drawer id="Drawer"  
                     variant="persistent"
                     anchor="left"
                     open={openDrawer}>
@@ -309,7 +310,7 @@ function UserPortal() {
                             <Home style={{ marginRight: '20px' }}></Home>
                             <Typography variant="h5">Home pagina</Typography>
                         </ListItem><Divider /></> : ''}
-                        <ListItem className="listItemButton" onClick={() => {window.open('/fotogalerij', '_blank').focus();}}>
+                        <ListItem className="listItemButton" onClick={() => {window.open('/fotogalerij', '_blank')!.focus();}}>
                             <PhotoCamera style={{ marginRight: '20px' }}></PhotoCamera>
                             <Typography variant="h5">Fotogalerij</Typography>
                         </ListItem>
@@ -333,12 +334,12 @@ function UserPortal() {
                     <Divider />
                     <List>
                         <ListItem>
-                            <Typography variant="h7">
+                            <Typography style={{fontSize: '14px'}}>
                                 Kynda contactgegevens:<br />Goudsesingel 156 | 3011 KD Rotterdam<br />+31 (0) 10 3075454
                             </Typography>
                         </ListItem>
                         <ListItem>
-                            <Typography variant="h7">
+                            <Typography style={{ fontSize: '14px' }}>
                                 Hoofdgebruiker contactgegevens:<br />Schilderswijk 55 | 2111 FD DenHaag<br />+31 (0) 12 3456789
                             </Typography>
                         </ListItem>
@@ -430,17 +431,17 @@ function UserPortal() {
                                                                 alignItems: 'center',
                                                                 justifyContent: 'center',
                                                             }}>
-                                                            {'Gevalideerd: ' + (design.Verified === 0 ? 'nee' : 'ja')}
+                                                            {'Gevalideerd: ' + (!design.Verified ? 'nee' : 'ja')}
                                                         </ListItem>
                                                     </List>
                                                 )}
                                                 <CardContent className={styles.cardContent}>
                                                     <Typography gutterBottom variant="h6" align="center">
                                                         {design.Name} <br />
-                                                        {design.Verified === 0 && isModerator ?
+                                                        {!design.Verified && isModerator ?
                                                             <Button variant="contained" color="primary" onClick={async () => { await onValidateButtonClick(design, setdesignList)}}>
                                                                 Valideren
-                                                            </Button> : design.Verified === 0 ?
+                                                            </Button> : !design.Verified ?
                                                                 <Button variant="contained" color="primary">
                                                                     Bewerken
                                                                 </Button> : <Button variant="contained" color="primary">
@@ -501,7 +502,7 @@ function UserPortal() {
                                             background: 'rgb(63, 81, 181)',
                                         }}
                                         onClick={() => {
-                                            window.open('/template-editor', '_blank').focus();
+                                            window.open('/template-editor', '_blank')!.focus();
                                         }}
                                     >
                                         <Add style={{ color: 'white' }} />
@@ -524,16 +525,14 @@ function UserPortal() {
                         alignItems: 'center',
                         flexDirection: 'column',
                     }}
-                    id="userPortalSettingsPage"
-                    anchorEl={anchorEl}
-                >
-                    <List alignItems="center">
+                    id="userPortalSettingsPage">
+                    <List>
                         <ListItem style={{ paddingLeft: '200px', paddingRight: '200px' }}>
                             <AccountCircle style={{ fontSize: '170px', marginRight: '15px' }} />
                             <Typography variant="h6">
-                                {user.naam}
+                                    {getPayloadAsJson()!.naam}
                                 <br />
-                                {user.email}
+                                    {getPayloadAsJson()!.email}
                             </Typography>
                         </ListItem>
                         <Divider />
@@ -544,36 +543,36 @@ function UserPortal() {
                         >
                             <Typography variant="h6">
                                 {'Naam: '} &emsp;&emsp;&emsp;&nbsp;
-                                {user.naam}
+                                    {getPayloadAsJson()!.naam}
                             </Typography>
                         </ListItem>
                         <ListItem style={{ paddingBottom: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
                             <Typography variant="h6">
                                 {'E-mail: '} &emsp;&emsp;&emsp;
-                                {user.email}
+                                    {getPayloadAsJson()!.email}
                             </Typography>
                         </ListItem>
                         <Divider />
                         <ListItem style={{ paddingTop: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
                             <Typography variant="h6">
                                 {'Huidig wachtwoord: '} &emsp;&emsp;&emsp;
-                                <TextField required error={passErrorMsg[0] !== ''} helperText={passErrorMsg[0]} type={'password'} style={{ Security: 'square' }} value={currentPassInput} onChange={handleInputChangeCurrentPass} />
+                                <TextField required error={passErrorMsg[0] !== ''} helperText={passErrorMsg[0]} type={'password'} value={currentPassInput} onChange={handleInputChangeCurrentPass} />
                             </Typography>
                         </ListItem>
                         <ListItem style={{ paddingTop: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
                             <Typography variant="h6">{'Nieuw wachtwoord: '} &emsp;&emsp;&emsp;</Typography>
-                            <TextField required error={passErrorMsg[1] !== ''} helperText={passErrorMsg[1]} type={'password'} style={{ Security: 'square' }} value={newPassInput} onChange={handleInputChangeNewPass} />
+                            <TextField required error={passErrorMsg[1] !== ''} helperText={passErrorMsg[1]} type={'password'} value={newPassInput} onChange={handleInputChangeNewPass} />
                         </ListItem>
                         <ListItem style={{ paddingTop: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
                             <Typography variant="h6">{'Bevestig wachtwoord: '} &emsp;&emsp;</Typography>
-                            <TextField id="confirmPass" required error={passErrorMsg[2] !== ''} helperText={passErrorMsg[2]} type={'password'} style={{ Security: 'square' }} value={confirmPassInput} onChange={handleInputChangeConfirmPass} />
+                            <TextField id="confirmPass" required error={passErrorMsg[2] !== ''} helperText={passErrorMsg[2]} type={'password'} value={confirmPassInput} onChange={handleInputChangeConfirmPass} />
                         </ListItem>
                         <Typography
                             align="center"
                             style={{ paddingTop: '50px', paddingBottom: '50px', paddingLeft: '200px', paddingRight: '200px' }}
                         >
                             <Button variant="contained" color="primary" onClick={() => {
-                                ChangePass(user.sub, pass, currentPassInput, newPassInput, confirmPassInput, setPassErrorMsg);
+                                    ChangePass(getPayloadAsJson()!.sub, pass, currentPassInput, newPassInput, confirmPassInput, setPassErrorMsg);
                             }}>
                                 Toepassen
                             </Button>
@@ -581,13 +580,13 @@ function UserPortal() {
                         <Divider />
                     </List>
                     <List>
-                        {user.type === 'Moderator' ? <ListItem style={{ alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
+                            {getPayloadAsJson()!.type === 'Moderator' ? <ListItem style={{ alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
                             <Typography variant="h6">
                                 Hieronder kunt u een gebruiker selecteren om hoofdgebruiker te maken.<br />
                                 Er kan maar een hoofdgebruiker zijn. Dit betekent dat <br />het huidige hoofdgebruiker account een normale gebruiker wordt.
                             </Typography>
                         </ListItem> : ''}
-                        {user.type === 'Moderator'
+                            {getPayloadAsJson()!.type === 'Moderator'
                             ? userList.map((user, index) => {
                                 if (index % 2 === 0) {
                                     return (
@@ -613,7 +612,7 @@ function UserPortal() {
                                                     id={'userButton' + index}
                                                     onMouseEnter={() => userOnHover(index)}
                                                     onMouseLeave={() => userLeave(index)}
-                                                    onClick={() => onMakeMainUserButtonClick(user, getPayloadAsJson().sub)}
+                                                    onClick={() => onMakeMainUserButtonClick(user, getPayloadAsJson()!.sub)}
                                                 >
                                                     Maak hoofdgebruiker
                                                 </Button> : <Button
@@ -628,7 +627,7 @@ function UserPortal() {
                                                     id={'userButton' + index}
                                                     onMouseEnter={() => userOnHover(index)}
                                                     onMouseLeave={() => userLeave(index)}
-                                                    onClick={() => onMakeMainUserButtonClick(user, getPayloadAsJson().sub)}
+                                                    onClick={() => onMakeMainUserButtonClick(user, getPayloadAsJson()!.sub)}
                                                 >
                                                     Maak hoofdgebruiker
                                                 </Button> }</>
@@ -653,7 +652,7 @@ function UserPortal() {
                                                 id={'userButton' + (index + 1)}
                                                 onMouseEnter={() => userOnHover(index + 1)}
                                                 onMouseLeave={() => userLeave(index + 1)}
-                                                onClick={() => onMakeMainUserButtonClick(userList[index + 1], getPayloadAsJson().sub)}
+                                                onClick={() => onMakeMainUserButtonClick(userList[index + 1], getPayloadAsJson()!.sub)}
                                             >
                                                     Maak hoofdgebruiker
                                                 </Button></> : ''}
@@ -682,12 +681,12 @@ function UserPortal() {
     );
 }
 
-async function onValidateButtonClick(design, setdesignList) {
+async function onValidateButtonClick(design: Design, setdesignList: any) {
     console.log(design);
 }
 
-async function onMakeMainUserButtonClick(user, currentUserId) {
-    const ApiInstance = new Api(getToken());
+async function onMakeMainUserButtonClick(user: User, currentUserId: number) {
+    const ApiInstance = new Api(getToken()!);
     let userDataDb = [];
     if (typeof (userDataDb = await ApiInstance.read('user', currentUserId)) === 'undefined' || userDataDb.status === 'FAIL') {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
@@ -713,9 +712,9 @@ async function onMakeMainUserButtonClick(user, currentUserId) {
         [
             user.Email,
             user.Password,
-            2,
+            '2',
             user.Name,
-            user.Company_Id
+            user.Company_Id.toString()
         ])) === 'undefined') {
         window.alert(
             'De verbinding met de database is verbroken. Probeer het later opnieuw.'
@@ -724,12 +723,12 @@ async function onMakeMainUserButtonClick(user, currentUserId) {
     }
 
     document.cookie = document.cookie.substring(document.cookie.indexOf('token='), 6);
-    window.location.replace('/').focus();
+    window.location.replace('/');
 }
 
-async function GetUserPassword(userInstance) {
+async function GetUserPassword(userInstance: IPayload) {
     let userDataDb = [];
-    const ApiInstance = new Api(getToken());
+    const ApiInstance = new Api(getToken()!);
     if (typeof (userDataDb = await ApiInstance.read('user', userInstance.sub)) === 'undefined') {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
         return;
@@ -737,7 +736,7 @@ async function GetUserPassword(userInstance) {
     return userDataDb.content[0].Password;
 }
 
-function makeNewInfoViewBoolList(index, designList, infoView) {
+function makeNewInfoViewBoolList(index: number, designList: Array<Design>, infoView: Array<Boolean>) {
     const boolList = [];
     for (var a = 0; a < designList.length; a++) {
         if (a === index) {
@@ -750,42 +749,39 @@ function makeNewInfoViewBoolList(index, designList, infoView) {
     return boolList;
 }
 
-function userOnHover(id) {
+function userOnHover(id: number) {
     const userField = 'userField' + id;
     const userButtonId = 'userButton' + id;
-    document.getElementById(userField).style.filter = 'blur(4px)';
-    document.getElementById(userField).style.transition = '1s';
-    document.getElementById(userButtonId).style.transition = '1s';
-    document.getElementById(userButtonId).style.opacity = '1';
-    document.getElementById(userButtonId).style.top =
-        String(document.getElementById(userField).height / 1.5) + 'px';
-    document.getElementById(userButtonId).style.left =
-        String(document.getElementById(userField).width / 7) + 'px';
+    document.getElementById(userField)!.style.filter = 'blur(4px)';
+    document.getElementById(userField)!.style.transition = '1s';
+    document.getElementById(userButtonId)!.style.transition = '1s';
+    document.getElementById(userButtonId)!.style.opacity = '1';
+    document.getElementById(userButtonId)!.style.top =
+        String(parseInt(document.getElementById(userField)!.style.height) / 1.5) + 'px';
+    document.getElementById(userButtonId)!.style.left =
+        String(parseInt(document.getElementById(userField)!.style.height) / 7) + 'px';
 }
 
-function userLeave(id) {
+function userLeave(id: number) {
     const userField = 'userField' + id;
     const userButtonId = 'userButton' + id;
-    document.getElementById(userField).style.filter = 'none';
-    document.getElementById(userButtonId).style.opacity = '0';
+    document.getElementById(userField)!.style.filter = 'none';
+    document.getElementById(userButtonId)!.style.opacity = '0';
 }
 
-async function ChangePass(userId, userPassword, currentPass, newPass, confirmPass, setPassError) {
+async function ChangePass(userId: number, userPassword: string, currentPass: string, newPass: string, confirmPass: string, setPassError: any) {
     setPassError([
         currentPass === '' ? 'Dit veld is verplicht' : currentPass !== userPassword ? 'Het wachtwoord is onjuist' : '',
         newPass === '' ? 'Dit veld is verplicht' : '',
         confirmPass === '' ? 'Dit veld is verplicht' : newPass === '' ? 'U heeft geen nieuw wachtwoord opgegeven' : newPass !== confirmPass ? 'Wachtwoorden zijn ongelijk' : ''
     ]);
 
-    console.log('ww: ' + currentPass + ' new pass: ' + newPass + ' confirm new pass: ' + confirmPass);
-
     // check for password format; minimaal 8 tekens, 1+ hoofdletter, 1+ cijfer & 1+ speciaal teken
     if (newPass !== confirmPass || currentPass !== userPassword) return;
 
     if (['!', '@', '#', '$', '%', '^', '&', ' *', '(', ')', '-', '_', '=', '+', '[', ']', '{', '}', `|`, ';', ':', "'", '"', ',', '<', '.', '>', '/', '?', '`', '~'].some(s => newPass.includes(s)) &&
         ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].some(s => newPass.includes(s)) && newPass.length > 7) {
-        console.log('succes');
-        const ApiInstance = new Api(getToken());
+        const ApiInstance = new Api(getToken()!);
         let userDataDb = [];
         if (typeof (userDataDb = await ApiInstance.read('user', userId)) === 'undefined') {
             window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
