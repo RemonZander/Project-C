@@ -264,7 +264,16 @@ function UserPortal() {
                             <PhotoCamera style={{ marginRight: '20px' }}></PhotoCamera>
                             <Typography variant="h5">Fotogalerij</Typography>
                         </ListItem>
-                        <ListItem className="listItemButton" onClick={() => {
+                        {designView ? <ListItem className="listItemButton" onClick={() => {
+                            setDesignView(!designView);
+                            settemplateView(false);
+                            setheaderMsg(['Alle', 'designs']);
+                            handleDrawerClose();
+                        }}
+                            style={{ backgroundColor: 'lightgray' }}>
+                            <Brush style={{ marginRight: '20px' }}></Brush>
+                            <Typography variant="h5">Alle designs</Typography>
+                        </ListItem> : <ListItem className="listItemButton" onClick={() => {
                             setDesignView(!designView);
                             settemplateView(false);
                             setheaderMsg(['Alle', 'designs']);
@@ -272,8 +281,17 @@ function UserPortal() {
                         }}>
                             <Brush style={{ marginRight: '20px' }}></Brush>
                             <Typography variant="h5">Alle designs</Typography>
-                        </ListItem>
-                        <ListItem className="listItemButton" onClick={() => {
+                        </ListItem>}
+                        {templateView ? <ListItem className="listItemButton" onClick={() => {
+                            setDesignView(false);
+                            settemplateView(!templateView);
+                            setheaderMsg(['Alle', 'templates']);
+                            handleDrawerClose();
+                        }}
+                            style={{ backgroundColor: 'lightgray' }}>
+                            <Panorama style={{ marginRight: '20px' }}></Panorama>
+                            <Typography variant="h5">Alle templates</Typography>
+                        </ListItem> : <ListItem className="listItemButton" onClick={() => {
                             setDesignView(false);
                             settemplateView(!templateView);
                             setheaderMsg(['Alle', 'templates']);
@@ -281,7 +299,7 @@ function UserPortal() {
                         }}>
                             <Panorama style={{ marginRight: '20px' }}></Panorama>
                             <Typography variant="h5">Alle templates</Typography>
-                        </ListItem>
+                        </ListItem>}
                     </List>
                     <Divider />
                     <List>
