@@ -50,7 +50,6 @@ import { useState, useEffect } from 'react';
 import { getPayloadAsJson, getToken } from '../../helpers/Token';
 import Api from '../../helpers/Api';
 import { IPayload } from '../../@types/token';
-import { isAsyncFunction } from 'node:util/types';
 //import Image from 'image-js';
 
 const useStyles = makeStyles((theme) => ({
@@ -89,13 +88,18 @@ function UserPortal() {
     const [infoView, setInfoView] = useState(Array<boolean>());
     const [templateView, settemplateView] = useState(false);
     const [settingsView, setSettingsView] = useState(false);
+    const [changeName, setChangeName] = useState(false);
+    const [changeEmail, setChangeEmail] = useState(false);
     const [isModerator] = useState(getPayloadAsJson()!.type === 'Moderator' ? true : false);
     const [openDrawer, setOpenDrawer] = useState(false);
+    const [changeNameInput, setChangeNameInput] = useState('');
+    const [changeEmailInput, setChangeEmailInput] = useState('');
     const [newPassInput, setNewPassInput] = useState('');
     const [confirmPassInput, setConfirmPassInput] = useState('');
     const [currentPassInput, setCurrentPassInput] = useState('');
     const [passErrorMsg, setPassErrorMsg] = useState(['', '', '']);
     const [newUserErrorMsg, setnewUserErrorMsg] = useState(['', '', '']);
+    const [changeUserDataErrorMsg, setChangeUserDataErrorMsg] = useState(['', '']);
     const [newUserNameInput, setNewUserNameInput] = useState('');
     const [newUserEmailInput, setnewUserEmailInput] = useState('');
     const [newUserPassInput, setnewUserPassInput] = useState('');
@@ -123,6 +127,14 @@ function UserPortal() {
     const handleCloseMenu = () => {
         setAnchorEl(null);
     };
+
+    const handleInputchangeEmail = (event: any) => {
+        setChangeEmailInput(event.target.value);
+    }
+
+    const handleInputchangeName = (event: any) => {
+        setChangeNameInput(event.target.value);
+    }
 
     const handleInputChangeNewUserPass = (event: any) => {
         setnewUserPassInput(event.target.value);
@@ -467,8 +479,7 @@ function UserPortal() {
                                         <img
                                             id="testimg"
                                             src={testimg1}
-                                            style={{ width: '300px' }}
-                                        />
+                                            style={{ width: '300px' }}/>
                                     </CardMedia>
                                     <Button
                                         style={{
@@ -479,8 +490,7 @@ function UserPortal() {
                                         }}
                                         onClick={() => {
                                             window.open('/template-editor', '_blank')!.focus();
-                                        }}
-                                    >
+                                        }}>
                                         <Add style={{ color: 'white' }} />
                                     </Button>
                                     <CardContent className={styles.cardContent}>
@@ -490,9 +500,7 @@ function UserPortal() {
                                     </CardContent>
                                 </Card>
                             </Grid>
-                        ) : (
-                            ''
-                        )}
+                        ) : ('')}
                     </Grid>
                 </Container> : <Box
                     sx={{
@@ -513,20 +521,33 @@ function UserPortal() {
                         </ListItem>
                         <Divider />
                     </List>
-                    <List>
+                        <List>
+                            <ListItem>
+                                <Typography variant="h6" style={{textAlign: 'center', marginLeft: '120px'}}>
+                                    Hieronder kunt u uw naam of email veranderen.<br />
+                                    U wordt hierna uitgelogd.
+                                </Typography>
+                            </ListItem>
                         <ListItem
-                            style={{ paddingTop: '50px', paddingBottom: '20px', paddingLeft: '200px', paddingRight: '200px' }}
-                        >
+                            style={{ paddingTop: '50px', paddingBottom: '20px', paddingLeft: '200px', paddingRight: '200px' }}>
                             <Typography variant="h6">
                                 {'Naam: '} &emsp;&emsp;&emsp;&nbsp;
-                                {getPayloadAsJson()!.naam}
-                            </Typography>
+                                </Typography>
+                                {changeName ? <><TextField required value={changeNameInput} onChange={handleInputchangeName} />&emsp;&emsp;&emsp;&emsp;&emsp;<Button variant="contained" color="primary" onClick={() => { changeNameOrEmail(changeNameInput, '', changeName, changeEmail, setChangeUserDataErrorMsg, pass)}}>
+                                    Toepassen
+                                </Button></> : <Typography variant="h6" style={{ cursor: 'pointer' }} onClick={() => { setChangeName(!changeName)}}>
+                                    {getPayloadAsJson()!.naam}
+                                </Typography>}                               
                         </ListItem>
                         <ListItem style={{ paddingBottom: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
                             <Typography variant="h6">
                                 {'E-mail: '} &emsp;&emsp;&emsp;
-                                {getPayloadAsJson()!.email}
-                            </Typography>
+                                </Typography>
+                                {changeEmail ? <><TextField required value={changeEmailInput} onChange={handleInputchangeEmail} />&emsp;&emsp;&emsp;&emsp;&emsp;<Button variant="contained" color="primary" onClick={() => { changeNameOrEmail('', changeEmailInput, changeName, changeEmail, setChangeUserDataErrorMsg, pass)}}>
+                                Toepassen
+                            </Button></> : <Typography variant="h6" style={{ cursor: 'pointer' }} onClick={() => { setChangeEmail(!changeEmail)}}>
+                                    {getPayloadAsJson()!.email}
+                                </Typography>}
                         </ListItem>
                         <Divider />
                         <ListItem style={{ paddingTop: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
@@ -545,8 +566,7 @@ function UserPortal() {
                         </ListItem>
                         <Typography
                             align="center"
-                            style={{ paddingTop: '50px', paddingBottom: '50px', paddingLeft: '200px', paddingRight: '200px' }}
-                        >
+                            style={{ paddingTop: '50px', paddingBottom: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
                             <Button variant="contained" color="primary" onClick={() => {
                                     ChangePass(setCurrentPassInput, setConfirmPassInput, setNewPassInput, getPayloadAsJson()!.sub, pass, currentPassInput, newPassInput, confirmPassInput, setPassErrorMsg);
                             }}>
@@ -666,6 +686,38 @@ function UserPortal() {
             </div>
         </React.Fragment>
     );
+}
+
+async function changeNameOrEmail(newName: string, newEmail: string, changeName: boolean, changeEmail: boolean, setChangeUserDataErrorMsg: any, pass: string) {
+    setChangeUserDataErrorMsg([changeName && newEmail === '' ? 'Dit veld is verplicht' : '', changeEmail && newEmail === '' ? 'newEmail' : '']);
+
+    if (changeName && newName === '' || changeEmail && newEmail === '') return;
+
+    const ApiInstance = new Api(getToken()!);
+    let result = [];
+    if (changeName) {       
+        result = await ApiInstance.update('user', getPayloadAsJson()!.sub,
+            [
+                getPayloadAsJson()!.email,
+                pass,
+                getPayloadAsJson()!.type === 'Moderator' ? '2' : '3',
+                newName,
+                getPayloadAsJson()!.company.toString(),
+            ]);
+    }
+    else if (changeEmail) {
+        result = await ApiInstance.update('user', getPayloadAsJson()!.sub,
+            [
+                newEmail,
+                pass,
+                getPayloadAsJson()!.type === 'Moderator' ? '2' : '3',
+                getPayloadAsJson()!.naam,
+                getPayloadAsJson()!.company.toString(),
+            ]);
+    }
+
+    document.cookie = document.cookie.substring(document.cookie.indexOf('token='), 6);
+    window.location.replace('/');
 }
 
 async function OnAddNewUserButtonClick(setnewUserPassInput: any, setnewUserEmailInput: any, setNewUserNameInput: any, setUserList: any, setnewUserErrorMsg: any, newUserName: string, newUserEmail: string, NewUserPass: string) {
