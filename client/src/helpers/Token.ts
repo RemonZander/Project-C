@@ -2,7 +2,7 @@ import { IPayload } from "../@types/token";
 
 export const getToken = (): string | undefined => {
     try {
-        return document.cookie.split(';').find((row) => row.startsWith('token='))?.split('=')[1];
+        return document.cookie.split(';').find((row) => row.startsWith('token='))?.split('=')[1] || undefined;
     } catch (error) {
         return undefined;
     }
