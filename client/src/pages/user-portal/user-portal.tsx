@@ -49,7 +49,7 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { useState, useEffect } from 'react';
 import { getPayloadAsJson, getToken } from '../../helpers/Token';
 import Api from '../../helpers/Api';
-import { IPayload } from '../../@types/token';
+import { Payload } from '../../@types/token';
 //import Image from 'image-js';
 
 const useStyles = makeStyles((theme) => ({
@@ -904,7 +904,7 @@ async function onMakeMainUserButtonClick(user: User, currentUserId: number) {
     window.location.replace('/');
 }
 
-async function GetUserPassword(userInstance: IPayload) {
+async function GetUserPassword(userInstance: Payload) {
     let userDataDb = [];
     const ApiInstance = new Api(getToken()!);
     if (typeof (userDataDb = await ApiInstance.read('user', userInstance.sub)) === 'undefined') {

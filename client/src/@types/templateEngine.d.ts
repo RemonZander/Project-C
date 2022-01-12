@@ -1,21 +1,25 @@
-export interface TemplateDataObject {
+export interface TemplateData {
     name: string,
     data: string,
 }
 
-export interface HtmlDataObject extends TemplateDataObject {}
-export interface CssDataObject extends TemplateDataObject {}
-export interface ImagesDataObject extends TemplateDataObject {}
-export interface JavascriptDataObject extends TemplateDataObject {}
+export type EditorSectionType = null | "upload" | "design"
+
+export interface HtmlData extends TemplateData {
+    isFetched: boolean,
+}
+export interface CssData extends TemplateData {}
+export interface ImagesData extends TemplateData {}
+export interface JavascriptData extends TemplateData {}
 
 export interface TemplateFiles {
-    html: Array<HtmlDataObject>,
-    css: Array<CssDataObject>,
-    images: Array<ImagesDataObject>,
-    js: Array<JavascriptDataObject>,
+    html: Array<HtmlData>,
+    css: Array<CssData>,
+    images: Array<ImagesData>,
+    js: Array<JavascriptData>,
 }
 
-export interface IEntryPoint {
+export interface EntryPoint {
     id: string,
     element: HTMLElement,
     spanClasses: Array<string>,

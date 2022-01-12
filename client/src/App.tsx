@@ -7,6 +7,7 @@ import TemplateEngine from './pages/template-engine/templateEngine';
 import { useEffect, useState } from 'react';
 import fotolibraryPagina from './pages/fotolibrary-pagina/fotolibrary-pagina';
 import { ICreateObject } from './@types/app';
+import { getToken } from './helpers/Token';
 
 const pages: Array<ICreateObject> = [
     LoginPage,
@@ -24,7 +25,7 @@ function App() {
     const [userType, setUserType] = useState(null);
 
     useEffect(() => {
-        const token = document.cookie.split(';').find((row) => row.startsWith('token='))?.split('=')[1];
+        const token = getToken();
 
         if (token !== undefined) {
 

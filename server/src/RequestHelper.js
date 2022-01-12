@@ -1,3 +1,5 @@
+const InvalidJsonException = require("./exceptions/InvalidJsonException");
+
 class RequestHelper {
   constructor(request) {
     this.request = request;
@@ -27,7 +29,7 @@ class RequestHelper {
         try {
           stringData === "" ? resolve({}) : resolve(JSON.parse(stringData));
         } catch (error) {
-          reject(error);
+          reject(new InvalidJsonException(error));
         }
       });
     });
