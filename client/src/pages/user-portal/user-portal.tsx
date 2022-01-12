@@ -7,8 +7,10 @@ import testimg1 from './testimg1.png';
 import testimg2 from './testimg2.png';
 import testimg3 from './testimg3.png';
 import Enumerable from 'linq';
-import { Design, Template, User } from '../../@types/general';
+import { PageProps } from '../../@types/app';
+import { Design, Template, User, Image } from '../../@types/general';
 import { CreateExport } from '../../helpers/Export';
+import { mainPage } from '../fotolibrary-pagina/fotolibrary-pagina';
 import {
     Typography,
     AppBar,
@@ -50,6 +52,7 @@ import { useState, useEffect } from 'react';
 import { getPayloadAsJson, getToken } from '../../helpers/Token';
 import Api from '../../helpers/Api';
 import { IPayload } from '../../@types/token';
+import { ClassNameMap } from '@mui/material';
 //import Image from 'image-js';
 
 const useStyles = makeStyles((theme) => ({
@@ -70,6 +73,28 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+const useStylesFotoLib = makeStyles(() => ({
+    icon: {
+        marginRight: '20px',
+    },
+    cardGrid: {
+        padding: '20px 0',
+    },
+    card: {
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    cardMedia: {
+        paddingTop: '56.25%',
+        width: '100%',
+        height: '100%',
+    },
+    cardContent: {
+        flexGrow: 1,
+    },
+}));
+
 const DrawerHeader = styled('div')(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
@@ -82,12 +107,14 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 function UserPortal() {
     const theme = useTheme();
     const styles = useStyles();
+    const stylesFotoLib = useStylesFotoLib();
     const [designList, setdesignList] = useState(Array<Design>());
     const [templateList, settemplateList] = useState(Array<Template>());
     const [designView, setDesignView] = useState(false);
     const [infoView, setInfoView] = useState(Array<boolean>());
     const [templateView, settemplateView] = useState(false);
     const [settingsView, setSettingsView] = useState(false);
+    const [fotoLibView, setFotoLibView] = useState(false);
     const [changeName, setChangeName] = useState(false);
     const [changeEmail, setChangeEmail] = useState(false);
     const [isModerator] = useState(getPayloadAsJson()!.type === 'Moderator' ? true : false);
@@ -274,7 +301,10 @@ function UserPortal() {
                             <Home style={{ marginRight: '20px' }}></Home>
                             <Typography variant="h5">Home pagina</Typography>
                         </ListItem><Divider /></> : ''}
-                        <ListItem className="listItemButton" onClick={() => { window.open('/fotogalerij', '_blank')!.focus(); }}>
+                        <ListItem className="listItemButton" onClick={() => {
+                            window.open('/fotogalerij', '_blank')!.focus();
+                            setFotoLibView(!fotoLibView);
+                        }}>
                             <PhotoCamera style={{ marginRight: '20px' }}></PhotoCamera>
                             <Typography variant="h5">Fotogalerij</Typography>
                         </ListItem>
@@ -683,9 +713,20 @@ function UserPortal() {
                                 <Divider />
                             </List> : ''}                   
                 </Box>}
+                {fotoLibView ? FotoLibPage(isModerator, stylesFotoLib) : ''}
             </div>
         </React.Fragment>
     );
+}
+
+async function FotoLibPage(isModerator: boolean, stylesFotoLib: ClassNameMap) {
+    const ApiInstance = new Api(getToken()!);
+    const imagesFromDatabase = await ApiInstance.all('image');
+    const queryParamsObject: { queryParams: { [key: string]: string | number } } = { queryParams: {}};
+
+    const page = mainPage(queryParamsObject, Image.makeImageArray(imagesFromDatabase.content), isModerator, stylesFotoLib);
+    console.log(page);
+    return page;
 }
 
 async function changeNameOrEmail(newName: string, newEmail: string, changeName: boolean, changeEmail: boolean, setChangeUserDataErrorMsg: any, pass: string) {
