@@ -1,7 +1,7 @@
-export interface IPayload {
+export interface Payload {
     sub: number,
     email: string,
     naam: string,
     company: number,
-    type: string,
+    type: "Admin" | "Moderator" | "Employee" | string,
 }

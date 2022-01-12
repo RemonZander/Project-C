@@ -1,4 +1,5 @@
 const BaseSqlInstance = require('./BaseSqlInstance');
+const SQLException = require('../exceptions/SQLException');
 
 class MySqlInstance extends BaseSqlInstance {
     constructor(conn) {
@@ -14,7 +15,7 @@ class MySqlInstance extends BaseSqlInstance {
     runStatement(query, values) {
         return new Promise((resolve, reject) => {
             this.connection.query(query, values, (err, results, fields) => {
-                if (err) reject(err);
+                if (err) reject(new SQLException(err));
 
                 resolve(results);
             });

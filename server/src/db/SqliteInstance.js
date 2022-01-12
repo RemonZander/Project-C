@@ -1,4 +1,5 @@
 const BaseSqlInstance = require("./BaseSqlInstance");
+const SQLException = require('../exceptions/SQLException');
 
 class SqliteInstance extends BaseSqlInstance {
   constructor(db) {
@@ -9,7 +10,7 @@ class SqliteInstance extends BaseSqlInstance {
   async runStatement(query, values) {
     return new Promise((resolve, reject) => {
       this.db.all(query, values, (err, results) => {
-        if (err) reject(err);
+        if (err) reject(new SQLException(err));
 
         resolve(results);
       });

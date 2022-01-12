@@ -10,6 +10,8 @@ const fs = require("fs");
 const server = http.createServer();
 
 const routes = require("./routes");
+const SQLException = require("./src/exceptions/SQLException");
+const InvalidJsonException = require("./src/exceptions/InvalidJsonException");
 
 // Listen to the request event
 server.on("request", (req, res) => {
@@ -38,18 +40,14 @@ server.on("request", (req, res) => {
 
     return;
   }
+
   if (req.headers.origin === process.env.APP_URL) {
     req.setEncoding("utf-8");
-
     for (let i = 0; i < routes.length; i++) {
       const route = routes[i];
 
       if (req.url === route.url) {
-        if (
-          req.url !== "/auth" &&
-          (!reqHelper.authorizationHeaderExists() ||
-            !Token.verifyJWT(reqHelper.getRequestToken()))
-        ) {
+        if (req.url !== "/auth" && (!reqHelper.authorizationHeaderExists() || !Token.verifyJWT(reqHelper.getRequestToken()))) {
           resHelper.responseInvalidToken();
           break;
         }
@@ -60,19 +58,20 @@ server.on("request", (req, res) => {
 
             if (result instanceof Error) throw result;
           } catch (error) {
-            if (error instanceof SyntaxError) {
+            if (error instanceof InvalidJsonException) {
               console.error(error);
               resHelper.responseInvalidJson();
-            } else if (
-              error instanceof Error &&
-              "code" in error &&
-              error.code === "SQLITE_ERROR"
-            ) {
-              console.error(error);
-              resHelper.responseInvalidCrudData();
+            } else if (error instanceof SQLException) {
+              if (error.code === "SQLITE_ERROR") {
+                console.error(error);
+                resHelper.responseInvalidCrudData();
+              } else if (error.code === "SQLITE_CONSTRAINT") {
+                console.error(error);
+                resHelper.responseRecordAlreadyExists();
+              }
             } else {
               console.error(error);
-              resHelper.responseError(error.message);
+              resHelper.responseError();
             }
           }
         })();
