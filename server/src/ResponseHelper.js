@@ -21,8 +21,7 @@ class ResponseHelper {
         }));
     }
 
-    responseInvalidToken()
-    {
+    responseInvalidToken() {
         this.responseError("Invalid token provided.")
     }
 
@@ -30,9 +29,8 @@ class ResponseHelper {
         this.responseError("Invalid body provided. Verify if the column names are correct, names are case sensitive.");
     }
 
-    // Incase of constraints
     responseRecordAlreadyExists() {
-
+        this.responseError("Record already exists in the database, constraint failed.");
     }
 
     responseInvalidJson() {

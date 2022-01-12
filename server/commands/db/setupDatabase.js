@@ -13,7 +13,7 @@ const dbPath = path.normalize(process.cwd() + "\\kyndaDatabase.sqlite3");
 if (args[0].toLowerCase() === "testdb.sql" && fs.existsSync(dbPath)) {
   try {
     fs.unlinkSync(dbPath);
-    fs.rmSync(Storage.storagePath, { recursive: true, force: true });
+    fs.rmSync(Storage.storagePathAbsolute, { recursive: true, force: true });
     console.log("Succesfully deleted database");
   } catch (err) {
     console.error(err);
@@ -131,18 +131,18 @@ for (let i = 0; i < sqlData.length; i++) {
         ('filepath_to_design', '28-5-2021', '7-6-5432', '1000', TRUE, 8, 'design1_template8')`
   );
 
-  await Storage.addCompany(0, true);
   await Storage.addCompany(1, true);
   await Storage.addCompany(2, true);
+  await Storage.addCompany(3, true);
 
   await conn.runStatement(
     `INSERT INTO image (Filepath, Created_at, Updated_at, Company_id) VALUES
         ('${path.normalize(
-          Storage.storagePathRelative + "/0/images/test.gif"
+          Storage.storagePathRelative + "/1/images/test.gif"
         )}', '6-11-2021', '8-11-2021', 0)`
   );
 
-  Storage.addImage("test.gif", 0, testUri);
+  Storage.addImage("test.gif", 1, testUri);
 
   // DB CONNECTION END
   conn.endConnection();

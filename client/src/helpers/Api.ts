@@ -1,5 +1,5 @@
+import { FileType } from '../@types/api';
 import { readFileAsDataUrl } from './FileReader';
-import { getToken } from './Token';
 
 export default class Api {
     private token: string;
@@ -46,19 +46,29 @@ export default class Api {
         });
     }
 
-    async createImage(file: File, companyId: number | null = null) {
-        const result = await readFileAsDataUrl(file);
-        return await this._doFetch(this.serverUrl + `/image/create`, 'POST', {
-            name: file.name,
-            image: result,
+    async createFile(fileName: string, dataString: string, type: FileType, companyId: number | null = null, templateId: number | null = null) {
+        return await this._doFetch(this.serverUrl + `/${type}/create`, 'POST', {
+            name: fileName,
+            data: dataString,
             companyId: companyId,
+            templateId: templateId,
         });
     }
 
-    async removeImage(id: number) {
-        return await this._doFetch(this.serverUrl + `/image/delete`, 'DELETE', {
+    // Can be used for removing any file from the storage
+    async removeFile(id: number, type: FileType) {
+        return await this._doFetch(this.serverUrl + `/${type}/delete`, 'DELETE', {
             id: id,
         });
+    }
+
+    async createImage(file: File, companyId: number | null = null) {
+        const result = await readFileAsDataUrl(file);
+        return await this.createFile(file.name, result, "image", companyId);
+    }
+
+    async removeImage(id: number) {
+        return await this.removeFile(id, "image");
     }
 
     async read(resource: string, id: number) {
