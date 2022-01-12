@@ -42,6 +42,7 @@ function TemplateEngine(props: PageProps) {
     const [isElementEditable, setIsElementEditable] = useState(false);
     const [section, setSection] = useState<EditorSectionType>(null);
 
+    const [isDesignPending, setIsDesignPending] = useState<boolean>(true);
 
     const [companies, setCompanies] = useState([]);
     const [templateName, setTemplateName] = useState("");
@@ -65,20 +66,18 @@ function TemplateEngine(props: PageProps) {
     const templateId = props.queryParams?.templateId;
     const designId = props.queryParams?.designId;
 
-    const isDesignMode = companyId === undefined && templateId === undefined && designId !== undefined;
-
-    const isCustomerTemplateMode = companyId !== undefined && templateId !== undefined && designId === undefined;
-    const isAdminTemplateMode = isAdmin() && companyId === undefined && templateId === undefined && designId === undefined;
-
-    const isCustomerDesignMode = !isAdmin() && isDesignMode;
-    const isAdminDesignMode = isAdmin() && isDesignMode;
+    const isCustomerTemplateMode = !isAdmin() && companyId === undefined && templateId !== undefined && designId === undefined;
+    const isCustomerDesignMode = !isAdmin() && companyId === undefined && templateId === undefined && designId !== undefined;
+    
+    const isAdminTemplateMode = isAdmin() && companyId !== undefined && templateId === undefined && designId === undefined;
+    const isAdminDesignMode = isAdmin() && companyId !== undefined && templateId === undefined && designId !== undefined;
 
     useEffect(() => {
-        if (isCustomerTemplateMode && getPayloadAsJson()?.company == companyId) {
+        if (isCustomerTemplateMode) {
             ApiInstance.read('template', templateId).then(res => {
                 if (res.status === "SUCCESS") {
                     setTemplates(res.content);
-                    fetch(process.env.REACT_APP_SERVER_URL + res.content[0].Filepath)
+                    fetch(process.env.REACT_APP_SERVER_URL + res.content[templatePos].Filepath)
                         .then(res => res.text())
                         .then(html => setTemplateFiles([{name: "", data: html, isFetched: true}]));
                 }
@@ -86,8 +85,12 @@ function TemplateEngine(props: PageProps) {
         } else if (isAdminDesignMode || isCustomerDesignMode) {
             ApiInstance.read('design', designId).then(res => {
                 if (res.status === "SUCCESS") {
+                    if (res.content[templatePos].Verified === 1) {
+                        setIsDesignPending(false);
+                    }
+
                     setDesigns(res.content);
-                    fetch(process.env.REACT_APP_SERVER_URL + res.content[0].Filepath)
+                    fetch(process.env.REACT_APP_SERVER_URL + res.content[templatePos].Filepath)
                         .then(res => res.text())
                         .then(html => setTemplateFiles([{ name: "", data: html, isFetched: true }]));
                 }
@@ -236,6 +239,7 @@ function TemplateEngine(props: PageProps) {
     }
 
     function handleTemplateLoad(e) {
+        // TODO: Make compatible for multiple templates
         const doc: Document = e.target.contentDocument;
 
         if (templateFiles[templatePos].isFetched) {
@@ -398,16 +402,38 @@ function TemplateEngine(props: PageProps) {
         setIsElementEditable(list.contains(editableKeyword))
     }
 
-    function handleFormUploadTemplate(e) {
+    function handleAdminFormUploadTemplate(e) {
         // Not too sure about this approach, refactor later if possible
+        // for (let i = 0; i < templateFiles.length; i++) {
+        //     const template = templateFiles[i];
+
+        //     const newDoc = new DOMParser().parseFromString(template.data, 'text/html');
+        //     const selectableElements = newDoc.querySelectorAll("." + selectableKeyword);
+
+        //     for (let i = 0; i < selectableElements.length; i++) {
+        //         selectableElements[i].classList.remove(selectableKeyword);
+        //     }
+
+        //     ApiInstance.createFile(`${templateName}_${i}`, new XMLSerializer().serializeToString(newDoc), "template", companyId).then(res => {
+        //         if (res.status === "SUCCESS") {
+        //             alert("Template is geupload.");
+        //             setSection(null);
+        //             toggleEditorToUpload();
+        //         } else {
+        //             alert("Template is NIET geupload.");
+        //             toggleEditorToUpload();
+        //         }
+        //     })
+        // }
+
         const newDoc = new DOMParser().parseFromString(new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 'text/html');
         const selectableElements = newDoc.querySelectorAll("." + selectableKeyword);
-        
+
         for (let i = 0; i < selectableElements.length; i++) {
             selectableElements[i].classList.remove(selectableKeyword);
         }
 
-        ApiInstance.createFile(templateName, new XMLSerializer().serializeToString(newDoc), "template", selectedCompany.Id).then(res => {
+        ApiInstance.createFile(`${templateName}`, new XMLSerializer().serializeToString(newDoc), "template", companyId).then(res => {
             if (res.status === "SUCCESS") {
                 alert("Template is geupload.");
                 setSection(null);
@@ -419,25 +445,29 @@ function TemplateEngine(props: PageProps) {
         })
     }
 
-    function handleFormUploadDesign(e) {
+    // TODO: new name if possible
+    function handleCustomerFormUploadTemplateToDesign(e) {
         // Not too sure about this approach, refactor later if possible
-        const newDoc = new DOMParser().parseFromString(new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 'text/html');
-        const editableElements = newDoc.querySelectorAll("." + editableKeyword);
-        
-        for (let i = 0; i < editableElements.length; i++) {
-            editableElements[i].classList.remove(editableKeyword);
-        }
+        for (let i = 0; i < templates.length; i++) {
+            const template = templates[i];
 
-        ApiInstance.createFile(designName, new XMLSerializer().serializeToString(newDoc), "design", companyId, templateId).then(res => {
-            if (res.status === "SUCCESS") {
-                alert("Design is gemaakt.");
-                setSection(null);
-                toggleEditorToDesign();
-            } else {
-                alert("Design is NIET gemaakt.");
-                toggleEditorToDesign();
-            }
-        })
+            ApiInstance.createFile(
+                `${designName}_${i}`, 
+                new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 
+                "design", 
+                getPayloadAsJson()?.company, 
+                template.Id
+            ).then(res => {
+                if (res.status === "FAIL") {
+                    alert("Design is NIET gemaakt. Er ging iets mis.");
+                    toggleEditorToDesign();
+                } else if (i === templates.length - 1 && res.status === "SUCCESS") {
+                    alert("Design is gemaakt. U kunt het design nog aanpassen zolang het nog niet gevalideerd is.");
+                    setSection(null);
+                    toggleEditorToDesign();
+                }
+            })
+        }
     }
 
     function ActionButton(props) {
@@ -464,6 +494,14 @@ function TemplateEngine(props: PageProps) {
                             const { Id, ...newDesign} = design;
                             newDesign.Updated_at = new Date().toLocaleDateString('nl');
                             newDesign.Verified = 1;
+                            // const newDoc = new DOMParser().parseFromString(new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 'text/html');
+                            // const editableElements = newDoc.querySelectorAll("." + editableKeyword);
+                            
+                            // for (let i = 0; i < editableElements.length; i++) {
+                            //     editableElements[i].classList.remove(editableKeyword);
+                            // }
+
+                            // changed to also update file if necessary
 
                             ApiInstance.update("design", design.Id, Object.values(newDesign)).then(res => {
                                 if (res.status === "SUCCESS") {
@@ -491,19 +529,7 @@ function TemplateEngine(props: PageProps) {
                 <Box ref={uploadSectionRef} className='toggleNone' sx={{ flexDirection: 'column', justifyContent: 'center', margin: '30px 30% 0 30%' }}>
                     <h1>Upload template form</h1>
                     <TextField fullWidth label="Naam" id="fullWidth" style={{ marginTop: "20px" }} onChange={e => setTemplateName(e.target.value)} />
-                    <FormControl fullWidth style={{ marginTop: "20px" }}>
-                        <InputLabel id="templateEditorSelectCompanyLabel">Bedrijf</InputLabel>
-                        <Select
-                            id="templateEditorSelectCompany"
-                            labelId='templateEditorSelectCompanyLabel'
-                            label="Bedrijf"
-                            value={selectedCompany.Name}
-                            onChange={e => setSelectedCompany(companies.filter(company => company.Name === e.target.value)[0])}
-                        >
-                            {companies.length > 0 && companies.map(company => <MenuItem key={company.Name} value={company.Name}>{company.Name}</MenuItem>)}
-                        </Select>
-                    </FormControl>
-                    <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleFormUploadTemplate}>Upload template</Button>
+                    <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleAdminFormUploadTemplate}>Upload template</Button>
                     <Button variant="contained" color='error' style={{ marginTop: "20px", marginLeft: "20px" }} onClick={e => {
                         setSection(null);
                         toggleEditorToUpload();
@@ -513,7 +539,7 @@ function TemplateEngine(props: PageProps) {
                 <Box ref={designSectionRef} className='toggleNone' sx={{ flexDirection: 'column', justifyContent: 'center', margin: '30px 30% 0 30%' }}>
                     <h1>Template naar design form</h1>
                     <TextField fullWidth label="Naam" id="fullWidth" style={{ marginTop: "20px" }} onChange={e => setDesignName(e.target.value)} />
-                    <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleFormUploadDesign}>Maak design</Button>
+                    <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleCustomerFormUploadTemplateToDesign}>Maak design</Button>
                     <Button variant="contained" color='error' style={{ marginTop: "20px", marginLeft: "20px" }} onClick={e => {
                         setSection(null);
                         toggleEditorToDesign();
@@ -626,7 +652,7 @@ function TemplateEngine(props: PageProps) {
                                 templateFiles.length > 0 && isAdminTemplateMode && <ActionButton text="Upload" />
                             }
                             {
-                                templateFiles.length > 0 && isCustomerDesignMode && <ActionButton text="Maak design" />
+                                templateFiles.length > 0 && isCustomerTemplateMode && <ActionButton text="Maak design" />
                             }
                             {
                                 templateFiles.length > 0 && isAdminDesignMode && <ActionButton text="Valideer" />

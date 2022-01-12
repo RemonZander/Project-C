@@ -55,6 +55,17 @@ export default class Api {
         });
     }
 
+    async updateFile(fileName: string, dataString: string, type: FileType, id: number, values: Array<string>, companyId: number | null = null, templateId: number | null = null) {
+        return await this._doFetch(this.serverUrl + `/${type}/update`, 'PUT', {
+            id: id,
+            values: values,
+            name: fileName,
+            data: dataString,
+            companyId: companyId,
+            templateId: templateId,
+        });
+    }
+
     // Can be used for removing any file from the storage
     async removeFile(id: number, type: FileType) {
         return await this._doFetch(this.serverUrl + `/${type}/delete`, 'DELETE', {
