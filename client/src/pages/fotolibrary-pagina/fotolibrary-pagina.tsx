@@ -264,6 +264,7 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
             Object.keys(props.queryParams).length === 0 &&
             props.queryParams.constructor === Object
         ) {
+            console.log("getting new company id");
             let userToken = getPayloadAsJson();
             userCompany = userToken!.company;
         } else {

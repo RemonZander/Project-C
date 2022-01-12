@@ -204,7 +204,7 @@ function AdminPortal() {
                             <div
                                 className="ImportTemplateButton"
                                 onClick={function () {
-                                    window.open('/template-editor', '_blank').focus();
+                                    window.open('/editor', '_blank').focus();
                                 }}
                             >
                                 <h3>Import template</h3>

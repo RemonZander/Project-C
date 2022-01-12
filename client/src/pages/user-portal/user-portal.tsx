@@ -53,7 +53,10 @@ import { getPayloadAsJson, getToken } from '../../helpers/Token';
 import Api from '../../helpers/Api';
 import { IPayload } from '../../@types/token';
 import { ClassNameMap } from '@mui/material';
-//import Image from 'image-js';
+
+const Input = styled('input')({
+    display: 'none',
+});
 
 const useStyles = makeStyles((theme) => ({
     icon: {
@@ -105,6 +108,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 }));
 
 function UserPortal() {
+    const ApiInstance = new Api(getToken()!);
     const theme = useTheme();
     const styles = useStyles();
     const stylesFotoLib = useStylesFotoLib();
@@ -134,6 +138,7 @@ function UserPortal() {
     const [userList, setUserList] = useState(Array<User>());
     const [anchorEl, setAnchorEl] = useState(null);
     const [pass, setPass] = useState('');
+    const [imageList, setImageList] = useState(Array<Image>());
     const openMenu = Boolean(anchorEl);
     const handleDrawerOpen = () => {
         setOpenDrawer(true);
@@ -187,6 +192,12 @@ function UserPortal() {
         setConfirmPassInput(event.target.value);
     };
 
+    const loadImages = async() => {
+        const ApiInstance = new Api(getToken()!);
+        const imagesFromDatabase = await ApiInstance.all('image');
+        setImageList(Image.makeImageArray(imagesFromDatabase.content));
+    };
+
     useEffect(() => {
         (async () => {
             settemplateList(await getTemplates());
@@ -194,9 +205,12 @@ function UserPortal() {
             setInfoView(await makeInfoViewBoolList());
             setPass(await GetUserPassword(getPayloadAsJson()!));
             setUserList(await getUsers());
+
+            loadImages();
         })();
     }, []);
 
+    const queryParamsObject: { queryParams: { [key: string]: string | number } } = { queryParams: {'companyId': getPayloadAsJson()!.company.toString()} };
     return (
         <React.Fragment>
             <CssBaseline />
@@ -214,6 +228,41 @@ function UserPortal() {
                             {headerMsg[1]}
                         </Typography>
                         <Grid container spacing={2} justifyContent="flex-end">
+                            {fotoLibView && isModerator ? <Grid item>
+                                <label htmlFor="contained-button-file">
+                                    <Input
+                                        id="contained-button-file"
+                                        multiple
+                                        type="file"
+                                        onChange={(e) => {
+                                            (async () => {
+                                                var extValidation = /(\.jpg|\.jpeg|\.gif|\.png)$/i;
+                                                for (let i = 0; i < e.target.files!.length; i++) {
+                                                    if (e.target.files![i].size > 20971520) {
+                                                        alert('Uw foto is te groot!');
+                                                    } else if (
+                                                        fileNameValidation(e.target.files![i].name) ||
+                                                        !extValidation.exec(e.target.files![i].name)
+                                                    ) {
+                                                        alert(
+                                                            'Uw foto bevat een spatie in de naam of de verkeerde extensie!'
+                                                        );
+                                                    } else {
+                                                        await ApiInstance.createImage(
+                                                            e.target.files![i],
+                                                            getPayloadAsJson()!.company
+                                                        );
+                                                        loadImages();
+                                                    }
+                                                }
+                                            })();
+                                        }}
+                                    />
+                                    <Button variant="contained" component="span" color="primary">
+                                        Foto's toevoegen
+                                    </Button>
+                                </label>
+                            </Grid> : ''}
                             <Grid item>
                                 <Button variant="contained" color="primary"
                                     onClick={() => {
@@ -291,27 +340,44 @@ function UserPortal() {
                     </DrawerHeader>
                     <Divider />
                     <List>
-                        {designView || templateView || settingsView ? <><ListItem className="listItemButton" onClick={() => {
+                        {designView || templateView || settingsView || fotoLibView ? <><ListItem className="listItemButton" onClick={() => {
                             setDesignView(false);
                             settemplateView(false);
                             setSettingsView(false);
+                            setFotoLibView(false);
                             setheaderMsg(['Home', 'pagina']);
                             handleDrawerClose();
                         }}>
                             <Home style={{ marginRight: '20px' }}></Home>
                             <Typography variant="h5">Home pagina</Typography>
                         </ListItem><Divider /></> : ''}
-                        <ListItem className="listItemButton" onClick={() => {
-                            window.open('/fotogalerij', '_blank')!.focus();
+                        {fotoLibView ? <ListItem className="listItemButton" onClick={() => {
                             setFotoLibView(!fotoLibView);
+                            setDesignView(false);
+                            settemplateView(false);
+                            setSettingsView(false);
+                            setheaderMsg(['Fotogalerij', '']);
+                            handleDrawerClose();
+                        }}
+                            style={{ backgroundColor: 'lightgray' }}>
+                            <PhotoCamera style={{ marginRight: '20px' }}></PhotoCamera>
+                            <Typography variant="h5">Fotogalerij</Typography>
+                        </ListItem> : <ListItem className="listItemButton" onClick={() => {
+                            setFotoLibView(!fotoLibView);
+                            setDesignView(false);
+                            settemplateView(false);
+                            setSettingsView(false);
+                            setheaderMsg(['Fotogalerij', '']);
+                            handleDrawerClose();
                         }}>
                             <PhotoCamera style={{ marginRight: '20px' }}></PhotoCamera>
                             <Typography variant="h5">Fotogalerij</Typography>
-                        </ListItem>
+                        </ListItem>}
                         {designView ? <ListItem className="listItemButton" onClick={() => {
                             setDesignView(!designView);
                             settemplateView(false);
                             setSettingsView(false);
+                            setFotoLibView(false);
                             setheaderMsg(['Alle', 'designs']);
                             handleDrawerClose();
                         }}
@@ -322,6 +388,7 @@ function UserPortal() {
                             setDesignView(!designView);
                             settemplateView(false);
                             setSettingsView(false);
+                            setFotoLibView(false);
                             setheaderMsg(['Alle', 'designs']);
                             handleDrawerClose();
                         }}>
@@ -332,6 +399,7 @@ function UserPortal() {
                             setDesignView(false);
                             setSettingsView(false);
                             settemplateView(!templateView);
+                            setFotoLibView(false);
                             setheaderMsg(['Alle', 'templates']);
                             handleDrawerClose();
                         }}
@@ -342,6 +410,7 @@ function UserPortal() {
                             setDesignView(false);
                             setSettingsView(false);
                             settemplateView(!templateView);
+                            setFotoLibView(false);
                             setheaderMsg(['Alle', 'templates']);
                             handleDrawerClose();
                         }}>
@@ -365,7 +434,7 @@ function UserPortal() {
                 </Drawer>
             </Box>
             <div style={{ marginTop: '70px' }} id="userPortalMainPage" onClick={handleDrawerClose}>
-                {!settingsView ? <Container maxWidth="md" className={styles.cardGrid}>
+                {!settingsView && !fotoLibView ? <Container maxWidth="md" className={styles.cardGrid}>
                     <Grid container spacing={4}>
                         {typeof designList !== 'undefined' && !templateView
                             ? designList.map((design, index) => {
@@ -519,7 +588,7 @@ function UserPortal() {
                                             background: 'rgb(63, 81, 181)',
                                         }}
                                         onClick={() => {
-                                            window.open('/template-editor', '_blank')!.focus();
+                                            window.open('/editor', '_blank')!.focus();
                                         }}>
                                         <Add style={{ color: 'white' }} />
                                     </Button>
@@ -532,7 +601,7 @@ function UserPortal() {
                             </Grid>
                         ) : ('')}
                     </Grid>
-                </Container> : <Box
+                </Container> : !fotoLibView ? <Box
                     sx={{
                         display: 'flex',
                         marginTop: '70px',
@@ -712,21 +781,16 @@ function UserPortal() {
                                 </ListItem>
                                 <Divider />
                             </List> : ''}                   
-                </Box>}
-                {fotoLibView ? FotoLibPage(isModerator, stylesFotoLib) : ''}
+                </Box> : mainPage(queryParamsObject, imageList, isModerator, stylesFotoLib)}                         
             </div>
         </React.Fragment>
     );
 }
 
-async function FotoLibPage(isModerator: boolean, stylesFotoLib: ClassNameMap) {
-    const ApiInstance = new Api(getToken()!);
-    const imagesFromDatabase = await ApiInstance.all('image');
-    const queryParamsObject: { queryParams: { [key: string]: string | number } } = { queryParams: {}};
-
-    const page = mainPage(queryParamsObject, Image.makeImageArray(imagesFromDatabase.content), isModerator, stylesFotoLib);
-    console.log(page);
-    return page;
+function fileNameValidation(fileName: string) {
+    const FileNameArray = fileName.split('.');
+    const newFileName = FileNameArray[0];
+    return newFileName.indexOf(' ') >= 0;
 }
 
 async function changeNameOrEmail(newName: string, newEmail: string, changeName: boolean, changeEmail: boolean, setChangeUserDataErrorMsg: any, pass: string) {
