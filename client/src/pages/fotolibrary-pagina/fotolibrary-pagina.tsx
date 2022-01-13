@@ -56,7 +56,7 @@ const useStyles = makeStyles(() => ({
 const ApiInstance = new Api(getToken()!);
 
 function Gallery(props: PageProps) {
-    const [isAdmin, SetIsAdmin] = useState(true);
+    const [isAdmin, SetIsAdmin] = useState(false);
     const [images, setImages] = useState(Array<Image>());
     const styles = useStyles();
 
@@ -65,9 +65,10 @@ function Gallery(props: PageProps) {
             const imagesFromDatabase = await ApiInstance.all('image');
             const images = Image.makeImageArray(imagesFromDatabase.content);
             setImages(images);
+            console.log(getPayloadAsJson()!);
             let currentUser = getPayloadAsJson()!;
-            if (currentUser.type !== "Moderator") {
-                SetIsAdmin(false);
+            if (currentUser.type == "Admin" || "Moderator") {
+                SetIsAdmin(true);
             }
         })();
     }, []);
