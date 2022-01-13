@@ -100,3 +100,33 @@ export class User {
         return tempArray;
     }
 }
+
+export class Image {
+    Id: number;
+    Filepath: string;
+    Company_Id: number;
+    Created_at: Date;
+    Updated_at: Date;
+
+    public constructor(Image: { Company_id: number, Created_at: string, Filepath: string, Id: number, Updated_at: string }) {
+        this.Id = Image.Id;
+        this.Filepath = Image.Filepath;
+        this.Company_Id = Image.Company_id;
+        this.Created_at = new Date(Image.Created_at);
+        this.Updated_at = new Date(Image.Updated_at);
+    }
+
+    public static makeImageArray(Images: [Image: { Company_id: number, Created_at: string, Filepath: string, Id: number, Updated_at: string }]) {
+        const tempArray = new Array<Image>();
+        for (var a = 0; a < Images.length; a++) {
+            tempArray.push(new Image({
+                Company_id: Images[a].Company_id,
+                Created_at: Images[a].Created_at,
+                Filepath: Images[a].Filepath,
+                Id: Images[a].Id,
+                Updated_at: Images[a].Updated_at,
+            }));
+        }
+        return tempArray;
+    }
+}
