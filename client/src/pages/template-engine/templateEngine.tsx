@@ -70,7 +70,7 @@ function TemplateEngine(props: PageProps) {
         if (isCustomerTemplateMode) {
             ApiInstance.read('template', templateId).then(res => {
                 if (res.status === "SUCCESS") {
-                    setTemplates(res.content);
+                    setTemplateFiles(res.content);
                     fetch(process.env.REACT_APP_SERVER_URL + res.content[templatePos].Filepath)
                         .then(res => res.text())
                         .then(html => setTemplateFiles([{name: "", data: html, isFetched: true}]));
@@ -422,13 +422,12 @@ function TemplateEngine(props: PageProps) {
         // Not too sure about this approach, refactor later if possible
         for (let i = 0; i < templateFiles.length; i++) {
             const template = templateFiles[i];
-
             ApiInstance.createFile(
                 `${designName}_${i}`, 
-                new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 
+                template.data, 
                 "design", 
                 getPayloadAsJson()?.company, 
-                template.Id
+                templateId
             ).then(res => {
                 if (res.status === "FAIL") {
                     alert("Design is NIET gemaakt. Er ging iets mis.");
@@ -442,6 +441,7 @@ function TemplateEngine(props: PageProps) {
     }
 
     function handleSave(e) {
+        templateFiles[templatePos].data = new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument);
         setIsChangesSaved(true);
     }
 
@@ -468,16 +468,24 @@ function TemplateEngine(props: PageProps) {
                             const { Id, ...newDesign} = design;
                             newDesign.Updated_at = new Date().toLocaleDateString('nl');
                             newDesign.Verified = 1;
-                            // const newDoc = new DOMParser().parseFromString(new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 'text/html');
-                            // const editableElements = newDoc.querySelectorAll("." + editableKeyword);
+
+                            const newDoc = new DOMParser().parseFromString(new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 'text/html');
+                            const editableElements = newDoc.querySelectorAll("." + editableKeyword);
                             
-                            // for (let i = 0; i < editableElements.length; i++) {
-                            //     editableElements[i].classList.remove(editableKeyword);
-                            // }
-
+                            for (let i = 0; i < editableElements.length; i++) {
+                                editableElements[i].classList.remove(editableKeyword);
+                            }
+                            console.log(newDoc);
                             // changed to also update file if necessary
-
-                            ApiInstance.update("design", design.Id, Object.values(newDesign)).then(res => {
+                            ApiInstance.updateFile(
+                                newDesign.Name,
+                                new XMLSerializer().serializeToString(newDoc),
+                                "design", 
+                                newDesign.Id, 
+                                Object.values(newDesign),
+                                companyId,
+                                newDesign.Template_id,
+                            ).then(res => {
                                 if (res.status === "SUCCESS") {
                                     alert("Design is goedgekeurd")
                                 } else {
@@ -556,52 +564,51 @@ function TemplateEngine(props: PageProps) {
                             }
                             {
                                 selectedElement !== null &&
-                                <>
-                                    <TextField
-                                        id="templateEditorTextField"
-                                        label="Type text"
-                                        multiline
-                                        rows={4}
-                                        variant="filled"
-                                        value={textFieldValue}
-                                        onChange={handleTextChange}
-                                        style={{ width: "100%" }}
-                                        ref={textFieldRef}
-                                        inputProps={{ maxLength: parseInt(selectedElement.dataset.textLimit) }}
-                                    />
-                                    <FormControl style={{ width: "100%" }}>
-                                        <InputLabel id="templateEditorSelectWrapLabel">Wrap</InputLabel>
-                                        <Select
-                                            id="templateEditorSelectWrap"
-                                            labelId='templateEditorSelectWrapLabel'
-                                            label="Wrap"
-                                            value={textWrap}
-                                            onChange={handleWrapping}
-                                            ref={wrapOptionsRef}
-                                        >
-                                            <MenuItem value={"normal"}>Wrap</MenuItem>
-                                            <MenuItem value={"nowrap"}>No wrap</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                    <FormControl style={{ width: "100%" }}>
-                                        <InputLabel id="templateEditorSelectAlignLabel">Align</InputLabel>
-                                        <Select
-                                            id="templateEditorSelectAlign"
-                                            labelId='templateEditorSelectAlignLabel'
-                                            label="Align"
-                                            value={textAlign}
-                                            onChange={handleAlign}
-                                            ref={alignOptionsRef}
-                                        >
-                                            <MenuItem value={"left"}>Left</MenuItem>
-                                            <MenuItem value={"center"}>Center</MenuItem>
-                                            <MenuItem value={"right"}>Right</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </>
+                                <TextField
+                                    id="templateEditorTextField"
+                                    label="Type text"
+                                    multiline
+                                    rows={4}
+                                    variant="filled"
+                                    value={textFieldValue}
+                                    onChange={handleTextChange}
+                                    style={{ width: "100%" }}
+                                    ref={textFieldRef}
+                                    inputProps={{ maxLength: parseInt(selectedElement.dataset.textLimit) }}
+                                />
                             }
                             {
                                 selectedElement !== null && isAdminTemplateMode &&
+                                <>
+                                <FormControl style={{ width: "100%" }}>
+                                    <InputLabel id="templateEditorSelectWrapLabel">Wrap</InputLabel>
+                                    <Select
+                                        id="templateEditorSelectWrap"
+                                        labelId='templateEditorSelectWrapLabel'
+                                        label="Wrap"
+                                        value={textWrap}
+                                        onChange={handleWrapping}
+                                        ref={wrapOptionsRef}
+                                    >
+                                        <MenuItem value={"normal"}>Wrap</MenuItem>
+                                        <MenuItem value={"nowrap"}>No wrap</MenuItem>
+                                    </Select>
+                                </FormControl>
+                                <FormControl style={{ width: "100%" }}>
+                                    <InputLabel id="templateEditorSelectAlignLabel">Align</InputLabel>
+                                    <Select
+                                        id="templateEditorSelectAlign"
+                                        labelId='templateEditorSelectAlignLabel'
+                                        label="Align"
+                                        value={textAlign}
+                                        onChange={handleAlign}
+                                        ref={alignOptionsRef}
+                                    >
+                                        <MenuItem value={"left"}>Left</MenuItem>
+                                        <MenuItem value={"center"}>Center</MenuItem>
+                                        <MenuItem value={"right"}>Right</MenuItem>
+                                    </Select>
+                                </FormControl>
                                 <FormControlLabel
                                     label="Editable by customer"
                                     control={
@@ -612,6 +619,7 @@ function TemplateEngine(props: PageProps) {
                                         />
                                     }
                                 />
+                                </>
                             }
                             {
                                 selectedElement !== null &&

@@ -126,18 +126,18 @@ for (let i = 0; i < TableStructure.length; i++) {
           if (table.columns[i] === "Filepath" && requestBody.data !== null) {
             let result = null;
 
-            const companyID = requestBody.companyId !== null ? requestBody.companyId : payload.company;
+            const companyID = requestBody.companyId;
 
             if (table.name === "image") {
-              result = await Storage.addImage(requestBody.name, companyID, requestBody.data);
+              result = await Storage.addImage(requestBody.name, companyID, requestBody.data, true);
 
               arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
             } else if (table.name === "template") {
-              result = await Storage.addTemplate(requestBody.name, companyID, requestBody.data);
+              result = await Storage.addTemplate(requestBody.name, companyID, requestBody.data, true);
 
               arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
             } else {
-              result = await Storage.addDesign(requestBody.name, companyID, requestBody.templateId, requestBody.data);
+              result = await Storage.addDesign(requestBody.name, companyID, requestBody.templateId, requestBody.data, true);
 
               arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
             }
