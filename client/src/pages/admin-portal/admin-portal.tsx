@@ -86,7 +86,7 @@ class UserPortalData {
     }
 }
 
-let portalPosition = -1;
+let portalPosition: number = -1;
 
 function AdminPortal() {
     const [userPortalList, SetUserPortalList] = React.useState([]);
@@ -204,7 +204,7 @@ function AdminPortal() {
                             <div
                                 className="ImportTemplateButton"
                                 onClick={function () {
-                                    window.open('/editor', '_blank').focus();
+                                    window.open('/editor?companyId=' + portalPosition, '_blank').focus();
                                 }}
                             >
                                 <h3>Import template</h3>
@@ -374,8 +374,8 @@ function AdminPortal() {
 }
 
 function onSelectUserPortalButtonClick(id, userPortalList, SetUserPortalList) {
-    const pos = id.replace('selector ', '');
-    portalPosition = pos;
+    const pos: number = id.replace('selector ', '');
+    portalPosition = parseInt(1) + parseInt(pos);
     document.getElementById('mainView').style.display = 'flex';
     document.getElementById('Gbrtoevoegen').style.display = 'none';
 

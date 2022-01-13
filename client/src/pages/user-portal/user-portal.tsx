@@ -51,7 +51,7 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { useState, useEffect } from 'react';
 import { getPayloadAsJson, getToken } from '../../helpers/Token';
 import Api from '../../helpers/Api';
-import { IPayload } from '../../@types/token';
+import { Payload } from '../../@types/token';
 import { ClassNameMap } from '@mui/material';
 
 const Input = styled('input')({
@@ -526,8 +526,10 @@ function UserPortal() {
                                                     <Typography gutterBottom variant="h6" align="center">
                                                         {design.Name} <br />
                                                         {!design.Verified && isModerator ?
-                                                            <Button variant="contained" color="primary" onClick={async () => { await onValidateButtonClick(design, setdesignList) }}>
-                                                                Valideren
+                                                            <Button variant="contained" color="primary" onClick={async () => {
+                                                                window.open('/editor?designId=' + design.Id, '_blank');
+                                                            }}>
+                                                                Valideren / bewerken
                                                             </Button> : !design.Verified ?
                                                                 <Button variant="contained" color="primary">
                                                                     Bewerken
@@ -549,22 +551,24 @@ function UserPortal() {
                                             <Card className={styles.card}>
                                                 <CardMedia
                                                     className={styles.cardMedia}
-                                                    title={'test'}
-                                                >
+                                                    title={'test'}>
                                                     <img
                                                         id="testimg"
                                                         src={testimg3}
-                                                        style={{ width: '300px' }}
-                                                    />
+                                                        style={{ width: '300px' }}/>
                                                 </CardMedia>
                                                 <CardContent className={styles.cardContent}>
                                                     <Typography
                                                         gutterBottom
                                                         variant="h6"
-                                                        align="center"
-                                                    >
-                                                        {'test template card: ' + (index + 1)}
-                                                    </Typography>
+                                                        align="center">
+                                                        {template.Name}
+                                                        <Button variant="contained" color="primary" onClick={async () => {
+                                                            window.open('/editor?templateId=' + template.Id, '_blank');
+                                                        }}>
+                                                            Maak design
+                                                        </Button>
+                                                    </Typography>                                                   
                                                 </CardContent>
                                             </Card>
                                         </Grid>
@@ -584,11 +588,15 @@ function UserPortal() {
                                         style={{
                                             position: 'absolute',
                                             top: '210px',
-                                            left: '110px',
+                                            left: '115px',
                                             background: 'rgb(63, 81, 181)',
                                         }}
                                         onClick={() => {
-                                            window.open('/editor', '_blank')!.focus();
+                                            setDesignView(false);
+                                            setSettingsView(false);
+                                            settemplateView(!templateView);
+                                            setFotoLibView(false);
+                                            setheaderMsg(['Alle', 'templates']);
                                         }}>
                                         <Add style={{ color: 'white' }} />
                                     </Button>
@@ -879,8 +887,6 @@ async function getDesigns() {
         return new Array<Design>();
     }
 
-    //const designListAll = Design.makeDesignArray(designListDb.content);
-
     if (typeof (templateListDb = await ApiInstance.all('template')) === 'undefined') {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
         return new Array<Design>();
@@ -890,10 +896,14 @@ async function getDesigns() {
         .where((t) => t.Company_id === getPayloadAsJson()!.company)
         .select((i) => i.Id)
         .toArray();
-    const designList = Enumerable.from(Design.makeDesignArray(designListDb.content))
+    let designList = Enumerable.from(Design.makeDesignArray(designListDb.content))
         .where((d) => Enumerable.from(templateIdList).contains(d.Template_id))
-        .orderBy((d) => d.Template_id)
+        .orderByDescending((d) => d.Updated_at)
         .toArray();
+
+    const designListUpdated = Enumerable.from(designList).where((d) => d.Updated_at.toString() !== 'Invalid Date').orderByDescending((d) => d.Updated_at).toArray();
+    const designListNeverUpdated = Enumerable.from(designList).where((d) => d.Updated_at.toString() === 'Invalid Date').toArray();
+    designList = designListUpdated.concat(designListNeverUpdated);
 
     return designList;
 }
@@ -1009,7 +1019,7 @@ async function onMakeMainUserButtonClick(user: User, currentUserId: number) {
     window.location.replace('/');
 }
 
-async function GetUserPassword(userInstance: IPayload) {
+async function GetUserPassword(userInstance: Payload) {
     let userDataDb = [];
     const ApiInstance = new Api(getToken()!);
     if (typeof (userDataDb = await ApiInstance.read('user', userInstance.sub)) === 'undefined') {
