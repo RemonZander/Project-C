@@ -201,12 +201,11 @@ function UserPortal() {
     useEffect(() => {
         (async () => {
             settemplateList(await getTemplates());
-            console.log(userList);
-            console.log(getPayloadAsJson()!.sub);
             setdesignList(await getDesigns());
             setInfoView(await makeInfoViewBoolList());
             setPass(await GetUserPassword(getPayloadAsJson()!));
             setUserList(await getUsers());
+            
 
             loadImages();
         })();
