@@ -134,12 +134,15 @@ function UserPortal() {
     useEffect(() => {
         (async () => {
             settemplateList(await getTemplates());
+            console.log(userList);
+            console.log(getPayloadAsJson()!.sub);
             setdesignList(await getDesigns());
             setInfoView(await makeInfoViewBoolList());
 
             const ApiInstance = new Api(getToken()!);
 
             setPass(await GetUserPassword(getPayloadAsJson()!));
+            console.log(currentPassInput);
 
             let userDataDb = [];
 
@@ -651,7 +654,7 @@ function UserPortal() {
     );
 }
 
-async function getDesigns() {
+export async function getDesigns() {
     const ApiInstance = new Api(getToken()!);
     let designListDb = [];
     let templateListDb = [];
@@ -679,7 +682,7 @@ async function getDesigns() {
     return designList;
 }
 
-async function getTemplates() {
+export async function getTemplates() {
     const ApiInstance = new Api(getToken()!);
     const user = getPayloadAsJson()!;
     let templateListDb = [];
@@ -728,7 +731,7 @@ async function onValidateButtonClick(design: Design, setdesignList: any) {
     setdesignList(await getDesigns());
 }
 
-async function onMakeMainUserButtonClick(user: User, currentUserId: number) {
+export async function onMakeMainUserButtonClick(user: User, currentUserId: number) {
     const ApiInstance = new Api(getToken()!);
     let userDataDb = [];
     if (typeof (userDataDb = await ApiInstance.read('user', currentUserId)) === 'undefined' || userDataDb.status === 'FAIL') {
@@ -769,7 +772,7 @@ async function onMakeMainUserButtonClick(user: User, currentUserId: number) {
     window.location.replace('/');
 }
 
-async function GetUserPassword(userInstance: IPayload) {
+export async function GetUserPassword(userInstance: IPayload) {
     let userDataDb = [];
     const ApiInstance = new Api(getToken()!);
     if (typeof (userDataDb = await ApiInstance.read('user', userInstance.sub)) === 'undefined') {
@@ -812,7 +815,7 @@ function userLeave(id: number) {
     document.getElementById(userButtonId)!.style.opacity = '0';
 }
 
-async function ChangePass(userId: number, userPassword: string, currentPass: string, newPass: string, confirmPass: string, setPassError: any) {
+export async function ChangePass(userId: number, userPassword: string, currentPass: string, newPass: string, confirmPass: string, setPassError: any) {
     setPassError([
         currentPass === '' ? 'Dit veld is verplicht' : currentPass !== userPassword ? 'Het wachtwoord is onjuist' : '',
         newPass === '' ? 'Dit veld is verplicht' : '',
