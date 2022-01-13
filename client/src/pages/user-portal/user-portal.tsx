@@ -562,7 +562,7 @@ function UserPortal() {
                                                         gutterBottom
                                                         variant="h6"
                                                         align="center">
-                                                        {template.Name}
+                                                        {template.Name}<br/>
                                                         <Button variant="contained" color="primary" onClick={async () => {
                                                             window.open('/editor?templateId=' + template.Id, '_blank');
                                                         }}>
