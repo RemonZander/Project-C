@@ -2,6 +2,7 @@
 
 const args = process.argv.slice(2);
 const fs = require("fs");
+const { promises: fs2 } = require("fs")
 const path = require("path");
 const DB = new (require("../../src/db/DB"))();
 const Storage = new (require("../../src/Storage"))();
@@ -13,7 +14,7 @@ const dbPath = path.normalize(process.cwd() + "\\kyndaDatabase.sqlite3");
 if (args[0].toLowerCase() === "testdb.sql" && fs.existsSync(dbPath)) {
   try {
     fs.unlinkSync(dbPath);
-    fs.rmSync(Storage.storagePath, { recursive: true, force: true });
+    fs.rmSync(Storage.storagePathAbsolute, { recursive: true, force: true });
     console.log("Succesfully deleted database");
   } catch (err) {
     console.error(err);
@@ -28,6 +29,17 @@ const sqlData = fs
   .split(";");
 
 console.log("Succesfully created database.");
+console.log("Copying test data.");
+(async () => {
+    await copyDir("./storage testdata", "./storage");
+})();
+console.log("Test data copied.");
+
+  //await Storage.addCompany(1, true);
+  //await Storage.addCompany(2, true);
+  //await Storage.addCompany(3, true);
+  //Storage.addImage("test.gif", 1, testUri);
+
 // DB CONNECTION START
 const conn = DB.startConnection();
 
@@ -37,6 +49,20 @@ for (let i = 0; i < sqlData.length; i++) {
   if (query.length !== 0) {
     conn.createQuery(query, []);
   }
+}
+
+async function copyDir(src, dest) {
+    await fs2.mkdir(dest, { recursive: true });
+    let entries = await fs2.readdir(src, { withFileTypes: true });
+
+    for (let entry of entries) {
+        let srcPath = path.join(src, entry.name);
+        let destPath = path.join(dest, entry.name);
+
+        entry.isDirectory() ?
+            await copyDir(srcPath, destPath) :
+            await fs2.copyFile(srcPath, destPath);
+    }
 }
 
 (async () => {
@@ -105,44 +131,39 @@ for (let i = 0; i < sqlData.length; i++) {
 
   await conn.runStatement(
     `INSERT INTO template (Filepath, Company_id, Name) VALUES
-        ('filepath_to_template', '1', 'template1_com1'),
-        ('filepath_to_template', '1', 'template2_com1'),
-        ('filepath_to_template', '1', 'template3_com1'),
-        ('filepath_to_template', '2', 'template1_com2'),
-        ('filepath_to_template', '3', 'template1_com3'),
-        ('filepath_to_template', '3', 'template2_com3'),
-        ('filepath_to_template', '3', 'template3_com3'),
-        ('filepath_to_template', '3', 'template4_com3')`
+        ('\\storage\\1\\templates\\template1_com1.html', '1', 'template1_com1'),
+        ('\\storage\\1\\templates\\template2_com1.html', '1', 'template2_com1'),
+        ('\\storage\\1\\templates\\template3_com1.html', '1', 'template3_com1'),
+        ('\\storage\\2\\templates\\template1_com2.html', '2', 'template1_com2'),
+        ('\\storage\\3\\templates\\template1_com3.html', '3', 'template1_com3'),
+        ('\\storage\\3\\templates\\template2_com3.html', '3', 'template2_com3'),
+        ('\\storage\\3\\templates\\template3_com3.html', '3', 'template3_com3'),
+        ('\\storage\\3\\templates\\template4_com3.html', '3', 'template4_com3')`
   );
 
+    //mm-dd-jjjj
   await conn.runStatement(
     `INSERT INTO design (Filepath, Created_at, Updated_at, Downloads, Verified, Template_id, Name) VALUES
-        ('filepath_to_design', '6-11-2021', '', '', FALSE, 1, 'design1_template1'),
-        ('filepath_to_design', '1-10-2021', '6-11-2021', '10', TRUE, 1, 'design2_template1'),
-        ('filepath_to_design', '10-11-2020', '4-5-2021', '', FALSE, 2, 'design1_template2'),
-        ('filepath_to_design', '18-2-2021', '', '', FALSE, 4, 'design1_template4'),
-        ('filepath_to_design', '1-3-2021', '3-3-2021', '99999999999', TRUE, 4, 'design2_template4'),
-        ('filepath_to_design', '4-4-2021', '31-21-2021', '-1', TRUE, 7, 'design1_template7'),
-        ('filepath_to_design', '8-7-2021', '', '', FALSE, 7, 'design2_template7'),
-        ('filepath_to_design', '7-8-2021', '8-7-2021', '69', TRUE, 7, 'design3_template7'),
-        ('filepath_to_design', '00-00-0000', '00-00-0000', '', FALSE, 7, 'design4_template7'),
-        ('filepath_to_design', '6-11-2021', '5-2-2019', '50', FALSE, 7, 'design5_template7'),
-        ('filepath_to_design', '15-8-2021', '1-1-2000', '10', TRUE, 7, 'design6_template7'),
-        ('filepath_to_design', '28-5-2021', '7-6-5432', '1000', TRUE, 8, 'design1_template8')`
+        ('\\storage\\1\\designs\\1\\design1_template1_0.html', '6-11-2021', '0-0-0000', '', FALSE, 1, 'design1_template1'),
+        ('\\storage\\1\\designs\\1\\design2_template1_0.html', '1-10-2021', '6-11-2021', '10', TRUE, 1, 'design2_template1'),
+        ('\\storage\\1\\designs\\2\\design1_template2_0.html', '10-11-2020', '4-5-2021', '', FALSE, 2, 'design1_template2'),
+        ('\\storage\\2\\designs\\4\\design1_template4_0.html', '18-2-2021', '0-0-0000', '', FALSE, 4, 'design1_template4'),
+        ('\\storage\\2\\designs\\4\\design2_template4_0.html', '1-3-2021', '3-3-2021', '99999999999', TRUE, 4, 'design2_template4'),
+        ('\\storage\\3\\designs\\7\\design1_template7_0.html', '4-4-2021', '0-0-0000', '-1', TRUE, 7, 'design1_template7'),
+        ('\\storage\\3\\designs\\7design2_template7_0.html', '8-7-2021', '0-0-0000', '', FALSE, 7, 'design2_template7'),
+        ('\\storage\\3\\designs\\7\\design3_template7_0.html', '7-8-2021', '8-7-2021', '69', TRUE, 7, 'design3_template7'),
+        ('\\storage\\3\\designs\\7\\design4_template7_0.html', '4-24-1900', '0-0-0000', '', FALSE, 7, 'design4_template7'),
+        ('\\storage\\3\\designs\\7\\design5_template7_0.html', '6-11-2021', '5-2-2019', '50', FALSE, 7, 'design5_template7'),
+        ('\\storage\\3\\designs\\7\\design6_template7_0.html', '10-8-2021', '1-1-2000', '10', TRUE, 7, 'design6_template7'),
+        ('\\storage\\3\\designs\\8\\design1_template8_0.html', '12-5-2021', '7-6-1800', '1000', TRUE, 8, 'design1_template8')`
   );
-
-  await Storage.addCompany(0, true);
-  await Storage.addCompany(1, true);
-  await Storage.addCompany(2, true);
 
   await conn.runStatement(
     `INSERT INTO image (Filepath, Created_at, Updated_at, Company_id) VALUES
         ('${path.normalize(
-          Storage.storagePathRelative + "/0/images/test.gif"
-        )}', '6-11-2021', '8-11-2021', 0)`
+          Storage.storagePathRelative + "/1/images/test.gif"
+        )}', '6-11-2021', '8-11-2021', 1)`
   );
-
-  Storage.addImage("test.gif", 0, testUri);
 
   // DB CONNECTION END
   conn.endConnection();

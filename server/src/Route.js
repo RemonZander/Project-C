@@ -56,8 +56,8 @@ class Route {
 
         const result = await conn.runStatement(
           `
-                    SELECT * FROM ${table.name}
-                    WHERE Id = ?`,
+          SELECT * FROM ${table.name}
+          WHERE Id = ?`,
           [requestBody.id]
         );
 
@@ -87,9 +87,9 @@ class Route {
 
         const result = await conn.runStatement(
           `
-                    UPDATE ${table.name} 
-                    SET ${arr.join()} 
-                    WHERE Id = ?`,
+          UPDATE ${table.name} 
+          SET ${arr.join()} 
+          WHERE Id = ?`,
           [requestBody.id]
         );
 

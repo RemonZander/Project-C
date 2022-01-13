@@ -7,8 +7,10 @@ import testimg1 from './testimg1.png';
 import testimg2 from './testimg2.png';
 import testimg3 from './testimg3.png';
 import Enumerable from 'linq';
-import { Design, Template, User } from '../../@types/general';
+import { PageProps } from '../../@types/app';
+import { Design, Template, User, Image } from '../../@types/general';
 import { CreateExport } from '../../helpers/Export';
+import { mainPage } from '../fotolibrary-pagina/fotolibrary-pagina';
 import {
     Typography,
     AppBar,
@@ -49,8 +51,12 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { useState, useEffect } from 'react';
 import { getPayloadAsJson, getToken } from '../../helpers/Token';
 import Api from '../../helpers/Api';
-import { IPayload } from '../../@types/token';
-//import Image from 'image-js';
+import { Payload } from '../../@types/token';
+import { ClassNameMap } from '@mui/material';
+
+const Input = styled('input')({
+    display: 'none',
+});
 
 const useStyles = makeStyles((theme) => ({
     icon: {
@@ -70,6 +76,28 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+const useStylesFotoLib = makeStyles(() => ({
+    icon: {
+        marginRight: '20px',
+    },
+    cardGrid: {
+        padding: '20px 0',
+    },
+    card: {
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    cardMedia: {
+        paddingTop: '56.25%',
+        width: '100%',
+        height: '100%',
+    },
+    cardContent: {
+        flexGrow: 1,
+    },
+}));
+
 const DrawerHeader = styled('div')(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
@@ -80,24 +108,37 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 }));
 
 function UserPortal() {
+    const ApiInstance = new Api(getToken()!);
     const theme = useTheme();
     const styles = useStyles();
+    const stylesFotoLib = useStylesFotoLib();
     const [designList, setdesignList] = useState(Array<Design>());
     const [templateList, settemplateList] = useState(Array<Template>());
     const [designView, setDesignView] = useState(false);
     const [infoView, setInfoView] = useState(Array<boolean>());
     const [templateView, settemplateView] = useState(false);
     const [settingsView, setSettingsView] = useState(false);
+    const [fotoLibView, setFotoLibView] = useState(false);
+    const [changeName, setChangeName] = useState(false);
+    const [changeEmail, setChangeEmail] = useState(false);
     const [isModerator] = useState(getPayloadAsJson()!.type === 'Moderator' ? true : false);
     const [openDrawer, setOpenDrawer] = useState(false);
+    const [changeNameInput, setChangeNameInput] = useState('');
+    const [changeEmailInput, setChangeEmailInput] = useState('');
     const [newPassInput, setNewPassInput] = useState('');
     const [confirmPassInput, setConfirmPassInput] = useState('');
     const [currentPassInput, setCurrentPassInput] = useState('');
     const [passErrorMsg, setPassErrorMsg] = useState(['', '', '']);
+    const [newUserErrorMsg, setnewUserErrorMsg] = useState(['', '', '']);
+    const [changeUserDataErrorMsg, setChangeUserDataErrorMsg] = useState(['', '']);
+    const [newUserNameInput, setNewUserNameInput] = useState('');
+    const [newUserEmailInput, setnewUserEmailInput] = useState('');
+    const [newUserPassInput, setnewUserPassInput] = useState('');
     const [headerMsg, setheaderMsg] = useState(['Home', 'pagina']);
     const [userList, setUserList] = useState(Array<User>());
     const [anchorEl, setAnchorEl] = useState(null);
     const [pass, setPass] = useState('');
+    const [imageList, setImageList] = useState(Array<Image>());
     const openMenu = Boolean(anchorEl);
     const handleDrawerOpen = () => {
         setOpenDrawer(true);
@@ -119,6 +160,26 @@ function UserPortal() {
         setAnchorEl(null);
     };
 
+    const handleInputchangeEmail = (event: any) => {
+        setChangeEmailInput(event.target.value);
+    }
+
+    const handleInputchangeName = (event: any) => {
+        setChangeNameInput(event.target.value);
+    }
+
+    const handleInputChangeNewUserPass = (event: any) => {
+        setnewUserPassInput(event.target.value);
+    }
+
+    const handleInputChangeNewUserEmail = (event: any) => {
+        setnewUserEmailInput(event.target.value);
+    }
+
+    const handleInputChangeNewUserName = (event: any) => {
+        setNewUserNameInput(event.target.value);
+    }
+
     const handleInputChangeCurrentPass = (event: any) => {
         setCurrentPassInput(event.target.value);
     };
@@ -131,6 +192,12 @@ function UserPortal() {
         setConfirmPassInput(event.target.value);
     };
 
+    const loadImages = async() => {
+        const ApiInstance = new Api(getToken()!);
+        const imagesFromDatabase = await ApiInstance.all('image');
+        setImageList(Image.makeImageArray(imagesFromDatabase.content));
+    };
+
     useEffect(() => {
         (async () => {
             settemplateList(await getTemplates());
@@ -138,33 +205,14 @@ function UserPortal() {
             console.log(getPayloadAsJson()!.sub);
             setdesignList(await getDesigns());
             setInfoView(await makeInfoViewBoolList());
-
-            const ApiInstance = new Api(getToken()!);
-
             setPass(await GetUserPassword(getPayloadAsJson()!));
-            console.log(currentPassInput);
+            setUserList(await getUsers());
 
-            let userDataDb = [];
-
-            if (typeof (userDataDb = await ApiInstance.all('user')) === 'undefined') {
-                window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
-                return;
-            }
-
-            const allUsers = User.makeUserArray(userDataDb.content);
-            let usersOfCompany = new Array<User>();
-            for (let userIndex = 0; userIndex < allUsers.length; userIndex++) {
-                if (
-                    allUsers[userIndex].Company_Id === getPayloadAsJson()!.company &&
-                    allUsers[userIndex].Email !== getPayloadAsJson()!.email
-                ) {
-                    usersOfCompany.push(allUsers[userIndex]);
-                }
-            }
-            setUserList(usersOfCompany);
+            loadImages();
         })();
     }, []);
 
+    const queryParamsObject: { queryParams: { [key: string]: string | number } } = { queryParams: {'companyId': getPayloadAsJson()!.company.toString()} };
     return (
         <React.Fragment>
             <CssBaseline />
@@ -182,6 +230,41 @@ function UserPortal() {
                             {headerMsg[1]}
                         </Typography>
                         <Grid container spacing={2} justifyContent="flex-end">
+                            {fotoLibView && isModerator ? <Grid item>
+                                <label htmlFor="contained-button-file">
+                                    <Input
+                                        id="contained-button-file"
+                                        multiple
+                                        type="file"
+                                        onChange={(e) => {
+                                            (async () => {
+                                                var extValidation = /(\.jpg|\.jpeg|\.gif|\.png)$/i;
+                                                for (let i = 0; i < e.target.files!.length; i++) {
+                                                    if (e.target.files![i].size > 20971520) {
+                                                        alert('Uw foto is te groot!');
+                                                    } else if (
+                                                        fileNameValidation(e.target.files![i].name) ||
+                                                        !extValidation.exec(e.target.files![i].name)
+                                                    ) {
+                                                        alert(
+                                                            'Uw foto bevat een spatie in de naam of de verkeerde extensie!'
+                                                        );
+                                                    } else {
+                                                        await ApiInstance.createImage(
+                                                            e.target.files![i],
+                                                            getPayloadAsJson()!.company
+                                                        );
+                                                        loadImages();
+                                                    }
+                                                }
+                                            })();
+                                        }}
+                                    />
+                                    <Button variant="contained" component="span" color="primary">
+                                        Foto's toevoegen
+                                    </Button>
+                                </label>
+                            </Grid> : ''}
                             <Grid item>
                                 <Button variant="contained" color="primary"
                                     onClick={() => {
@@ -210,6 +293,8 @@ function UserPortal() {
                                     <Divider />
                                     <MenuItem onClick={() => {
                                         handleCloseMenu();
+                                        setDesignView(false);
+                                        settemplateView(false);
                                         setheaderMsg(['Instellingen', '']);
                                         setSettingsView(true);
                                         window.scroll(0, 0);
@@ -219,6 +304,8 @@ function UserPortal() {
                                     </MenuItem>
                                     <MenuItem onClick={() => {
                                         handleCloseMenu();
+                                        setDesignView(false);
+                                        settemplateView(false);
                                         setheaderMsg(['Instellingen', '']);
                                         setSettingsView(true);
                                         window.scroll(0, window.innerHeight / 2.5);
@@ -229,6 +316,8 @@ function UserPortal() {
                                     {isModerator ? (
                                         <MenuItem onClick={() => {
                                             handleCloseMenu();
+                                            setDesignView(false);
+                                            settemplateView(false);
                                             setheaderMsg(['Instellingen', '']);
                                             setSettingsView(true);
                                             window.scroll(0, window.innerHeight / 1);
@@ -253,23 +342,44 @@ function UserPortal() {
                     </DrawerHeader>
                     <Divider />
                     <List>
-                        {designView || templateView || settingsView ? <><ListItem className="listItemButton" onClick={() => {
+                        {designView || templateView || settingsView || fotoLibView ? <><ListItem className="listItemButton" onClick={() => {
                             setDesignView(false);
                             settemplateView(false);
                             setSettingsView(false);
+                            setFotoLibView(false);
                             setheaderMsg(['Home', 'pagina']);
                             handleDrawerClose();
                         }}>
                             <Home style={{ marginRight: '20px' }}></Home>
                             <Typography variant="h5">Home pagina</Typography>
                         </ListItem><Divider /></> : ''}
-                        <ListItem className="listItemButton" onClick={() => { window.open('/fotogalerij', '_blank')!.focus(); }}>
+                        {fotoLibView ? <ListItem className="listItemButton" onClick={() => {
+                            setFotoLibView(!fotoLibView);
+                            setDesignView(false);
+                            settemplateView(false);
+                            setSettingsView(false);
+                            setheaderMsg(['Fotogalerij', '']);
+                            handleDrawerClose();
+                        }}
+                            style={{ backgroundColor: 'lightgray' }}>
                             <PhotoCamera style={{ marginRight: '20px' }}></PhotoCamera>
                             <Typography variant="h5">Fotogalerij</Typography>
-                        </ListItem>
+                        </ListItem> : <ListItem className="listItemButton" onClick={() => {
+                            setFotoLibView(!fotoLibView);
+                            setDesignView(false);
+                            settemplateView(false);
+                            setSettingsView(false);
+                            setheaderMsg(['Fotogalerij', '']);
+                            handleDrawerClose();
+                        }}>
+                            <PhotoCamera style={{ marginRight: '20px' }}></PhotoCamera>
+                            <Typography variant="h5">Fotogalerij</Typography>
+                        </ListItem>}
                         {designView ? <ListItem className="listItemButton" onClick={() => {
                             setDesignView(!designView);
                             settemplateView(false);
+                            setSettingsView(false);
+                            setFotoLibView(false);
                             setheaderMsg(['Alle', 'designs']);
                             handleDrawerClose();
                         }}
@@ -279,6 +389,8 @@ function UserPortal() {
                         </ListItem> : <ListItem className="listItemButton" onClick={() => {
                             setDesignView(!designView);
                             settemplateView(false);
+                            setSettingsView(false);
+                            setFotoLibView(false);
                             setheaderMsg(['Alle', 'designs']);
                             handleDrawerClose();
                         }}>
@@ -287,7 +399,9 @@ function UserPortal() {
                         </ListItem>}
                         {templateView ? <ListItem className="listItemButton" onClick={() => {
                             setDesignView(false);
+                            setSettingsView(false);
                             settemplateView(!templateView);
+                            setFotoLibView(false);
                             setheaderMsg(['Alle', 'templates']);
                             handleDrawerClose();
                         }}
@@ -296,7 +410,9 @@ function UserPortal() {
                             <Typography variant="h5">Alle templates</Typography>
                         </ListItem> : <ListItem className="listItemButton" onClick={() => {
                             setDesignView(false);
+                            setSettingsView(false);
                             settemplateView(!templateView);
+                            setFotoLibView(false);
                             setheaderMsg(['Alle', 'templates']);
                             handleDrawerClose();
                         }}>
@@ -320,7 +436,7 @@ function UserPortal() {
                 </Drawer>
             </Box>
             <div style={{ marginTop: '70px' }} id="userPortalMainPage" onClick={handleDrawerClose}>
-                {!settingsView ? <Container maxWidth="md" className={styles.cardGrid}>
+                {!settingsView && !fotoLibView ? <Container maxWidth="md" className={styles.cardGrid}>
                     <Grid container spacing={4}>
                         {typeof designList !== 'undefined' && !templateView
                             ? designList.map((design, index) => {
@@ -412,8 +528,10 @@ function UserPortal() {
                                                     <Typography gutterBottom variant="h6" align="center">
                                                         {design.Name} <br />
                                                         {!design.Verified && isModerator ?
-                                                            <Button variant="contained" color="primary" onClick={async () => { await onValidateButtonClick(design, setdesignList) }}>
-                                                                Valideren
+                                                            <Button variant="contained" color="primary" onClick={async () => {
+                                                                window.open('/editor?designId=' + design.Id, '_blank');
+                                                            }}>
+                                                                Valideren / bewerken
                                                             </Button> : !design.Verified ?
                                                                 <Button variant="contained" color="primary">
                                                                     Bewerken
@@ -435,22 +553,24 @@ function UserPortal() {
                                             <Card className={styles.card}>
                                                 <CardMedia
                                                     className={styles.cardMedia}
-                                                    title={'test'}
-                                                >
+                                                    title={'test'}>
                                                     <img
                                                         id="testimg"
                                                         src={testimg3}
-                                                        style={{ width: '300px' }}
-                                                    />
+                                                        style={{ width: '300px' }}/>
                                                 </CardMedia>
                                                 <CardContent className={styles.cardContent}>
                                                     <Typography
                                                         gutterBottom
                                                         variant="h6"
-                                                        align="center"
-                                                    >
-                                                        {'test template card: ' + (index + 1)}
-                                                    </Typography>
+                                                        align="center">
+                                                        {template.Name}<br/>
+                                                        <Button variant="contained" color="primary" onClick={async () => {
+                                                            window.open('/editor?templateId=' + template.Id, '_blank');
+                                                        }}>
+                                                            Maak design
+                                                        </Button>
+                                                    </Typography>                                                   
                                                 </CardContent>
                                             </Card>
                                         </Grid>
@@ -464,20 +584,22 @@ function UserPortal() {
                                         <img
                                             id="testimg"
                                             src={testimg1}
-                                            style={{ width: '300px' }}
-                                        />
+                                            style={{ width: '300px' }}/>
                                     </CardMedia>
                                     <Button
                                         style={{
                                             position: 'absolute',
                                             top: '210px',
-                                            left: '110px',
+                                            left: '115px',
                                             background: 'rgb(63, 81, 181)',
                                         }}
                                         onClick={() => {
-                                            window.open('/template-editor', '_blank')!.focus();
-                                        }}
-                                    >
+                                            setDesignView(false);
+                                            setSettingsView(false);
+                                            settemplateView(!templateView);
+                                            setFotoLibView(false);
+                                            setheaderMsg(['Alle', 'templates']);
+                                        }}>
                                         <Add style={{ color: 'white' }} />
                                     </Button>
                                     <CardContent className={styles.cardContent}>
@@ -487,11 +609,9 @@ function UserPortal() {
                                     </CardContent>
                                 </Card>
                             </Grid>
-                        ) : (
-                            ''
-                        )}
+                        ) : ('')}
                     </Grid>
-                </Container> : <Box
+                </Container> : !fotoLibView ? <Box
                     sx={{
                         display: 'flex',
                         marginTop: '70px',
@@ -510,20 +630,33 @@ function UserPortal() {
                         </ListItem>
                         <Divider />
                     </List>
-                    <List>
+                        <List>
+                            <ListItem>
+                                <Typography variant="h6" style={{textAlign: 'center', marginLeft: '120px'}}>
+                                    Hieronder kunt u uw naam of email veranderen.<br />
+                                    U wordt hierna uitgelogd.
+                                </Typography>
+                            </ListItem>
                         <ListItem
-                            style={{ paddingTop: '50px', paddingBottom: '20px', paddingLeft: '200px', paddingRight: '200px' }}
-                        >
+                            style={{ paddingTop: '50px', paddingBottom: '20px', paddingLeft: '200px', paddingRight: '200px' }}>
                             <Typography variant="h6">
                                 {'Naam: '} &emsp;&emsp;&emsp;&nbsp;
-                                {getPayloadAsJson()!.naam}
-                            </Typography>
+                                </Typography>
+                                {changeName ? <><TextField required value={changeNameInput} onChange={handleInputchangeName} />&emsp;&emsp;&emsp;&emsp;&emsp;<Button variant="contained" color="primary" onClick={() => { changeNameOrEmail(changeNameInput, '', changeName, changeEmail, setChangeUserDataErrorMsg, pass)}}>
+                                    Toepassen
+                                </Button></> : <Typography variant="h6" style={{ cursor: 'pointer' }} onClick={() => { setChangeName(!changeName)}}>
+                                    {getPayloadAsJson()!.naam}
+                                </Typography>}                               
                         </ListItem>
                         <ListItem style={{ paddingBottom: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
                             <Typography variant="h6">
                                 {'E-mail: '} &emsp;&emsp;&emsp;
-                                {getPayloadAsJson()!.email}
-                            </Typography>
+                                </Typography>
+                                {changeEmail ? <><TextField required value={changeEmailInput} onChange={handleInputchangeEmail} />&emsp;&emsp;&emsp;&emsp;&emsp;<Button variant="contained" color="primary" onClick={() => { changeNameOrEmail('', changeEmailInput, changeName, changeEmail, setChangeUserDataErrorMsg, pass)}}>
+                                Toepassen
+                            </Button></> : <Typography variant="h6" style={{ cursor: 'pointer' }} onClick={() => { setChangeEmail(!changeEmail)}}>
+                                    {getPayloadAsJson()!.email}
+                                </Typography>}
                         </ListItem>
                         <Divider />
                         <ListItem style={{ paddingTop: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
@@ -542,10 +675,9 @@ function UserPortal() {
                         </ListItem>
                         <Typography
                             align="center"
-                            style={{ paddingTop: '50px', paddingBottom: '50px', paddingLeft: '200px', paddingRight: '200px' }}
-                        >
+                            style={{ paddingTop: '50px', paddingBottom: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
                             <Button variant="contained" color="primary" onClick={() => {
-                                ChangePass(getPayloadAsJson()!.sub, pass, currentPassInput, newPassInput, confirmPassInput, setPassErrorMsg);
+                                    ChangePass(setCurrentPassInput, setConfirmPassInput, setNewPassInput, getPayloadAsJson()!.sub, pass, currentPassInput, newPassInput, confirmPassInput, setPassErrorMsg);
                             }}>
                                 Toepassen
                             </Button>
@@ -636,25 +768,119 @@ function UserPortal() {
                             })
                             : ''}
                     </List>
-                    <Typography variant="h6">
-                        Gebruiker toevoegen:
-                    </Typography>
-                    <List>
-                        <ListItem>
-                            <AccountCircle style={{ fontSize: '100px', marginRight: '15px' }} />
-                            <div style={{ fontSize: '20px' }}>Naam: &emsp;&emsp;&emsp;&emsp;&emsp;<TextField required /><br />
-                                Email: &emsp;&emsp;&emsp;&emsp;&emsp;<TextField required /><br />
-                                Wachtwoord: &emsp;&emsp;<TextField required />
-                            </div>
-                        </ListItem>
-                    </List>
-                </Box>}
+                        {getPayloadAsJson()!.type === 'Moderator' ?
+                            <List>
+                                <ListItem>
+                                    <Typography variant="h6" style={{ marginLeft: '130px' }}>
+                                        Gebruiker toevoegen:
+                                    </Typography>
+                                </ListItem>
+                                <ListItem>
+                                    <AccountCircle style={{ fontSize: '100px', marginRight: '15px' }} />
+                                    <Typography variant="h6">Naam: &emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp;<TextField required error={newUserErrorMsg[0] !== ''} helperText={newUserErrorMsg[0]} value={newUserNameInput} onChange={handleInputChangeNewUserName} />
+                                        <br /><br />
+                                        Email: &emsp;&emsp;&emsp;&emsp;&emsp;<TextField required error={newUserErrorMsg[1] !== ''} helperText={newUserErrorMsg[1]} value={newUserEmailInput} onChange={handleInputChangeNewUserEmail} />
+                                        <br /><br />
+                                        Wachtwoord: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<TextField required type={'password'} error={newUserErrorMsg[2] !== ''} helperText={newUserErrorMsg[2]} value={newUserPassInput} onChange={handleInputChangeNewUserPass} />
+                                    </Typography>
+                                </ListItem>
+                                <ListItem>
+                                    <Button variant="contained" color="primary" style={{ marginLeft: '175px', marginTop: '30px' }} onClick={() => OnAddNewUserButtonClick(setnewUserPassInput, setnewUserEmailInput, setNewUserNameInput, setUserList, setnewUserErrorMsg, newUserNameInput, newUserEmailInput, newUserPassInput)}>
+                                        Toepassen
+                                    </Button>
+                                </ListItem>
+                                <Divider />
+                            </List> : ''}                   
+                </Box> : mainPage(queryParamsObject, imageList, isModerator, stylesFotoLib)}                         
             </div>
         </React.Fragment>
     );
 }
 
-export async function getDesigns() {
+function fileNameValidation(fileName: string) {
+    const FileNameArray = fileName.split('.');
+    const newFileName = FileNameArray[0];
+    return newFileName.indexOf(' ') >= 0;
+}
+
+async function changeNameOrEmail(newName: string, newEmail: string, changeName: boolean, changeEmail: boolean, setChangeUserDataErrorMsg: any, pass: string) {
+    setChangeUserDataErrorMsg([changeName && newEmail === '' ? 'Dit veld is verplicht' : '', changeEmail && newEmail === '' ? 'newEmail' : '']);
+
+    if (changeName && newName === '' || changeEmail && newEmail === '') return;
+
+    const ApiInstance = new Api(getToken()!);
+    let result = [];
+    if (changeName) {       
+        result = await ApiInstance.update('user', getPayloadAsJson()!.sub,
+            [
+                getPayloadAsJson()!.email,
+                pass,
+                getPayloadAsJson()!.type === 'Moderator' ? '2' : '3',
+                newName,
+                getPayloadAsJson()!.company.toString(),
+            ]);
+    }
+    else if (changeEmail) {
+        result = await ApiInstance.update('user', getPayloadAsJson()!.sub,
+            [
+                newEmail,
+                pass,
+                getPayloadAsJson()!.type === 'Moderator' ? '2' : '3',
+                getPayloadAsJson()!.naam,
+                getPayloadAsJson()!.company.toString(),
+            ]);
+    }
+
+    document.cookie = document.cookie.substring(document.cookie.indexOf('token='), 6);
+    window.location.replace('/');
+}
+
+async function OnAddNewUserButtonClick(setnewUserPassInput: any, setnewUserEmailInput: any, setNewUserNameInput: any, setUserList: any, setnewUserErrorMsg: any, newUserName: string, newUserEmail: string, NewUserPass: string) {
+    const ApiInstance = new Api(getToken()!);
+    setnewUserErrorMsg([newUserName === '' ? 'Dit veld is verplicht' : '',
+        newUserEmail === '' ? 'Dit veld is verplicht' : newUserEmail.indexOf('@') === undefined ? 'U moet wel een geldig email adres invoeren' : '',
+        NewUserPass === '' ? 'Dit veld is verplicht' : '']);
+
+    if (['!', '@', '#', '$', '%', '^', '&', ' *', '(', ')', '-', '_', '=', '+', '[', ']', '{', '}', `|`, ';', ':', "'", '"', ',', '<', '.', '>', '/', '?', '`', '~'].some(s => NewUserPass.includes(s)) &&
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].some(s => NewUserPass.includes(s)) && NewUserPass.length > 7 &&
+        ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'].some(s => NewUserPass.includes(s)) &&
+        ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'].some(s => NewUserPass.includes(s.toUpperCase()))) {
+
+        let userListDb = []
+        if (typeof (userListDb = await ApiInstance.all('user')) === undefined) {
+            window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+            return;
+        };
+        const UserEmailList = Enumerable.from(User.makeUserArray(userListDb.content)).select(u => u.Email).toArray();
+
+        if (UserEmailList.indexOf(newUserEmail) !== -1) {
+            setnewUserErrorMsg(['', 'Dit email adres bestaat al.', '']);
+            return;
+        }
+
+        let result = [];
+        if (typeof (result = await ApiInstance.create('user',
+            [
+                newUserEmail,
+                NewUserPass,
+                '3',
+                newUserName,
+                getPayloadAsJson()!.company.toString(),
+            ])) === undefined) {
+            window.alert('Kan de gebruiker niet opslaan.');
+            return;
+        };
+
+        setUserList(await getUsers());
+        setNewUserNameInput('');
+        setnewUserEmailInput('');
+        setnewUserPassInput('');
+        return;
+    }
+    setnewUserErrorMsg(['', '', 'Het wachtwoord voldoet niet aan de minimale eisen.']);
+}
+
+async function getDesigns() {
     const ApiInstance = new Api(getToken()!);
     let designListDb = [];
     let templateListDb = [];
@@ -662,8 +888,6 @@ export async function getDesigns() {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
         return new Array<Design>();
     }
-
-    //const designListAll = Design.makeDesignArray(designListDb.content);
 
     if (typeof (templateListDb = await ApiInstance.all('template')) === 'undefined') {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
@@ -674,10 +898,14 @@ export async function getDesigns() {
         .where((t) => t.Company_id === getPayloadAsJson()!.company)
         .select((i) => i.Id)
         .toArray();
-    const designList = Enumerable.from(Design.makeDesignArray(designListDb.content))
+    let designList = Enumerable.from(Design.makeDesignArray(designListDb.content))
         .where((d) => Enumerable.from(templateIdList).contains(d.Template_id))
-        .orderBy((d) => d.Template_id)
+        .orderByDescending((d) => d.Updated_at)
         .toArray();
+
+    const designListUpdated = Enumerable.from(designList).where((d) => d.Updated_at.toString() !== 'Invalid Date').orderByDescending((d) => d.Updated_at).toArray();
+    const designListNeverUpdated = Enumerable.from(designList).where((d) => d.Updated_at.toString() === 'Invalid Date').toArray();
+    designList = designListUpdated.concat(designListNeverUpdated);
 
     return designList;
 }
@@ -696,6 +924,27 @@ export async function getTemplates() {
         .toArray();
 
     return templateList;
+}
+
+async function getUsers() {
+    const ApiInstance = new Api(getToken()!);
+    let userDataDb = [];
+    if (typeof (userDataDb = await ApiInstance.all('user')) === 'undefined') {
+        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        return new Array<User>();
+    }
+
+    const allUsers = User.makeUserArray(userDataDb.content);
+    let usersOfCompany = new Array<User>();
+    for (let userIndex = 0; userIndex < allUsers.length; userIndex++) {
+        if (
+            allUsers[userIndex].Company_Id === getPayloadAsJson()!.company &&
+            allUsers[userIndex].Email !== getPayloadAsJson()!.email
+        ) {
+            usersOfCompany.push(allUsers[userIndex]);
+        }
+    }
+    return usersOfCompany;
 }
 
 async function makeInfoViewBoolList() {
@@ -772,7 +1021,7 @@ export async function onMakeMainUserButtonClick(user: User, currentUserId: numbe
     window.location.replace('/');
 }
 
-export async function GetUserPassword(userInstance: IPayload) {
+export async function GetUserPassword(userInstance: Payload) {
     let userDataDb = [];
     const ApiInstance = new Api(getToken()!);
     if (typeof (userDataDb = await ApiInstance.read('user', userInstance.sub)) === 'undefined') {
@@ -815,7 +1064,7 @@ function userLeave(id: number) {
     document.getElementById(userButtonId)!.style.opacity = '0';
 }
 
-export async function ChangePass(userId: number, userPassword: string, currentPass: string, newPass: string, confirmPass: string, setPassError: any) {
+export async function ChangePass(setCurrentPassInput: any, setConfirmPassInput: any, setNewPassInput: any, userId: number, userPassword: string, currentPass: string, newPass: string, confirmPass: string, setPassError: any) {
     setPassError([
         currentPass === '' ? 'Dit veld is verplicht' : currentPass !== userPassword ? 'Het wachtwoord is onjuist' : '',
         newPass === '' ? 'Dit veld is verplicht' : '',
@@ -826,7 +1075,9 @@ export async function ChangePass(userId: number, userPassword: string, currentPa
     if (newPass !== confirmPass || currentPass !== userPassword) return;
 
     if (['!', '@', '#', '$', '%', '^', '&', ' *', '(', ')', '-', '_', '=', '+', '[', ']', '{', '}', `|`, ';', ':', "'", '"', ',', '<', '.', '>', '/', '?', '`', '~'].some(s => newPass.includes(s)) &&
-        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].some(s => newPass.includes(s)) && newPass.length > 7) {
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].some(s => newPass.includes(s)) && newPass.length > 7 &&
+        ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'].some(s => newPass.includes(s)) &&
+        ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'].some(s => newPass.includes(s.toUpperCase()))) {
         const ApiInstance = new Api(getToken()!);
         let userDataDb = [];
         if (typeof (userDataDb = await ApiInstance.read('user', userId)) === 'undefined') {
@@ -845,6 +1096,10 @@ export async function ChangePass(userId: number, userPassword: string, currentPa
             window.alert(
                 'De verbinding met de database is verbroken. Probeer het later opnieuw.'
             );
+
+            setNewPassInput('');
+            setConfirmPassInput('');
+            setCurrentPassInput('');
             return;
         }
     }

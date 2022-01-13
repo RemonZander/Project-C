@@ -52,45 +52,117 @@ Route.add("/auth", async (req, res) => {
 });
 
 // Adds routes based on the existing table structure defined in TableStructure.js
-
 for (let i = 0; i < TableStructure.length; i++) {
   const table = TableStructure[i];
 
-  if (table.name === "image") {
+  // For creating files to the storage
+  if (table.name === "image" || table.name === "design" || table.name === "template") {
     Route.add(`/${table.name}/create`, async (req, res) => {
       try {
         const requestBody = await req.getRequestData();
-
         const payload = req.getPayload();
-
         const conn = DBManager.startConnection();
 
-        // create special exception to notify if body is missing or empty
-        const date = new Date().toLocaleDateString();
+        let date = null;
+        let result = null;
+        let sqlValues = [];
 
-        const companyID =
-          requestBody.companyId !== null
-            ? requestBody.companyId
-            : payload.company;
+        if (table.name === "image" || table.name === "design") {
+          date = new Date().toLocaleDateString();
+        }
 
-        Storage.addImage(requestBody.name, companyID, requestBody.image);
+        const companyID = requestBody.companyId !== null ? requestBody.companyId : payload.company;
 
-        await conn.runStatement(
-          `
-                            INSERT INTO ${table.name} (${table.columns.join()})
-                            VALUES (${table.columns.map((val) => "?").join()})`,
-          [
-            path.normalize(
-              Storage.storagePathRelative +
-                `/${companyID}/images/${requestBody.name}`
-            ),
+        if (table.name === "image") {
+          result = await Storage.addImage(requestBody.name, companyID, requestBody.data);
+          sqlValues = [
+            path.normalize(Storage.storagePathRelative + `/${companyID}/images/${requestBody.name}`),
             date,
             date,
             companyID,
+          ];
+        } else if (table.name === "template") {
+          result = await Storage.addTemplate(requestBody.name, companyID, requestBody.data);
+          sqlValues = [
+            path.normalize(Storage.storagePathRelative + `/${companyID}/templates/${requestBody.name}.html`),
+            companyID,
+            requestBody.name,
           ]
-        );
+        } else {
+          result = await Storage.addDesign(requestBody.name, companyID, requestBody.templateId, requestBody.data);
+          sqlValues = [
+            path.normalize(Storage.storagePathRelative + `/${companyID}/designs/${requestBody.templateId}/${requestBody.name}.html`),
+            date,
+            date,
+            0,
+            false,
+            requestBody.templateId,
+            requestBody.name,
+          ]
+        }
+
+        if (result !== null) {
+          throw result;
+        }
+
+        await conn.runStatement(`INSERT INTO ${table.name} (${table.columns.join()}) VALUES (${table.columns.map((val) => "?").join()})`, sqlValues);
 
         res.responseSuccess();
+      } catch (error) {
+        return error;
+      }
+    });
+
+    Route.add(`/${table.name}/update`, async (req, res) => {
+      try {
+        const requestBody = await req.getRequestData();
+
+        const conn = DBManager.startConnection();
+
+        let arr = [];
+
+        for (let i = 0; i < requestBody.values.length; i++) {
+          // if requestbody contains a datastring change filepath and change the old file or files with the new ones
+          if (table.columns[i] === "Filepath" && requestBody.data !== null) {
+            let result = null;
+
+            const companyID = requestBody.companyId !== null ? requestBody.companyId : payload.company;
+
+            if (table.name === "image") {
+              result = await Storage.addImage(requestBody.name, companyID, requestBody.data);
+
+              arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
+            } else if (table.name === "template") {
+              result = await Storage.addTemplate(requestBody.name, companyID, requestBody.data);
+
+              arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
+            } else {
+              result = await Storage.addDesign(requestBody.name, companyID, requestBody.templateId, requestBody.data);
+
+              arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
+            }
+
+            if (result !== null) {
+              throw result;
+            }
+
+            arr.push(`${table.columns[i]} = '${requestBody.name}'`);
+
+            continue;
+          }
+
+          arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
+        }
+
+        const result = await conn.runStatement(
+          `
+          UPDATE ${table.name} 
+          SET ${arr.join()} 
+          WHERE Id = ?`,
+          [requestBody.id]
+        );
+
+        res.responseSuccess(result);
       } catch (error) {
         return error;
       }
@@ -103,21 +175,14 @@ for (let i = 0; i < TableStructure.length; i++) {
         const requestBody = await req.getRequestData();
 
         // Directory unlink
-        const file = await conn.runStatement(
-          `
-                    SELECT Filepath FROM ${table.name} WHERE Id = ?`,
-          [requestBody.id]
-        );
+        const file = await conn.runStatement(`SELECT Filepath FROM ${table.name} WHERE Id = ?`, [requestBody.id]);
 
         const filePath = file[0].Filepath;
         const newFilePath = filePath.substring(8);
 
         Storage.removeImage(Storage.storagePathAbsolute + newFilePath);
 
-        const result = await conn.runStatement(
-          `DELETE FROM ${table.name} WHERE Id = ?`,
-          [requestBody.id]
-        );
+        const result = await conn.runStatement(`DELETE FROM ${table.name} WHERE Id = ?`, [requestBody.id]);
 
         res.responseSuccess(result);
       } catch (error) {
@@ -127,7 +192,6 @@ for (let i = 0; i < TableStructure.length; i++) {
 
     Route.addAll(table);
     Route.addRead(table);
-    Route.addUpdate(table);
 
     continue;
   }
@@ -140,21 +204,11 @@ for (let i = 0; i < TableStructure.length; i++) {
         const conn = DBManager.startConnection();
 
         // create special exception to notify if body is missing or empty
-        await conn.runStatement(
-          `
-                            INSERT INTO ${table.name} (${table.columns.join()})
-                            VALUES (${requestBody.values
-                              .map((val) => "?")
-                              .join()})`,
+        await conn.runStatement(`INSERT INTO ${table.name} (${table.columns.join()}) VALUES (${requestBody.values.map((val) => "?").join()})`,
           requestBody.values
         );
 
-        const companyId = await conn.runStatement(
-          `
-                            SELECT Id FROM ${table.name} WHERE Email = ?
-                        `,
-          [requestBody.values[2]]
-        );
+        const companyId = await conn.runStatement(`SELECT Id FROM ${table.name} WHERE Email = ?`, [requestBody.values[2]]);
 
         Storage.addCompany(companyId[0].Id);
 

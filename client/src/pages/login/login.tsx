@@ -1,8 +1,8 @@
 import './login.css';
 import kynda from './kynda.png';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
-import { getPayloadAsJson, getToken, tokenExists } from '../../helpers/Token';
+import { getPayloadAsJson, tokenExists } from '../../helpers/Token';
 import { PageProps } from '../../@types/app';
 
 function Login(props: PageProps) {
