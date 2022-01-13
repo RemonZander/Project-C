@@ -6,12 +6,10 @@ import { useEffect, useRef, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
 import { Box, Grid, styled } from '@material-ui/core';
-import { Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
+import { Button, Checkbox, FormControl, FormControlLabel, InputLabel, Link, MenuItem, Select, Stack, TextField } from '@mui/material';
 import { getPayloadAsJson, getToken, isAdmin } from '../../helpers/Token';
 import { PageProps } from '../../@types/app';
-import { HtmlData, EntryPoint, ImagesData, TemplateFiles, EditorSectionType } from '../../@types/templateEngine';
-import { jsPDF } from "jspdf";
-import html2canvas from 'html2canvas';
+import { HtmlData, EntryPoint, TemplateFiles } from '../../@types/templateEngine';
 import Api from '../../helpers/Api';
 
 const ApiInstance = new Api(getToken());
@@ -31,23 +29,19 @@ const Input = styled('input')({
 
 function TemplateEngine(props: PageProps) {
     const [templatePos, setTemplatePos] = useState(0);
-    const [templates, setTemplates] = useState([]);
     const [designs, setDesigns] = useState([]);
     const [templateFiles, setTemplateFiles] = useState<Array<HtmlData>>([]);
-    const [templateImages, setTemplateImages] = useState<Array<ImagesData>>([]);
     const [selectedElement, setSelectedElement] = useState(null);
     const [textFieldValue, setTextFieldValue] = useState("");
     const [textWrap, setTextWrap] = useState("");
     const [textAlign, setTextAlign] = useState("");
     const [isElementEditable, setIsElementEditable] = useState(false);
-    const [section, setSection] = useState<EditorSectionType>(null);
 
+    const [isChangesSaved, setIsChangesSaved] = useState(null);
     const [isDesignPending, setIsDesignPending] = useState<boolean>(true);
 
-    const [companies, setCompanies] = useState([]);
     const [templateName, setTemplateName] = useState("");
     const [designName, setDesignName] = useState("");
-    const [selectedCompany, setSelectedCompany] = useState({ Name: '' });
 
     const uploadSectionRef = useRef(null);
     const designSectionRef = useRef(null);
@@ -112,18 +106,7 @@ function TemplateEngine(props: PageProps) {
         if (editableCheckboxRef.current !== null) {
             (editableCheckboxRef.current as HTMLInputElement).checked = selectedElement.classList.contains(editableKeyword);
         }
-
-        if (section === 'upload') {
-            ApiInstance.all('company').then(res => {
-                if (res.status === "FAIL") {
-                    alert("Iets is er misgegaan.");
-                } else {
-                    setCompanies(res.content);
-                    setSelectedCompany(res.content[0]);
-                }
-            })
-        }
-    }, [section])
+    }, [])
 
     function toggleEditorToUpload() {
         editorSectionRef.current.classList.toggle("toggleNone")
@@ -227,13 +210,133 @@ function TemplateEngine(props: PageProps) {
                             doc.getElementsByTagName('head')[0].appendChild(node);
                         }
                     }
-    
+
+                    const wrapper = doc.getElementById('outer-wrapper');
+                    const imgTags = doc.getElementsByTagName('img');
+
+                    // Returns an object that includes the name and the dataUrl (signed as data)
+                    const findImageByUrl = (url: string) => files['images'].find(imgObj => imgObj['name'] === url.split('/').at(-1));
+
+                    // Replace image tags sources with data urls
+                    for (let i = 0; i < imgTags.length; i++) {
+                        const imgTag = imgTags[i];
+
+                        const imgObj = findImageByUrl(imgTag.src);
+
+                        if (imgObj !== undefined) {
+                            imgTag.src = imgObj['data'];
+                        }
+                    }
+
+                    // Self calling function that returns the entry points for use further down the code
+                    // It also adds ids, classes and events to the elements it goes through
+                    const entryPoints = (function getEntryPointsRecursive(container: HTMLElement, entryPoints: Array<EntryPoint> = [], closestElementWithId: string = "") {
+                        const children = container.children;
+                        const entryPoint = entryPoints.filter(point => point.id === closestElementWithId)[0];
+
+                        for (let i = 0; i < children.length; i++) {
+                            const child = children[i] as HTMLElement;
+                            const childStyles = getComputedStyle(child);
+
+                            if (childStyles.backgroundImage !== 'none' && childStyles.backgroundImage !== '') {
+                                const url = childStyles.backgroundImage.split("\"")[1];
+
+                                if (!(url.startsWith('data:'))) {
+                                    const image = findImageByUrl(url);
+
+                                    if (image !== undefined) {
+                                        child.style.backgroundImage = `url(${image['data']})`;
+                                    }
+                                }
+                            }
+
+                            // Assume that we found an entrypoint and give it an appropiate ID
+                            if (child.id === "" && child.tagName.toLowerCase() === "div" && child.style.length !== 0) {
+                                child.id = "layer_" + entryPoints.length;
+                                child.className = "layer";
+
+                                entryPoints.push({
+                                    id: child.id,
+                                    element: child,
+                                    spanClasses: [],
+                                    pElements: [],
+                                    spanElements: []
+                                });
+                            }
+
+                            if (child.tagName.toLowerCase() === "p") {
+                                entryPoint.pElements.push(child as HTMLParagraphElement);
+                            }
+
+                            if (child.tagName.toLowerCase() === "span") {
+                                entryPoint.spanElements.push(child as HTMLSpanElement);
+
+                                if (!entryPoint.spanClasses.includes(child.className)) {
+                                    entryPoint.spanClasses.push(child.className);
+                                }
+                            }
+
+                            if (child.children.length !== 0) {
+                                getEntryPointsRecursive(child, entryPoints, child.id === "" ? closestElementWithId : child.id);
+                            }
+                        }
+
+                        return entryPoints;
+                    })(wrapper);
+
+                    for (let i = 0; i < entryPoints.length; i++) {
+                        const point = entryPoints[i];
+
+                        const mergedSpan = [];
+
+                        point.spanClasses.forEach(spanClass => {
+                            const span = doc.createElement('span');
+                            span.className = spanClass
+
+                            mergedSpan.push(span);
+                        })
+
+                        point.pElements.forEach(p => p.remove());
+                        
+                        const node = document.createElement('script');
+
+                        for (let j = 0; j < mergedSpan.length; j++) {
+                            const span = mergedSpan[j];
+
+                            point.spanElements.forEach(el => {
+                                if (el.className === span.className) {
+                                    span.innerText += el.innerText.trim() + ' ';
+                                }
+                            })
+
+                            span.innerText = span.innerText.trim();
+
+                            if (span.innerText.length === 0) {
+                                continue;
+                            }
+
+                            span.id = point.id + "_span_" + j;
+
+                            // Default styling values
+                            span.style.display = "block";
+                            span.style.lineHeight = 1;
+                            span.style.whiteSpace = "normal";
+                            span.style.textAlign = "left";
+                            span.className += " " + selectableKeyword;
+
+                            span.dataset.textLimit = span.innerText.length;
+
+                            point.element.appendChild(span);
+                        }
+
+                        doc.getElementsByTagName('head')[0].appendChild(node);
+                    }
+
                     files['html'][i].data = new XMLSerializer().serializeToString(doc);
                     files['html'][i].isFetched = false;
                 }
     
                 setTemplateFiles(files['html']);
-                setTemplateImages(files['images']);
             })();
         }
     }
@@ -243,6 +346,7 @@ function TemplateEngine(props: PageProps) {
         const doc: Document = e.target.contentDocument;
 
         if (templateFiles[templatePos].isFetched) {
+
             doc.querySelectorAll("." + editableKeyword).forEach(el => el.onclick = (e) => {
                 setSelectedElement(e.target);
                 setTextFieldValue(e.target.innerText);
@@ -251,147 +355,33 @@ function TemplateEngine(props: PageProps) {
             return;
         }
 
-        const wrapper = doc.getElementById('outer-wrapper');
-        const imgTags = doc.getElementsByTagName('img');
-
-        // Returns an object that includes the name and the dataUrl (signed as data)
-        const findImageByUrl = (url: string) => templateImages.find(imgObj => imgObj['name'] === url.split('/').at(-1));
-
-        // Replace image tags sources with data urls
-        for (let i = 0; i < imgTags.length; i++) {
-            const imgTag = imgTags[i];
-
-            const imgObj = findImageByUrl(imgTag.src);
-
-            if (imgObj !== undefined) {
-                imgTag.src = imgObj['data'];
+        doc.querySelectorAll('.' + selectableKeyword).forEach(span => {
+            span.onclick = (e) => {
+                setSelectedElement(e.target);
+                setTextFieldValue(e.target.innerText);
+                setTextWrap(e.target.style.whiteSpace);
+                setTextAlign(e.target.style.textAlign);
+                setIsElementEditable(e.target.classList.contains(editableKeyword))
             }
-        }
-        
-        // Self calling function that returns the entry points for use further down the code
-        // It also adds ids, classes and events to the elements it goes through
-        const entryPoints = (function getEntryPointsRecursive(container: HTMLElement, entryPoints: Array<EntryPoint> = [], closestElementWithId: string = "") {
-            const children = container.children;
-            const entryPoint = entryPoints.filter(point => point.id === closestElementWithId)[0];
-
-            for (let i = 0; i < children.length; i++) {
-                const child = children[i] as HTMLElement;
-                const childStyles = getComputedStyle(child);
-
-                if (childStyles.backgroundImage !== 'none') {
-                    const url = childStyles.backgroundImage.split("\"")[1];
-
-                    if (!(url.startsWith('data:'))) {
-                        const image = findImageByUrl(url);
-
-                        if (image !== undefined) {
-                            child.style.backgroundImage = `url(${image['data']})`;
-                        }
-                    }
-                }
-
-                // Assume that we found an entrypoint and give it an appropiate ID
-                if (child.id === "" && child.tagName.toLowerCase() === "div" && child.style.length !== 0) {
-                    child.id = "layer_" + entryPoints.length;
-                    child.className = "layer";
-
-                    entryPoints.push({
-                        id: child.id,
-                        element: child,
-                        spanClasses: [],
-                        pElements: [],
-                        spanElements: []
-                    });
-                }
-
-                if (child.tagName.toLowerCase() === "p") {
-                    entryPoint.pElements.push(child as HTMLParagraphElement);
-                }
-
-                if (child.tagName.toLowerCase() === "span") {
-                    entryPoint.spanElements.push(child as HTMLSpanElement);
-
-                    if (!entryPoint.spanClasses.includes(child.className)) {
-                        entryPoint.spanClasses.push(child.className);
-                    }
-                }
-
-                if (child.children.length !== 0) {
-                    getEntryPointsRecursive(child, entryPoints, child.id === "" ? closestElementWithId : child.id);
-                }
-            }
-
-            return entryPoints;
-        })(wrapper);
-
-        for (let i = 0; i < entryPoints.length; i++) {
-            const point = entryPoints[i];
-
-            const mergedSpan = [];
-
-            point.spanClasses.forEach(spanClass => {
-                const span = doc.createElement('span');
-                span.className = spanClass
-
-                mergedSpan.push(span);
-            })
-
-            point.pElements.forEach(p => p.remove());
-
-            for (let j = 0; j < mergedSpan.length; j++) {
-                const span = mergedSpan[j];
-
-                point.spanElements.forEach(el => {
-                    if (el.className === span.className) {
-                        span.innerText += el.innerText.trim() + ' ';
-                    }
-                })
-
-                span.innerText = span.innerText.trim();
-
-                if (span.innerText.length === 0) {
-                    continue;
-                }
-
-                console.log(span.innerText);
-
-                span.id = point.id + "_span_" + j;
-
-                // Default styling values
-                span.style.display = "block";
-                span.style.lineHeight = 1;
-                span.style.whiteSpace = "normal";
-                span.style.textAlign = "left";
-                span.className += " " + selectableKeyword;
-                
-                span.onclick = (e) => {
-                    setSelectedElement(e.target);
-                    setTextFieldValue(e.target.innerText);
-                    setTextWrap(e.target.style.whiteSpace);
-                    setTextAlign(e.target.style.textAlign);
-                    setIsElementEditable(e.target.classList.contains(editableKeyword))
-                }
-
-                span.dataset.textLimit = span.innerText.length;
-
-                point.element.appendChild(span);
-            }
-        }
+        })
     }
 
     function handleTextChange(e) {
         selectedElement.innerText = e.target.value;
         setTextFieldValue(e.target.value);
+        setIsChangesSaved(false);
     }
 
     function handleWrapping(e) {
         selectedElement.style.whiteSpace = e.target.value;
         setTextWrap(e.target.value);
+        setIsChangesSaved(false);
     }
 
     function handleAlign(e) {
         selectedElement.style.textAlign = e.target.value;
         setTextAlign(e.target.value);
+        setIsChangesSaved(false);
     }
 
     function handleCheckboxEditable(e) {
@@ -400,56 +390,38 @@ function TemplateEngine(props: PageProps) {
         e.target.checked ? list.add(editableKeyword) : list.remove(editableKeyword);
 
         setIsElementEditable(list.contains(editableKeyword))
+        setIsChangesSaved(false);
     }
 
     function handleAdminFormUploadTemplate(e) {
         // Not too sure about this approach, refactor later if possible
-        // for (let i = 0; i < templateFiles.length; i++) {
-        //     const template = templateFiles[i];
+        for (let i = 0; i < templateFiles.length; i++) {
+            const template = templateFiles[i];
 
-        //     const newDoc = new DOMParser().parseFromString(template.data, 'text/html');
-        //     const selectableElements = newDoc.querySelectorAll("." + selectableKeyword);
+            const newDoc = new DOMParser().parseFromString(template.data, 'text/html');
+            const selectableElements = newDoc.querySelectorAll("." + selectableKeyword);
 
-        //     for (let i = 0; i < selectableElements.length; i++) {
-        //         selectableElements[i].classList.remove(selectableKeyword);
-        //     }
-
-        //     ApiInstance.createFile(`${templateName}_${i}`, new XMLSerializer().serializeToString(newDoc), "template", companyId).then(res => {
-        //         if (res.status === "SUCCESS") {
-        //             alert("Template is geupload.");
-        //             setSection(null);
-        //             toggleEditorToUpload();
-        //         } else {
-        //             alert("Template is NIET geupload.");
-        //             toggleEditorToUpload();
-        //         }
-        //     })
-        // }
-
-        const newDoc = new DOMParser().parseFromString(new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 'text/html');
-        const selectableElements = newDoc.querySelectorAll("." + selectableKeyword);
-
-        for (let i = 0; i < selectableElements.length; i++) {
-            selectableElements[i].classList.remove(selectableKeyword);
-        }
-
-        ApiInstance.createFile(`${templateName}`, new XMLSerializer().serializeToString(newDoc), "template", companyId).then(res => {
-            if (res.status === "SUCCESS") {
-                alert("Template is geupload.");
-                setSection(null);
-                toggleEditorToUpload();
-            } else {
-                alert("Template is NIET geupload.");
-                toggleEditorToUpload();
+            for (let i = 0; i < selectableElements.length; i++) {
+                selectableElements[i].classList.remove(selectableKeyword);
             }
-        })
+
+            ApiInstance.createFile(`${templateName}_${i}`, new XMLSerializer().serializeToString(newDoc), "template", companyId).then(res => {
+                if (res.status === "SUCCESS") {
+                    alert("Template is geupload.");
+                    toggleEditorToUpload();
+                } else {
+                    alert("Template is NIET geupload.");
+                    toggleEditorToUpload();
+                }
+            })
+        }
     }
 
     // TODO: new name if possible
     function handleCustomerFormUploadTemplateToDesign(e) {
         // Not too sure about this approach, refactor later if possible
-        for (let i = 0; i < templates.length; i++) {
-            const template = templates[i];
+        for (let i = 0; i < templateFiles.length; i++) {
+            const template = templateFiles[i];
 
             ApiInstance.createFile(
                 `${designName}_${i}`, 
@@ -461,13 +433,16 @@ function TemplateEngine(props: PageProps) {
                 if (res.status === "FAIL") {
                     alert("Design is NIET gemaakt. Er ging iets mis.");
                     toggleEditorToDesign();
-                } else if (i === templates.length - 1 && res.status === "SUCCESS") {
+                } else if (i === templateFiles.length - 1 && res.status === "SUCCESS") {
                     alert("Design is gemaakt. U kunt het design nog aanpassen zolang het nog niet gevalideerd is.");
-                    setSection(null);
                     toggleEditorToDesign();
                 }
             })
         }
+    }
+
+    function handleSave(e) {
+        setIsChangesSaved(true);
     }
 
     function ActionButton(props) {
@@ -487,7 +462,6 @@ function TemplateEngine(props: PageProps) {
                     alert("Actie geannuleerd");
                 } else {
                     if (isAdminTemplateMode) {
-                        setSection("upload");
                         toggleEditorToUpload();
                     } else if (isAdminDesignMode) {
                         designs.forEach(design => {
@@ -512,7 +486,6 @@ function TemplateEngine(props: PageProps) {
                             })
                         });
                     } else {
-                        setSection("design");
                         toggleEditorToDesign();
                     }
                 }
@@ -531,7 +504,6 @@ function TemplateEngine(props: PageProps) {
                     <TextField fullWidth label="Naam" id="fullWidth" style={{ marginTop: "20px" }} onChange={e => setTemplateName(e.target.value)} />
                     <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleAdminFormUploadTemplate}>Upload template</Button>
                     <Button variant="contained" color='error' style={{ marginTop: "20px", marginLeft: "20px" }} onClick={e => {
-                        setSection(null);
                         toggleEditorToUpload();
                     }}>Cancel</Button>
                 </Box>
@@ -541,7 +513,6 @@ function TemplateEngine(props: PageProps) {
                     <TextField fullWidth label="Naam" id="fullWidth" style={{ marginTop: "20px" }} onChange={e => setDesignName(e.target.value)} />
                     <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleCustomerFormUploadTemplateToDesign}>Maak design</Button>
                     <Button variant="contained" color='error' style={{ marginTop: "20px", marginLeft: "20px" }} onClick={e => {
-                        setSection(null);
                         toggleEditorToDesign();
                     }}>Cancel</Button>
                 </Box>
@@ -644,8 +615,8 @@ function TemplateEngine(props: PageProps) {
                             }
                             {
                                 selectedElement !== null &&
-                                <Button variant="contained" component="span" color="success" onClick={e => setSelectedElement(null)} style={{ width: "100%" }}>
-                                    Done
+                                <Button variant="contained" component="span" color={isChangesSaved ? "success" : "error"} onClick={handleSave} style={{ width: "100%" }}>
+                                    {isChangesSaved ? "saved" : "not saved"}
                                 </Button>
                             }
                             {
@@ -657,6 +628,15 @@ function TemplateEngine(props: PageProps) {
                             {
                                 templateFiles.length > 0 && isAdminDesignMode && <ActionButton text="Valideer" />
                             }
+                            <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={e => {
+                                const confirmResult = window.confirm("Weet u zeker dat u terug wilt gaan? Uw veranderingen worden niet opgeslagen.");
+
+                                if (confirmResult) {
+                                    window.location = isAdmin() ? "/admin-portal" : "/user-portal";
+                                }
+                            }}>
+                                Terug naar {isAdmin() ? "admin portaal" : "user portaal"}
+                            </Button>
                         </Stack>
                     </Box>
                 </Grid>
