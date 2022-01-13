@@ -405,7 +405,7 @@ function TemplateEngine(props: PageProps) {
                 selectableElements[i].classList.remove(selectableKeyword);
             }
 
-            ApiInstance.createFile(`${templateName}_${i}`, new XMLSerializer().serializeToString(newDoc), "template", companyId).then(res => {
+            ApiInstance.createFile(templateName, `${templateName.replaceAll(' ', '_')}`, new XMLSerializer().serializeToString(newDoc), "template", companyId).then(res => {
                 if (res.status === "SUCCESS") {
                     alert("Template is geupload.");
                     toggleEditorToUpload();
@@ -423,7 +423,8 @@ function TemplateEngine(props: PageProps) {
         for (let i = 0; i < templateFiles.length; i++) {
             const template = templateFiles[i];
             ApiInstance.createFile(
-                `${designName}_${i}`, 
+                designName,
+                `${designName.replaceAll(' ', '_')}_${i}`,
                 template.data, 
                 "design", 
                 getPayloadAsJson()?.company, 
@@ -466,7 +467,7 @@ function TemplateEngine(props: PageProps) {
                     } else if (isAdminDesignMode) {
                         designs.forEach(design => {
                             const { Id, ...newDesign} = design;
-                            newDesign.Updated_at = new Date().toLocaleDateString('nl');
+                            newDesign.Updated_at = new Date().toLocaleDateString('en-US');
                             newDesign.Verified = 1;
 
                             const newDoc = new DOMParser().parseFromString(new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 'text/html');
@@ -478,6 +479,7 @@ function TemplateEngine(props: PageProps) {
                             console.log(newDoc);
                             // changed to also update file if necessary
                             ApiInstance.updateFile(
+                                newDesign.Name,
                                 newDesign.Name,
                                 new XMLSerializer().serializeToString(newDoc),
                                 "design", 

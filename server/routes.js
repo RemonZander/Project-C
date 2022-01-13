@@ -57,61 +57,61 @@ for (let i = 0; i < TableStructure.length; i++) {
 
   // For creating files to the storage
   if (table.name === "image" || table.name === "design" || table.name === "template") {
-    Route.add(`/${table.name}/create`, async (req, res) => {
-      try {
-        const requestBody = await req.getRequestData();
-        const payload = req.getPayload();
-        const conn = DBManager.startConnection();
+      Route.add(`/${table.name}/create`, async (req, res) => {
+          try {
+              const requestBody = await req.getRequestData();
+              const payload = req.getPayload();
+              const conn = DBManager.startConnection();
 
-        let date = null;
-        let result = null;
-        let sqlValues = [];
+              let date = null;
+              let result = null;
+              let sqlValues = [];
 
-        if (table.name === "image" || table.name === "design") {
-          date = new Date().toLocaleDateString();
-        }
+              if (table.name === "image" || table.name === "design") {
+                  date = new Date().toLocaleDateString('en-US');
+              }
 
-        const companyID = requestBody.companyId !== null ? requestBody.companyId : payload.company;
+              const companyID = requestBody.companyId !== null ? requestBody.companyId : payload.company;
 
-        if (table.name === "image") {
-          result = await Storage.addImage(requestBody.name, companyID, requestBody.data);
-          sqlValues = [
-            path.normalize(Storage.storagePathRelative + `/${companyID}/images/${requestBody.name}`),
-            date,
-            date,
-            companyID,
-          ];
-        } else if (table.name === "template") {
-          result = await Storage.addTemplate(requestBody.name, companyID, requestBody.data);
-          sqlValues = [
-            path.normalize(Storage.storagePathRelative + `/${companyID}/templates/${requestBody.name}.html`),
-            companyID,
-            requestBody.name,
-          ]
-        } else {
-          result = await Storage.addDesign(requestBody.name, companyID, requestBody.templateId, requestBody.data);
-          sqlValues = [
-            path.normalize(Storage.storagePathRelative + `/${companyID}/designs/${requestBody.templateId}/${requestBody.name}.html`),
-            date,
-            date,
-            0,
-            false,
-            requestBody.templateId,
-            requestBody.name,
-          ]
-        }
+              if (table.name === "image") {
+                  result = await Storage.addImage(requestBody.name, companyID, requestBody.data);
+                  sqlValues = [
+                      path.normalize(Storage.storagePathRelative + `/${companyID}/images/${requestBody.name}`),
+                      date,
+                      '0-0-0000',
+                      companyID,
+                  ];
+              } else if (table.name === "template") {
+                  result = await Storage.addTemplate(requestBody.name, companyID, requestBody.data);
+                  sqlValues = [
+                      path.normalize(Storage.storagePathRelative + `/${companyID}/templates/${requestBody.name}.html`),
+                      companyID,
+                      requestBody.docName,
+                  ]
+              } else {
+                  result = await Storage.addDesign(requestBody.name, companyID, requestBody.templateId, requestBody.data);
+                  sqlValues = [
+                      path.normalize(Storage.storagePathRelative + `/${companyID}/designs/${requestBody.templateId}/${requestBody.name}.html`),
+                      date,
+                      '0-0-0000',
+                      0,
+                      false,
+                      requestBody.templateId,
+                      requestBody.docName,
+                  ]
+              }
 
-        if (result !== null) {
-          throw result;
-        }
+              if (result !== null) {
+                  throw result;
+              }
 
-        await conn.runStatement(`INSERT INTO ${table.name} (${table.columns.join()}) VALUES (${table.columns.map((val) => "?").join()})`, sqlValues);
+              await conn.runStatement(`INSERT INTO ${table.name} (${table.columns.join()}) VALUES (${table.columns.map((val) => "?").join()})`, sqlValues);
 
-        res.responseSuccess();
-      } catch (error) {
-        return error;
-      }
-    });
+              res.responseSuccess();
+          } catch (error) {
+              return error;
+          }
+      });
 
     Route.add(`/${table.name}/update`, async (req, res) => {
       try {
@@ -137,7 +137,7 @@ for (let i = 0; i < TableStructure.length; i++) {
 
               arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
             } else {
-              result = await Storage.addDesign(requestBody.name, companyID, requestBody.templateId, requestBody.data, true);
+                result = await Storage.addDesign(requestBody.docName, companyID, requestBody.templateId, requestBody.data, true);
 
               arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
             }
