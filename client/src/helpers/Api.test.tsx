@@ -235,19 +235,19 @@ describe("Api helper tests", () => {
     });
     
     test("UPDATE: database bevat geen data", async () => {
-            for (let index = 1; index <= 27; index++) {
-                await ApiInstance.delete('user',index);
-            };
-    
-            let testUpdateUser = [
-                "updated@gmail.com",
-                "updated",
-                "8",
-                "updatedName",
-                "10",
-            ];
-    
-            expect(await ApiInstance.update('user', 1, testUpdateUser)).toThrowError();
+        for (let index = 1; index <= 27; index++) {
+            await ApiInstance.delete('user',index);
+        };
+
+        let testUpdateUser = [
+            "updated@gmail.com",
+            "updated",
+            "8",
+            "updatedName",
+            "10",
+        ];
+
+        expect(await ApiInstance.update('user', 1, testUpdateUser)).toThrowError();
     });
 })
 
