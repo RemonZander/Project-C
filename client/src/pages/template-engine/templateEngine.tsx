@@ -7,10 +7,13 @@ import { CreateExport } from '../../helpers/Export';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
 import { Box, Grid, styled, Typography } from '@material-ui/core';
 import { Button, Checkbox, FormControl, FormControlLabel, InputLabel, Link, MenuItem, Select, Stack, TextField } from '@mui/material';
+import { makeStyles } from '@material-ui/core/styles';
 import { getPayloadAsJson, getToken, isAdmin } from '../../helpers/Token';
 import { PageProps } from '../../@types/app';
 import { HtmlData, EntryPoint, TemplateFiles } from '../../@types/templateEngine';
 import Api from '../../helpers/Api';
+import { mainPage } from '../fotolibrary-pagina/fotolibrary-pagina';
+import { Image } from '../../@types/general';
 
 const ApiInstance = new Api(getToken());
 
@@ -26,6 +29,28 @@ In de render method doe je dan je react gedoe dus hoe je dat normaal zou gebruik
 const Input = styled('input')({
     display: 'none',
 });
+
+const useStylesFotoLib = makeStyles(() => ({
+    icon: {
+        marginRight: '20px',
+    },
+    cardGrid: {
+        padding: '20px 0',
+    },
+    card: {
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    cardMedia: {
+        paddingTop: '56.25%',
+        width: '100%',
+        height: '100%',
+    },
+    cardContent: {
+        flexGrow: 1,
+    },
+}));
 
 /** 
 * Algorithm om alle "entrypoints" te vinden in een template.
@@ -89,6 +114,8 @@ export function getEntryPointsRecursive(container: HTMLElement, entryPoints: Arr
 }
 
 function TemplateEngine(props: PageProps) {
+    console.log(getPayloadAsJson()!);
+
     const [templatePos, setTemplatePos] = useState(0);
     const [designs, setDesigns] = useState([]);
     const [templateFiles, setTemplateFiles] = useState<Array<HtmlData>>([]);
@@ -127,7 +154,19 @@ function TemplateEngine(props: PageProps) {
     const isAdminTemplateMode = isAdmin() && companyId !== undefined && templateId === undefined && designId === undefined;
     const isAdminDesignMode = isAdmin() && companyId !== undefined && templateId === undefined && designId !== undefined;
 
+    const [fotoLibView, setFotoLibView] = useState(false);
+    const [imageList, setImageList] = useState(Array<Image>());
+    const queryParamsObject: { queryParams: { [key: string]: string | number } } = { queryParams: { 'companyId': getPayloadAsJson()!.company } };
+    const stylesFotoLib = useStylesFotoLib();
+    const loadImages = async () => {
+        const ApiInstance = new Api(getToken()!);
+        const imagesFromDatabase = await ApiInstance.all('image');
+        setImageList(Image.makeImageArray(imagesFromDatabase.content));
+    };
+
     useEffect(() => {
+        loadImages();
+
         if (isCustomerTemplateMode) {
             ApiInstance.read('template', templateId).then(res => {
                 if (res.status === "SUCCESS") {
@@ -602,7 +641,11 @@ function TemplateEngine(props: PageProps) {
                                     <Button variant="contained" style={{ textAlign: "center", padding: "0px", fontSize: "15px" }} onClick={() => { handleFontSizeDown(); }}>
                                         a˅
                                     </Button>
-                                </div></>
+                                    </div>
+                                    <Button variant="contained" style={{ textAlign: "center" }} onClick={() => { setFotoLibView(!fotoLibView) }}>
+                                        fotolib temp button
+                                    </Button>
+                                </>
                             }
                             {
                                 selectedElement !== null && isAdminTemplateMode &&
@@ -676,14 +719,16 @@ function TemplateEngine(props: PageProps) {
                     </Box>
                 </Grid>
                 <Grid item xs={true}>
-                    {templateFiles.length > 0 && templatePos >= 0 && templatePos <= templateFiles.length - 1 ?
+                    {templateFiles.length > 0 && templatePos >= 0 && templatePos <= templateFiles.length - 1 && !fotoLibView ?
                         <iframe onLoad={handleTemplateLoad}
                             title="templateViewer"
                             srcDoc={templateFiles[templatePos]?.data}
                             style={{ height: "100%", width: "100%" }}
                             ref={editorFrameRef}
                         ></iframe>
-                        :
+                        : fotoLibView ?
+                            mainPage(getPayloadAsJson()!.type === "Admin" ? props : queryParamsObject, imageList, getPayloadAsJson()!.type !== "Employee" ? true : false, setImageList, stylesFotoLib, true)
+                            :
                         <div style={{
                             display: "flex",
                             justifyContent: "center",

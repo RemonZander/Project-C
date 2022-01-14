@@ -206,7 +206,6 @@ function UserPortal() {
             setPass(await GetUserPassword(getPayloadAsJson()!));
             setUserList(await getUsers());
             
-
             loadImages();
         })();
     }, []);
@@ -527,15 +526,19 @@ function UserPortal() {
                                                     <Typography gutterBottom variant="h6" align="center">
                                                         {design.Name} <br />
                                                         {!design.Verified && isModerator ?
-                                                            <Button variant="contained" color="primary" onClick={async () => {
+                                                            <Button variant="contained" color="primary" onClick={() => {
                                                                 window.open('/editor?designId=' + design.Id, '_blank');
                                                             }}>
                                                                 Valideren / bewerken
                                                             </Button> : !design.Verified ?
-                                                                <Button variant="contained" color="primary">
+                                                                <Button variant="contained" color="primary" onClick={() => {
+                                                                    window.open('/editor?designId=' + design.Id, '_blank');
+                                                                }}>
                                                                     Bewerken
-                                                                </Button> : <Button variant="contained" color="primary">
-                                                                    Downloaden
+                                                                </Button> : <Button variant="contained" color="primary" onClick={() => {
+                                                                    window.open('/editor?designId=' + design.Id, '_blank');
+                                                                }}>
+                                                                    Bekijken / Downloaden
                                                                 </Button>
                                                         }
                                                     </Typography>
@@ -790,7 +793,7 @@ function UserPortal() {
                                 </ListItem>
                                 <Divider />
                             </List> : ''}                   
-                </Box> : mainPage(queryParamsObject, imageList, isModerator, setImageList, stylesFotoLib)}                         
+                </Box> : mainPage(queryParamsObject, imageList, isModerator, setImageList, stylesFotoLib, false)}                         
             </div>
         </React.Fragment>
     );
@@ -956,28 +959,6 @@ async function makeInfoViewBoolList() {
     }
 
     return boolList;
-}
-
-async function onValidateButtonClick(design: Design, setdesignList: any) {
-    const ApiInstance = new Api(getToken()!);
-    let result = [];
-
-    if (typeof (result = await ApiInstance.update('design', design.Id, [
-        design.Filepath,
-        design.Created_at.toLocaleDateString(),
-        design.Updated_at.toLocaleDateString(),
-        design.Downloads.toString(),
-        '1',
-        design.Template_id.toString(),
-        design.Name,
-    ])) === undefined) {
-        window.alert(
-            'De verbinding met de database is verbroken. Probeer het later opnieuw.'
-        );
-        return;
-    };
-
-    setdesignList(await getDesigns());
 }
 
 export async function onMakeMainUserButtonClick(user: User, currentUserId: number) {

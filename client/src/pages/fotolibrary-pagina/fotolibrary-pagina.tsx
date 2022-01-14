@@ -175,13 +175,13 @@ function Gallery(props: PageProps) {
                 </Toolbar>
             </AppBar>
             <main>
-                {mainPage(props, images, isAdmin, setImages, styles)}
+                {mainPage(props, images, isAdmin, setImages, styles, false)}
             </main>
         </>
     );
 }
 
-export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolean, setImages: React.Dispatch<React.SetStateAction<Image[]>>, styles: ClassNameMap) {
+export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolean, setImages: React.Dispatch<React.SetStateAction<Image[]>>, styles: ClassNameMap, select: boolean) {
     return (
         <div>
             <Container maxWidth="md" className={styles.cardGrid}>
@@ -211,35 +211,35 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
                                     return (
                                         <Grid item xs={12} sm={6} md={4} key={index}>
                                             <Card className={styles.card}>
-                                                <Button
+                                                {select ? <Button
                                                     id={'btn' + index}
                                                     variant="contained"
                                                     style={{ color: 'white', backgroundColor: 'blue', opacity: 0 }}
                                                     onMouseEnter={() =>
-                                                        imageOnHover(index, isAdmin)
+                                                        imageOnHover(index, isAdmin, select)
                                                     }
                                                     onMouseLeave={() =>
-                                                        imageLeave(index, isAdmin)
+                                                        imageLeave(index, isAdmin, select)
                                                     }
                                                     onClick={(e) =>
                                                         selectedPicture(
-                                                            e,'select',
+                                                            e, 'select',
                                                             image.Id
                                                         )
                                                     }
                                                 >
                                                     {'Selecteren'}
-                                                </Button>
+                                                </Button> : ''}
                                                 <CardMedia
                                                     id={'img' + index}
                                                     className={styles.cardMedia}
                                                     title={imageName[0]}
                                                     image={actualImageURL}
                                                     onMouseEnter={() =>
-                                                        imageOnHover(index, isAdmin)
+                                                        imageOnHover(index, isAdmin, select)
                                                     }
                                                     onMouseLeave={() =>
-                                                        imageLeave(index, isAdmin)
+                                                        imageLeave(index, isAdmin, select)
                                                     }
                                                 />
                                                 <Button
@@ -247,10 +247,10 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
                                                     variant="contained"
                                                     style={ {color: 'white', backgroundColor: 'red', opacity: 0} }
                                                     onMouseEnter={() =>
-                                                        imageOnHover(index, isAdmin)
+                                                        imageOnHover(index, isAdmin, select)
                                                     }
                                                     onMouseLeave={() =>
-                                                        imageLeave(index, isAdmin)
+                                                        imageLeave(index, isAdmin, select)
                                                     }
                                                     onClick={(e) =>
                                                         selectedPicture(
@@ -279,35 +279,35 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
                                     return (
                                         <Grid item xs={12} sm={6} md={4} key={index}>
                                             <Card className={styles.card}>
-                                                <Button
+                                                {select ? <Button
                                                     id={'btn' + index}
                                                     variant="contained"
                                                     style={{ color: 'white', backgroundColor: 'blue', opacity: 0 }}
                                                     onMouseEnter={() =>
-                                                        imageOnHover(index, isAdmin)
+                                                        imageOnHover(index, isAdmin, select)
                                                     }
                                                     onMouseLeave={() =>
-                                                        imageLeave(index, isAdmin)
+                                                        imageLeave(index, isAdmin, select)
                                                     }
                                                     onClick={(e) =>
                                                         selectedPicture(
-                                                            e,'select',
+                                                            e, 'select',
                                                             image.Id
                                                         )
                                                     }
                                                 >
                                                     {'Selecteren'}
-                                                </Button>
+                                                </Button> : ''}
                                                 <CardMedia
                                                     id={'img' + index}
                                                     className={styles.cardMedia}
                                                     title={imageName[0]}
                                                     image={actualImageURL}
                                                     onMouseEnter={() =>
-                                                        imageOnHover(index, isAdmin)
+                                                        imageOnHover(index, isAdmin, select)
                                                     }
                                                     onMouseLeave={() =>
-                                                        imageLeave(index, isAdmin)
+                                                        imageLeave(index, isAdmin, select)
                                                     }
                                                 />
                                                 <CardContent className={styles.cardContent}>
@@ -360,7 +360,7 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
         return imageName;
     }
 
-    function imageOnHover(id: number, isAdmin: boolean) {
+    function imageOnHover(id: number, isAdmin: boolean, select: boolean) {
         const imgId = 'img' + id;
         if (isAdmin) {
             const buttonId = 'btn' + id;
@@ -368,12 +368,14 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
             document.getElementById(imgId)!.style.filter = 'blur(4px)';
             document.getElementById(imgId)!.style.transition = '1s';
 
-            document.getElementById(buttonId)!.style.transition = '1s';
-            document.getElementById(buttonId)!.style.opacity = '1';
-            document.getElementById(buttonId)!.style.top =
-                String(parseInt(document.getElementById(imgId)!.style.height) / 1.5) + 'px';
-            document.getElementById(buttonId)!.style.left =
-                String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px';  
+            if (select) {
+                document.getElementById(buttonId)!.style.transition = '1s';
+                document.getElementById(buttonId)!.style.opacity = '1';
+                document.getElementById(buttonId)!.style.top =
+                    String(parseInt(document.getElementById(imgId)!.style.height) / 1.5) + 'px';
+                document.getElementById(buttonId)!.style.left =
+                    String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px';
+            }
 
             document.getElementById(buttonDeleteId)!.style.transition = '1s';
             document.getElementById(buttonDeleteId)!.style.opacity = '1';
@@ -395,14 +397,14 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
         }
     }
 
-    function imageLeave(id: number, isAdmin: boolean) {
+    function imageLeave(id: number, isAdmin: boolean, select: boolean) {
         const imgId = 'img' + id;
         if (isAdmin) {
             const buttonId = 'btn' + id;
             const buttonDeleteId = 'btnDelete' + id;
             
             document.getElementById(imgId)!.style.filter = 'none';
-            document.getElementById(buttonId)!.style.opacity = '0';
+            if (select) document.getElementById(buttonId)!.style.opacity = '0';           
 
             document.getElementById(imgId)!.style.filter = 'none';
             document.getElementById(buttonDeleteId)!.style.opacity = '0';
@@ -410,7 +412,7 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
         else {
             const buttonId = 'btn' + id; 
             document.getElementById(imgId)!.style.filter = 'none';
-            document.getElementById(buttonId)!.style.opacity = '0';
+            if (select) document.getElementById(buttonId)!.style.opacity = '0';
         }
     }
 
