@@ -35,8 +35,8 @@ class Route {
         // create special exception to notify if body is missing or empty
         await conn.runStatement(
           `
-                    INSERT INTO ${table.name} (${table.columns.join()})
-                    VALUES (${requestBody.values.map((val) => "?").join()})`,
+          INSERT INTO ${table.name} (${table.columns.join()})
+          VALUES (${requestBody.values.map((val) => "?").join()})`,
           requestBody.values
         );
 

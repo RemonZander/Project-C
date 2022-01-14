@@ -10,7 +10,7 @@ import { getToken } from '../../helpers/Token';
 import Enumerable from 'linq';
 import testimg2 from './testimg2.png';
 
-async function getData() {
+export async function getData() {
     const ApiInstance = new Api(getToken());
     let portalArray = [];
     let companyListDb = [];

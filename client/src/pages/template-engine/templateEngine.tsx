@@ -27,6 +27,67 @@ const Input = styled('input')({
     display: 'none',
 });
 
+/** 
+* Algorithm om alle "entrypoints" te vinden in een template.
+* Een entrypoint is een html element die teksten bevat.
+*/
+export function getEntryPointsRecursive(container: HTMLElement, entryPoints: Array<EntryPoint> = [], closestElementWithId: string = "") {
+    if (container.children.length === 0) {
+        throw Error("Invalid container, does not include children.")
+    }
+
+    const children = container.children;
+    const entryPoint = entryPoints.filter(point => point.id === closestElementWithId)[0];
+    for (let i = 0; i < children.length; i++) {
+        const child = children[i] as HTMLElement;
+        const childStyles = getComputedStyle(child);
+
+        if (childStyles.backgroundImage !== 'none' && childStyles.backgroundImage !== '') {
+            const url = childStyles.backgroundImage.split("\"")[1];
+
+            if (!(url.startsWith('data:'))) {
+                const image = findImageByUrl(url);
+
+                if (image !== undefined) {
+                    child.style.backgroundImage = `url(${image['data']})`;
+                }
+            }
+        }
+
+        // Assume that we found an entrypoint and give it an appropiate ID
+        if (child.id === "" && child.tagName.toLowerCase() === "div" && child.style.length !== 0) {
+            child.id = "layer_" + entryPoints.length;
+            child.className = "layer";
+
+            entryPoints.push({
+                id: child.id,
+                element: child,
+                spanClasses: [],
+                pElements: [],
+                spanElements: []
+            });
+        }
+
+        if (child.tagName.toLowerCase() === "p") {
+            entryPoint.pElements.push(child as HTMLParagraphElement);
+        }
+
+        if (child.tagName.toLowerCase() === "span") {
+            entryPoint.spanElements.push(child as HTMLSpanElement);
+
+            if (!entryPoint.spanClasses.includes(child.className)) {
+                entryPoint.spanClasses.push(child.className);
+            }
+        }
+
+        if (child.children.length !== 0) {
+            getEntryPointsRecursive(child, entryPoints, child.id === "" ? closestElementWithId : child.id);
+        }
+    }
+
+    return entryPoints;
+}
+
 function TemplateEngine(props: PageProps) {
     const [templatePos, setTemplatePos] = useState(0);
     const [designs, setDesigns] = useState([]);
@@ -228,61 +289,7 @@ function TemplateEngine(props: PageProps) {
                         }
                     }
 
-                    // Self calling function that returns the entry points for use further down the code
-                    // It also adds ids, classes and events to the elements it goes through
-                    const entryPoints = (function getEntryPointsRecursive(container: HTMLElement, entryPoints: Array<EntryPoint> = [], closestElementWithId: string = "") {
-                        const children = container.children;
-                        const entryPoint = entryPoints.filter(point => point.id === closestElementWithId)[0];
-
-                        for (let i = 0; i < children.length; i++) {
-                            const child = children[i] as HTMLElement;
-                            const childStyles = getComputedStyle(child);
-
-                            if (childStyles.backgroundImage !== 'none' && childStyles.backgroundImage !== '') {
-                                const url = childStyles.backgroundImage.split("\"")[1];
-
-                                if (!(url.startsWith('data:'))) {
-                                    const image = findImageByUrl(url);
-
-                                    if (image !== undefined) {
-                                        child.style.backgroundImage = `url(${image['data']})`;
-                                    }
-                                }
-                            }
-
-                            // Assume that we found an entrypoint and give it an appropiate ID
-                            if (child.id === "" && child.tagName.toLowerCase() === "div" && child.style.length !== 0) {
-                                child.id = "layer_" + entryPoints.length;
-                                child.className = "layer";
-
-                                entryPoints.push({
-                                    id: child.id,
-                                    element: child,
-                                    spanClasses: [],
-                                    pElements: [],
-                                    spanElements: []
-                                });
-                            }
-
-                            if (child.tagName.toLowerCase() === "p") {
-                                entryPoint.pElements.push(child as HTMLParagraphElement);
-                            }
-
-                            if (child.tagName.toLowerCase() === "span") {
-                                entryPoint.spanElements.push(child as HTMLSpanElement);
-
-                                if (!entryPoint.spanClasses.includes(child.className)) {
-                                    entryPoint.spanClasses.push(child.className);
-                                }
-                            }
-
-                            if (child.children.length !== 0) {
-                                getEntryPointsRecursive(child, entryPoints, child.id === "" ? closestElementWithId : child.id);
-                            }
-                        }
-
-                        return entryPoints;
-                    })(wrapper);
+                    const entryPoints = getEntryPointsRecursive(wrapper);
 
                     for (let i = 0; i < entryPoints.length; i++) {
                         const point = entryPoints[i];
