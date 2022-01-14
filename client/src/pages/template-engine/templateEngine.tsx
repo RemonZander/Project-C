@@ -5,7 +5,7 @@ import './templateEngine.css';
 import { useEffect, useRef, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
-import { Box, Grid, styled, Typography } from '@material-ui/core';
+import { Box, Grid, styled, Typography, AppBar, Toolbar } from '@material-ui/core';
 import { Button, Checkbox, FormControl, FormControlLabel, InputLabel, Link, MenuItem, Select, Stack, TextField } from '@mui/material';
 import { makeStyles } from '@material-ui/core/styles';
 import { getPayloadAsJson, getToken, isAdmin } from '../../helpers/Token';
@@ -14,6 +14,7 @@ import { HtmlData, EntryPoint, TemplateFiles } from '../../@types/templateEngine
 import Api from '../../helpers/Api';
 import { mainPage } from '../fotolibrary-pagina/fotolibrary-pagina';
 import { Image } from '../../@types/general';
+import kyndalogo from './kynda.png';
 
 const ApiInstance = new Api(getToken());
 
@@ -114,8 +115,6 @@ export function getEntryPointsRecursive(container: HTMLElement, entryPoints: Arr
 }
 
 function TemplateEngine(props: PageProps) {
-    console.log(getPayloadAsJson()!);
-
     const [templatePos, setTemplatePos] = useState(0);
     const [designs, setDesigns] = useState([]);
     const [templateFiles, setTemplateFiles] = useState<Array<HtmlData>>([]);
@@ -563,9 +562,44 @@ function TemplateEngine(props: PageProps) {
 
     return (
         <>
+            <AppBar position="relative" style={{ background: 'white' }}>
+                <Toolbar>
+                    <img
+                        src={kyndalogo}
+                        alt="kynda logo"
+                        width="90"
+                        height="30"
+                        style={{ marginRight: '20px' }}
+                    />
+                    <Typography variant="h5" style={{ color: 'black' }}>
+                        Editor
+                    </Typography>
+                    <Grid container spacing={2} justifyContent="flex-end">
+                        <Grid item>
+                        </Grid>
+                        <Grid item>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => {
+                                    document.cookie = document.cookie.substring(
+                                        document.cookie.indexOf('token='),
+                                        6
+                                    );
+                                    window.location.replace('/');
+                                }}
+                            >
+                                Uitloggen
+                            </Button>
+                        </Grid>
+                        <Grid item>
+                        </Grid>
+                    </Grid>
+                </Toolbar>
+            </AppBar>
             {
                 isAdminTemplateMode ?
-                <Box ref={uploadSectionRef} className='toggleNone' sx={{ flexDirection: 'column', justifyContent: 'center', margin: '30px 30% 0 30%' }}>
+                    <Box ref={uploadSectionRef} className='toggleNone' sx={{ flexDirection: 'column', justifyContent: 'center', margin: '30px 30% 0 30%'}}>
                     <h1>Upload template form</h1>
                     <TextField fullWidth label="Naam" id="fullWidth" style={{ marginTop: "20px" }} onChange={e => setTemplateName(e.target.value)} />
                     <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleAdminFormUploadTemplate}>Upload template</Button>
@@ -583,15 +617,15 @@ function TemplateEngine(props: PageProps) {
                     }}>Cancel</Button>
                 </Box>
             }
-            <Grid ref={editorSectionRef} container style={{ overflow: "hidden" }}>
-                <Grid item xs={2} style={{ height: "100vh" }}>
+            <Grid ref={editorSectionRef} container style={{ overflow: "hidden"}}>
+                <Grid item xs={2} style={{ height: "93.2vh" }}>
                     <Box
                         component={Grid}
                         container
                         boxShadow={3}
                         style={{ height: "inherit" }}
                     >
-                        <Stack spacing={2} alignItems={"center"} style={{ width: "95%", margin: "10px 10px 0 10px" }}>
+                        <Stack spacing={2} alignItems={"center"} style={{ width: "95%", margin: "20px 10px 0 10px" }}>
                             {
                                 isAdminTemplateMode && (
                                     <label htmlFor="contained-button-file" style={{ width: "100%" }}>
