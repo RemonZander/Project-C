@@ -46,8 +46,9 @@ export default class Api {
         });
     }
 
-    async createFile(fileName: string, dataString: string, type: FileType, companyId: number | null = null, templateId: number | null = null) {
+    async createFile(docName: string, fileName: string, dataString: string, type: FileType, companyId: number | null = null, templateId: number | null = null) {
         return await this._doFetch(this.serverUrl + `/${type}/create`, 'POST', {
+            docName: docName,
             name: fileName,
             data: dataString,
             companyId: companyId,
@@ -55,8 +56,9 @@ export default class Api {
         });
     }
 
-    async updateFile(fileName: string, dataString: string, type: FileType, id: number, values: Array<string>, companyId: number | null = null, templateId: number | null = null) {
+    async updateFile(docName: string, fileName: string, dataString: string, type: FileType, id: number, values: Array<string>, companyId: number | null = null, templateId: number | null = null) {
         return await this._doFetch(this.serverUrl + `/${type}/update`, 'PUT', {
+            docName: docName,
             id: id,
             values: values,
             name: fileName,
@@ -75,7 +77,7 @@ export default class Api {
 
     async createImage(file: File, companyId: number | null = null) {
         const result = await readFileAsDataUrl(file);
-        return await this.createFile(file.name, result, "image", companyId);
+        return await this.createFile('', file.name, result, "image", companyId);
     }
 
     async removeImage(id: number) {

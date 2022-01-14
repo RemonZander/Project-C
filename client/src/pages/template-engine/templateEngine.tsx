@@ -1,11 +1,11 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 
 import './templateEngine.css';
 
 import { useEffect, useRef, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
-import { Box, Grid, styled } from '@material-ui/core';
+import { Box, Grid, styled, Typography } from '@material-ui/core';
 import { Button, Checkbox, FormControl, FormControlLabel, InputLabel, Link, MenuItem, Select, Stack, TextField } from '@mui/material';
 import { getPayloadAsJson, getToken, isAdmin } from '../../helpers/Token';
 import { PageProps } from '../../@types/app';
@@ -384,6 +384,16 @@ function TemplateEngine(props: PageProps) {
         setIsChangesSaved(false);
     }
 
+    function handleFontSizeUp(e) {
+        selectedElement.style.fontSize = (parseInt(window.getComputedStyle(selectedElement, null).getPropertyValue('font-size').replaceAll('px', '')) + parseInt(parseInt(window.getComputedStyle(selectedElement, null).getPropertyValue('font-size').replaceAll('px', '')) / 48) + "px");
+        setIsChangesSaved(false);
+    }
+
+    function handleFontSizeDown(e) {
+        selectedElement.style.fontSize = (parseInt(window.getComputedStyle(selectedElement, null).getPropertyValue('font-size').replaceAll('px', '')) - parseInt(parseInt(window.getComputedStyle(selectedElement, null).getPropertyValue('font-size').replaceAll('px', '')) / 48) + "px");
+        setIsChangesSaved(false);
+    }
+
     function handleCheckboxEditable(e) {
         const list = selectedElement.classList;
 
@@ -405,7 +415,7 @@ function TemplateEngine(props: PageProps) {
                 selectableElements[i].classList.remove(selectableKeyword);
             }
 
-            ApiInstance.createFile(`${templateName}_${i}`, new XMLSerializer().serializeToString(newDoc), "template", companyId).then(res => {
+            ApiInstance.createFile(templateName, `${templateName.replaceAll(' ', '_')}`, new XMLSerializer().serializeToString(newDoc), "template", companyId).then(res => {
                 if (res.status === "SUCCESS") {
                     alert("Template is geupload.");
                     toggleEditorToUpload();
@@ -423,7 +433,8 @@ function TemplateEngine(props: PageProps) {
         for (let i = 0; i < templateFiles.length; i++) {
             const template = templateFiles[i];
             ApiInstance.createFile(
-                `${designName}_${i}`, 
+                designName,
+                `${designName.replaceAll(' ', '_')}_${i}`,
                 template.data, 
                 "design", 
                 getPayloadAsJson()?.company, 
@@ -466,7 +477,7 @@ function TemplateEngine(props: PageProps) {
                     } else if (isAdminDesignMode) {
                         designs.forEach(design => {
                             const { Id, ...newDesign} = design;
-                            newDesign.Updated_at = new Date().toLocaleDateString('nl');
+                            newDesign.Updated_at = new Date().toLocaleDateString('en-US');
                             newDesign.Verified = 1;
 
                             const newDoc = new DOMParser().parseFromString(new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 'text/html');
@@ -478,6 +489,7 @@ function TemplateEngine(props: PageProps) {
                             console.log(newDoc);
                             // changed to also update file if necessary
                             ApiInstance.updateFile(
+                                newDesign.Name,
                                 newDesign.Name,
                                 new XMLSerializer().serializeToString(newDoc),
                                 "design", 
@@ -564,7 +576,7 @@ function TemplateEngine(props: PageProps) {
                             }
                             {
                                 selectedElement !== null &&
-                                <TextField
+                                <><TextField
                                     id="templateEditorTextField"
                                     label="Type text"
                                     multiline
@@ -576,6 +588,14 @@ function TemplateEngine(props: PageProps) {
                                     ref={textFieldRef}
                                     inputProps={{ maxLength: parseInt(selectedElement.dataset.textLimit) }}
                                 />
+                                <div>
+                                    <Button variant="contained" style={{ textAlign: "center", padding: "0px", fontSize: "15px", marginRight: "10px" }}  onClick={() => { handleFontSizeUp();}}>
+                                        A^
+                                    </Button>
+                                    <Button variant="contained" style={{ textAlign: "center", padding: "0px", fontSize: "15px" }} onClick={() => { handleFontSizeDown(); }}>
+                                        a˅
+                                    </Button>
+                                </div></>
                             }
                             {
                                 selectedElement !== null && isAdminTemplateMode &&
