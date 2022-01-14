@@ -20,9 +20,40 @@ const mockUser = JSON.stringify({
     ]
 });
 
+const mockCreateUser = JSON.stringify({
+    content: [
+        {
+            Company_Id: 7,
+            Email: "test@gmail.com",
+            Id: 28,
+            Name: "test",
+            Password: "wachtwoord123",
+            Role_Id: 1,
+        }
+    ]   
+});
+
+const mockDeleteUser = JSON.stringify({
+    content: [
+        {}
+    ]   
+});
+
+const mockUpdatedUser = JSON.stringify({
+    content: [
+        {
+            Company_Id: 10,
+            Email: "updated@gmail.com",
+            Id: 1,
+            Name: "updatedName",
+            Password: "updated",
+            Role_Id: 8,
+        }
+    ]
+});
 //==============ALL
 describe("Api helper tests", () => {
-    test.only("ALL: database server staat aan en bevat relevante data in juiste format", async () => {
+    test("ALL: database server staat aan en bevat relevante data in juiste format", async () => {
         // Arrange
         fetchMock.mockResponseOnce(mockUser);
 
@@ -30,25 +61,18 @@ describe("Api helper tests", () => {
         let users = await ApiInstance.all('user');
 
         // Assert
-        expect(users).toBeInstanceOf(Array);
+        expect(users).toBeInstanceOf(Object);
     });
     
-    test("ALL: database server staat uit getTemplates", async () => {
-        expect(await ApiInstance.all('user')).toThrowError();
-    });
-    
-    test("ALL: database bevat geen data", async () => {
-        for (let index = 1; index <= 27; index++) {
-            await ApiInstance.delete('user',index);
-        };
+    test("ALL: database server staat uit", async () => {
+        //Act
+        let users = await ApiInstance.all('user');
 
-        const db = await ApiInstance.all('user');
-        const realArray = db.content;
-        console.log(realArray);
-        expect(realArray).toHaveLength(0); 
+        // Assert
+        expect(users).toBe(undefined);
     });
     
-    //==============READ
+//==============READ
     test("READ: database server staat aan en bevat relevante data in juiste format", async () => {
         let testUser = {
             Company_Id: -1,
@@ -57,40 +81,38 @@ describe("Api helper tests", () => {
             Name: "Amadeus Mozart",
             Password: "Admin1!",
             Role_Id: 1,
-        };
-        let userObject = await ApiInstance.read('user', 1);
-        let user = userObject.content[0];
-            expect(user).toEqual(
-                    expect.arrayContaining([testUser])
-            );
-    });
-    
-    test("READ: database server staat uit (UITVOEREN MET SERVER UIT)", async () => {
-        expect(await ApiInstance.read('user', 1)).toThrowError();
-    });
-    
-    test("READ: database bevat geen data", async () => {
-        for (let index = 1; index <= 27; index++) {
-            await ApiInstance.delete('user',index);
-        };
+        }
+        fetchMock.mockResponseOnce(mockUser);
 
-        expect(await ApiInstance.read('user', 1)).toThrowError();
+        let user = await ApiInstance.read('user', 1);
+
+        expect(user.content[0]).toEqual(testUser);
+    });
+    
+    test.skip("READ: database server staat uit (UITVOEREN MET SERVER UIT)", async () => {
+        //Act
+        let users = await ApiInstance.read('user',1);
+
+        //Assert
+        expect(users).toBe(undefined);
     });
     
     test("READ: should throw error after giving a non-existent field as parameter for read", async () => {
-        expect(await ApiInstance.read('animals', 1)).toThrowError();
+        let users = await ApiInstance.read('animals',1);
+
+        expect(users).toBe(undefined);
     });
     
-    //============CREATE
+//============CREATE
     test("CREATE: should create data for the requested database", async () => {
         let testUser = {
-                    Company_Id: 7,
-                    Email: "test@gmail.com",
-                    Id: 28,
-                    Name: "test",
-                    Password: "wachtwoord123",
-                    Role_Id: 1,
-            }
+            Company_Id: 7,
+            Email: "test@gmail.com",
+            Id: 28,
+            Name: "test",
+            Password: "wachtwoord123",
+            Role_Id: 1,
+        }
         await ApiInstance.create('user', [
                 "test@gmail.com",
                 "wachtwoord123",
@@ -98,16 +120,14 @@ describe("Api helper tests", () => {
                 "test",
                 "7",
             ]);
+            
+        fetchMock.mockResponseOnce(mockCreateUser);
+        let user = await ApiInstance.read('user', 28);
     
-        let userObject = await ApiInstance.read('user', 28);
-        let user = userObject.content[0];
-    
-        expect(user).toEqual(
-                expect.arrayContaining([testUser])
-        );
+        expect(user.content[0]).toEqual(testUser);
     });
     
-    test("CREATE: database server staat uit (UITVOEREN MET SERVER UIT)", async () => {
+    test.skip("CREATE: database server staat uit (UITVOEREN MET SERVER UIT)", async () => {
         let testUser = [
             "test@gmail.com",
             "wachtwoord123",
@@ -115,7 +135,11 @@ describe("Api helper tests", () => {
             "test",
             "7",
         ];
-        expect(await ApiInstance.create('user', testUser)).toThrowError();
+
+        await ApiInstance.create('user', testUser);
+        let user = await ApiInstance.read('user', 28);
+
+        expect(user).toBe(undefined);
     });
     
     test("CREATE: should throw error after sending values in the wrong format", async () => {
@@ -124,7 +148,11 @@ describe("Api helper tests", () => {
             "1",
             "test",
         ];
-        expect(await ApiInstance.create('user', testUser)).toThrowError();
+
+        await ApiInstance.create('user', testUser);
+        let user = await ApiInstance.read('user', 28);
+
+        expect(user).toBe(undefined);
     });
     
     test("CREATE: should throw error after creating data for an non-existing field", async () => {
@@ -135,42 +163,48 @@ describe("Api helper tests", () => {
             "test",
             "7",
         ];
-        expect(await ApiInstance.create('animals', testUser)).toThrowError();
+
+        await ApiInstance.create('animals', testUser);
+        let user = await ApiInstance.read('animals', 1);
+
+        expect(user).toBe(undefined);
     });
     
-    
-    
-    // //=============DELETE
+//=============DELETE
     test("DELETE: should delete data from the requested database", async () => {
         await ApiInstance.delete('user', 1);
+
+        fetchMock.mockResponseOnce(mockDeleteUser);
+
         let db = await ApiInstance.read('user', 1);
-        let deletedUser = db.content;
         let expectedObject = {};
-        expect(deletedUser).toMatchObject(expectedObject);
+
+        expect(db).toMatchObject(expectedObject);
     });
     
-    test("DELETE: database server staat uit (UITVOEREN MET SERVER UIT)", async () => {
-        expect(await ApiInstance.delete('user', 1)).toThrowError();
+    test.skip("DELETE: database server staat uit (UITVOEREN MET SERVER UIT)", async () => {
+        await ApiInstance.delete('user', 1);
+
+        let db = await ApiInstance.read('user', 1);
+
+        expect(db).toBe(undefined);
     });
     
     test("DELETE: database bevat niet de gespecificeerde table", async () => {
-        expect(await ApiInstance.delete('animals', 1)).toThrowError();
+        await ApiInstance.delete('animals',1);
+        let db = await ApiInstance.read('animals',1);
+
+        expect(db).toBe(undefined);
     });
     
     test("DELETE: id parameter komt niet overeen met Id-field van de table entry", async () => {
-        expect(await ApiInstance.delete('user', 33)).toThrowError();
+        await ApiInstance.delete('user',103);
+        let db = await ApiInstance.read('user',103);
+
+        expect(db).toBe(undefined);
     });
     
-    test("DELETE: database bevat geen data", async () => {
-            for (let index = 1; index <= 27; index++) {
-                await ApiInstance.delete('user',index);
-            };
-    
-            expect(await ApiInstance.delete('user', 1)).toThrowError();
-    });
-    
-    
-    // //================UPDATE
+//================UPDATE
     test("UPDATE: should update data in the requested database", async () => {
         let testUpdateUser = {
                     Company_Id: 10,
@@ -187,9 +221,12 @@ describe("Api helper tests", () => {
             "updatedName",
             "10",
         ]);
-        let db = await ApiInstance.read('user',1);
-        let user = db.content[0];
-        expect(user).toEqual(testUpdateUser);
+
+        fetchMock.mockResponseOnce(mockUpdatedUser);
+
+        let user = await ApiInstance.read('user',1);
+
+        expect(user.content[0]).toEqual(testUpdateUser);
     });
     
     test("UPDATE: database bevat niet de gespecificeerde table", async () => {
@@ -200,7 +237,11 @@ describe("Api helper tests", () => {
             "updatedName",
             "10",
         ];
-        expect(await ApiInstance.update('animals', 1, testUpdateUser)).toThrowError();
+
+        await ApiInstance.update('animals', 1, testUpdateUser)
+        let user = await ApiInstance.read('animals',1);
+
+        expect(user).toBe(undefined)
     });
     
     test("UPDATE: id parameter komt niet overeen met Id-field van de table entry", async () => {
@@ -211,7 +252,10 @@ describe("Api helper tests", () => {
             "updatedName",
             "10",
         ];
-        expect(await ApiInstance.update('user', 40, testUpdateUser)).toThrowError();
+        await ApiInstance.update('user', 40, testUpdateUser)
+        let user = await ApiInstance.read('user',40);
+
+        expect(user).toBe(undefined);
     });
     
     test("UPDATE: values parameter geeft de verkeerde table structuur mee", async () => {
@@ -220,10 +264,15 @@ describe("Api helper tests", () => {
             "updated",
             "8",
         ];
-        expect(await ApiInstance.update('user', 1, testUpdateUser)).toThrowError();
+
+        await ApiInstance.update('user', 1, testUpdateUser);
+        fetchMock.mockResponseOnce(mockCreateUser);
+        let user = await ApiInstance.read('user', 1);
+
+        expect(user.content[0]).toEqual(testUpdateUser);
     });
     
-    test("UPDATE: database server staat uit (UITVOEREN MET SERVER UIT)", async () => {
+    test.skip("UPDATE: database server staat uit (UITVOEREN MET SERVER UIT)", async () => {
         let testUpdateUser = [
             "updated@gmail.com",
             "updated",
@@ -231,23 +280,10 @@ describe("Api helper tests", () => {
             "updatedName",
             "10",
         ];
-        expect(await ApiInstance.update('user', 1, testUpdateUser)).toThrowError();
-    });
-    
-    test("UPDATE: database bevat geen data", async () => {
-        for (let index = 1; index <= 27; index++) {
-            await ApiInstance.delete('user',index);
-        };
+        await ApiInstance.update('user', 1, testUpdateUser)
+        let user = await ApiInstance.read('user',1);
 
-        let testUpdateUser = [
-            "updated@gmail.com",
-            "updated",
-            "8",
-            "updatedName",
-            "10",
-        ];
-
-        expect(await ApiInstance.update('user', 1, testUpdateUser)).toThrowError();
+        expect(user).toBe(undefined);
     });
 })
 
