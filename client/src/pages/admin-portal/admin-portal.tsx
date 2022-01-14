@@ -3,12 +3,12 @@
 import * as React from 'react';
 import './admin-portal.css';
 import kyndaLetter from './kyndaletter.png';
-import cog from './cog69420.png';
 import FotoGalleryImg from './photolibicon.jpg';
 import { CreateExport } from '../../helpers/Export';
 import Api from '../../helpers/Api';
 import { getToken } from '../../helpers/Token';
 import Enumerable from 'linq';
+import testimg2 from './testimg2.png';
 
 async function getData() {
     const ApiInstance = new Api(getToken());
@@ -105,22 +105,10 @@ function AdminPortal() {
                     <img src={kyndaLetter} width="104" height="55" alt="kyndaLogoImg" />
                 </div>
                 <div class="adminPortalHeader">Adminportaal</div>
-                <div class="dropDown">
-                    <label for="menu"> Opties: </label>
-                    <select name="menu" id="menu">
-                        <option value="optie1">optie1</option>
-                        <option value="optie2">optie2</option>
-                        <option value="optie3">optie3</option>
-                        <option value="optie4">optie4</option>
-                    </select>
-                </div>
                 <div class="logOutButton">
                     <div className="logUitButton" onClick={() => onLogOutButtonClick()}>
                         Uitloggen
                     </div>
-                </div>
-                <div class="kyndaCog">
-                    <img src={cog} width="40" height="40" alt="settingsImg" />
                 </div>
             </div>
 
@@ -248,7 +236,9 @@ function AdminPortal() {
                             <div class="mainViewTemplatesHeader">Templates</div>
                             <div class="mainViewTemplatesList" id="mainViewTemplatesList"></div>
                         </div>
-                        <div class="mainViewTemplatePreview" id="mainViewTemplatePreview"></div>
+                        <div class="mainViewTemplatePreview" id="mainViewTemplatePreview">
+                            <img id="testimg" src={testimg2} style={{ width: '100%', height: '100%'}} />
+                        </div>
                         <div className="Gbrtoevoegen" id="Gbrtoevoegen">
                             <div className="GbrToevoegenHeader">Gebruiker toevoegen</div>
                             <div className="GbrInvoer">
@@ -598,7 +588,6 @@ function loadUserPortalTemplates(portalPos, userPortalList) {
                 userPortalList[portalPos].designList[b].Downloads > 0
             ) {
                 total += userPortalList[portalPos].designList[b].Downloads;
-                totalEuro = totalEuro + 4.99;
             }
         }
 
@@ -606,7 +595,6 @@ function loadUserPortalTemplates(portalPos, userPortalList) {
             Id: userPortalList[portalPos].importedTemplateList[a].Id,
             name: userPortalList[portalPos].importedTemplateList[a].Name,
             total: total,
-            totalEuro: totalEuro,
         });
     }
     let tempList = document.createDocumentFragment();
@@ -627,10 +615,7 @@ function loadUserPortalTemplates(portalPos, userPortalList) {
             statsList[c].name +
             `<br />` +
             'Totaal Downloads: ' +
-            statsList[c].total +
-            `<br />` +
-            "Euro's: " +
-            statsList[c].totalEuro;
+            statsList[c].total
 
         TemplateItem.appendChild(ShowTemplate);
 
@@ -676,12 +661,7 @@ function loadUserPortalDesigns(portalPos, selectedTemplateId, userPortalList, te
     return tempList;
 }
 
-function loadUserPortalTemplatePreview(
-    portalPos,
-    selectedTemplateId,
-    userPortalList,
-    templateName
-) {
+function loadUserPortalTemplatePreview(portalPos, selectedTemplateId, userPortalList, templateName) {
     document.getElementById('Gbrtoevoegen').style.display = 'none';
     document.getElementById('mainViewTemplatePreview').style.display = 'block';
     document.getElementById('mainViewDesigns').style.display = 'block';
@@ -753,12 +733,7 @@ async function onChangeCompanyNameButtonClick(portalPos, userPortalList) {
         `</p>`;
 }
 
-async function onDeleteUserPortalButtonClick(
-    portalPos,
-    deletePortal,
-    userPortalList,
-    SetUserPortalList
-) {
+async function onDeleteUserPortalButtonClick(portalPos, deletePortal, userPortalList, SetUserPortalList) {
     if (!deletePortal) {
         document.getElementById('DeletePortalTxt').style.display = 'block';
         document.getElementById('DeletePortalConfirm').style.display = 'flex';
