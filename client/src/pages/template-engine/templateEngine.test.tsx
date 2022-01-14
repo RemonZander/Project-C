@@ -40,7 +40,7 @@ describe("Template engine tests", () => {
         expect(result).toBeInstanceOf(Array);
         expect(result[0].id).toBe('layer_0');
         expect(result[0].element.className).toBe('layer');
-        expect(result[0].spanElements.length).toBe(2)
-        expect(result[0].pElements.length).toBe(2)
+        expect(result[0].spanElements.length).toBe(2);
+        expect(result[0].pElements.length).toBe(2);
     })
 })

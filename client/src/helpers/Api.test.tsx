@@ -3,31 +3,50 @@ import Api from './Api';
 const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwibmFhbSI6IkFtYWRldXMgTW96YXJ0IiwiY29tcGFueSI6LTEsInR5cGUiOiJBZG1pbiJ9.NhqAZBmSlwQYj3BlefmcrEBFE5Dd6jfP0T5TFFXDwT0"
 const ApiInstance = new Api(token);
 
+beforeEach(() => {
+    fetchMock.resetMocks();
+});
+
+const mockUser = JSON.stringify({
+    content: [
+        {
+            Company_Id: -1,
+            Email: "admin@gmail.com",
+            Id: 1,
+            Name: "Amadeus Mozart",
+            Password: "Admin1!",
+            Role_Id: 1,
+        }
+    ]
+});
+
 //==============ALL
-describe.skip("Api helper tests", () => {
-    test("ALL: database server staat aan en bevat relevante data in juiste format", async () => {
-            let db = await ApiInstance.all('user');
-            let users = db.content;
-            expect(users).toBe(
-                    expect.arrayContaining([expect.any(Object)]
-                    )
-            );
+describe("Api helper tests", () => {
+    test.only("ALL: database server staat aan en bevat relevante data in juiste format", async () => {
+        // Arrange
+        fetchMock.mockResponseOnce(mockUser);
+
+        // Act
+        let users = await ApiInstance.all('user');
+
+        // Assert
+        expect(users).toBeInstanceOf(Array);
     });
     
     test("ALL: database server staat uit getTemplates", async () => {
-            expect(await ApiInstance.all('user')).toThrowError();
+        expect(await ApiInstance.all('user')).toThrowError();
     });
     
     test("ALL: database bevat geen data", async () => {
-            for (let index = 1; index <= 27; index++) {
-                await ApiInstance.delete('user',index);
-            };
-    
-            const db = await ApiInstance.all('user');
-            const realArray = db.content;
-            console.log(realArray);
-            expect(realArray).toHaveLength(0); 
-     });
+        for (let index = 1; index <= 27; index++) {
+            await ApiInstance.delete('user',index);
+        };
+
+        const db = await ApiInstance.all('user');
+        const realArray = db.content;
+        console.log(realArray);
+        expect(realArray).toHaveLength(0); 
+    });
     
     //==============READ
     test("READ: database server staat aan en bevat relevante data in juiste format", async () => {
@@ -51,11 +70,11 @@ describe.skip("Api helper tests", () => {
     });
     
     test("READ: database bevat geen data", async () => {
-            for (let index = 1; index <= 27; index++) {
-                await ApiInstance.delete('user',index);
-            };
-    
-            expect(await ApiInstance.read('user', 1)).toThrowError();
+        for (let index = 1; index <= 27; index++) {
+            await ApiInstance.delete('user',index);
+        };
+
+        expect(await ApiInstance.read('user', 1)).toThrowError();
     });
     
     test("READ: should throw error after giving a non-existent field as parameter for read", async () => {
