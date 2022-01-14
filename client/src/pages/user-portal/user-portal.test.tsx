@@ -72,7 +72,7 @@ test("ChangePass: database server staat aan, userId geeft het juiste Id mee, use
         sub: 2,
         type: "Employee",
     };
-    await userPortal.ChangePass(2, 'Moderator1!', 'Moderator1!', 'Heyhoihoi1!', 'Heyhoihoi1!', "");
+    await userPortal.ChangePass('Moderator1!','Heyhoihoi1!', 'Heyhoihoi1!', 2, 'Moderator1!', 'Moderator1!', 'Heyhoihoi1!', 'Heyhoihoi1!', "");
     expect(await userPortal.GetUserPassword(testUser)).toBe('Heyhoihoi1!');
 });
 
@@ -84,7 +84,7 @@ test("ChangePass: database server staat uit (UITVOEREN MET SERVER UIT)", async (
         sub: 2,
         type: "Employee",
     };
-    await userPortal.ChangePass(2, 'Moderator1!', 'Moderator1!', 'Heyhoihoi1!', 'Heyhoihoi1!', "");
+    await userPortal.ChangePass('Moderator1!','Heyhoihoi1!', 'Heyhoihoi1!', 2, 'Moderator1!', 'Moderator1!', 'Heyhoihoi1!', 'Heyhoihoi1!', "");
     expect(await userPortal.GetUserPassword(testUser)).toThrowError();
 });
 
@@ -96,7 +96,7 @@ test("ChangePass: userId geeft het verkeerde Id mee", async () => {
         sub: 2,
         type: "Employee",
     };
-    await userPortal.ChangePass(29, 'Moderator1!', 'Moderator1!', 'Heyhoihoi1!', 'Heyhoihoi1!', "");
+    await userPortal.ChangePass('Moderator1!','Heyhoihoi1!', 'Heyhoihoi1!', 29, 'Moderator1!', 'Moderator1!', 'Heyhoihoi1!', 'Heyhoihoi1!', "");
     expect(await userPortal.GetUserPassword(testUser)).toThrowError();
 });
 
@@ -108,7 +108,7 @@ test("ChangePass: newPass en confirmPass zijn niet leeg; zijn niet gelijk aan el
         sub: 2,
         type: "Employee",
     };
-    await userPortal.ChangePass(2, 'Moderator1!', 'Moderator1!', 'oei!', 'Heyhoihoi1!', "");
+    await userPortal.ChangePass('Moderator1!', 'oei!', 'Heyhoihoi1!', 2, 'Moderator1!', 'Moderator1!', 'oei!', 'Heyhoihoi1!', "");
     expect(await userPortal.GetUserPassword(testUser)).toThrowError();
 });
 
@@ -120,7 +120,7 @@ test("ChangePass: newPass voldoet niet aan de wachtwoordvereisten", async () => 
         sub: 2,
         type: "Employee",
     };
-    await userPortal.ChangePass(2, 'Moderator1!', 'Moderator1!', 'oei!', 'oei!', "");
+    await userPortal.ChangePass('Moderator1!', 'oei!', 'oei!', 2, 'Moderator1!', 'Moderator1!', 'oei!', 'oei!', "");
     expect(await userPortal.GetUserPassword(testUser)).toThrowError();
 });
 
@@ -132,7 +132,7 @@ test("ChangePass: currentPass is niet gelijk aan userPassword", async () => {
         sub: 2,
         type: "Employee",
     };
-    await userPortal.ChangePass(2, 'Moderator1!', 'blahblah', 'Heyhoihoi1!', 'Heyhoihoi1!', "");
+    await userPortal.ChangePass('Moderator1!', 'Heyhoihoi1!', 'Heyhoihoi1!',  2, 'Moderator1!', 'blahblah', 'Heyhoihoi1!', 'Heyhoihoi1!', "");
     expect(await userPortal.GetUserPassword(testUser)).toThrowError();
 });
 

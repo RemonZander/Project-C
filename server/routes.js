@@ -177,10 +177,7 @@ for (let i = 0; i < TableStructure.length; i++) {
         // Directory unlink
         const file = await conn.runStatement(`SELECT Filepath FROM ${table.name} WHERE Id = ?`, [requestBody.id]);
 
-        const filePath = file[0].Filepath;
-        const newFilePath = filePath.substring(8);
-
-        Storage.removeImage(Storage.storagePathAbsolute + newFilePath);
+        Storage.removeImage(file[0].Filepath);
 
         const result = await conn.runStatement(`DELETE FROM ${table.name} WHERE Id = ?`, [requestBody.id]);
 

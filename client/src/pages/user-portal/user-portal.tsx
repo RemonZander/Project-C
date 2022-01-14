@@ -790,7 +790,7 @@ function UserPortal() {
                                 </ListItem>
                                 <Divider />
                             </List> : ''}                   
-                </Box> : mainPage(queryParamsObject, imageList, isModerator, stylesFotoLib)}                         
+                </Box> : mainPage(queryParamsObject, imageList, isModerator, setImageList, stylesFotoLib)}                         
             </div>
         </React.Fragment>
     );
@@ -879,7 +879,7 @@ async function OnAddNewUserButtonClick(setnewUserPassInput: any, setnewUserEmail
     setnewUserErrorMsg(['', '', 'Het wachtwoord voldoet niet aan de minimale eisen.']);
 }
 
-async function getDesigns() {
+export async function getDesigns() {
     const ApiInstance = new Api(getToken()!);
     let designListDb = [];
     let templateListDb = [];
