@@ -883,6 +883,7 @@ export async function getDesigns() {
     const ApiInstance = new Api(getToken()!);
     let designListDb = [];
     let templateListDb = [];
+
     if (typeof (designListDb = await ApiInstance.all('design')) === 'undefined') {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
         return new Array<Design>();

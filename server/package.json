@@ -9,6 +9,7 @@
     "db-prod": "node commands/db/setupDatabase dbFile.sql"
   },
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "dotenv": "^10.0.0",
     "mysql": "^2.18.1",
     "sqlite3": "^5.0.2"
