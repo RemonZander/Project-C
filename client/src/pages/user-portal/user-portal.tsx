@@ -205,6 +205,7 @@ function UserPortal() {
             setInfoView(await makeInfoViewBoolList());
             setPass(await GetUserPassword(getPayloadAsJson()!));
             setUserList(await getUsers());
+            
 
             loadImages();
         })();
@@ -789,7 +790,7 @@ function UserPortal() {
                                 </ListItem>
                                 <Divider />
                             </List> : ''}                   
-                </Box> : mainPage(queryParamsObject, imageList, isModerator, stylesFotoLib)}                         
+                </Box> : mainPage(queryParamsObject, imageList, isModerator, setImageList, stylesFotoLib)}                         
             </div>
         </React.Fragment>
     );
@@ -878,7 +879,7 @@ async function OnAddNewUserButtonClick(setnewUserPassInput: any, setnewUserEmail
     setnewUserErrorMsg(['', '', 'Het wachtwoord voldoet niet aan de minimale eisen.']);
 }
 
-async function getDesigns() {
+export async function getDesigns() {
     const ApiInstance = new Api(getToken()!);
     let designListDb = [];
     let templateListDb = [];
@@ -908,7 +909,7 @@ async function getDesigns() {
     return designList;
 }
 
-async function getTemplates() {
+export async function getTemplates() {
     const ApiInstance = new Api(getToken()!);
     const user = getPayloadAsJson()!;
     let templateListDb = [];
@@ -978,7 +979,7 @@ async function onValidateButtonClick(design: Design, setdesignList: any) {
     setdesignList(await getDesigns());
 }
 
-async function onMakeMainUserButtonClick(user: User, currentUserId: number) {
+export async function onMakeMainUserButtonClick(user: User, currentUserId: number) {
     const ApiInstance = new Api(getToken()!);
     let userDataDb = [];
     if (typeof (userDataDb = await ApiInstance.read('user', currentUserId)) === 'undefined' || userDataDb.status === 'FAIL') {
@@ -1019,7 +1020,7 @@ async function onMakeMainUserButtonClick(user: User, currentUserId: number) {
     window.location.replace('/');
 }
 
-async function GetUserPassword(userInstance: Payload) {
+export async function GetUserPassword(userInstance: Payload) {
     let userDataDb = [];
     const ApiInstance = new Api(getToken()!);
     if (typeof (userDataDb = await ApiInstance.read('user', userInstance.sub)) === 'undefined') {
@@ -1062,7 +1063,7 @@ function userLeave(id: number) {
     document.getElementById(userButtonId)!.style.opacity = '0';
 }
 
-async function ChangePass(setCurrentPassInput: any, setConfirmPassInput: any, setNewPassInput: any, userId: number, userPassword: string, currentPass: string, newPass: string, confirmPass: string, setPassError: any) {
+export async function ChangePass(setCurrentPassInput: any, setConfirmPassInput: any, setNewPassInput: any, userId: number, userPassword: string, currentPass: string, newPass: string, confirmPass: string, setPassError: any) {
     setPassError([
         currentPass === '' ? 'Dit veld is verplicht' : currentPass !== userPassword ? 'Het wachtwoord is onjuist' : '',
         newPass === '' ? 'Dit veld is verplicht' : '',

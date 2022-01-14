@@ -33,7 +33,7 @@ class Storage {
   }
 
   async removeFile(filePath) {
-    fsPromises.rm(path.normalize(filePath), {}, (err) => { if (err) throw err; });
+    fsPromises.rm(pathLib.normalize(filePath), {}, (err) => { if (err) throw err; });
   }
 
   async addCompany(companyId, sync = false) {
@@ -104,8 +104,8 @@ class Storage {
     return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.imageDirName}/${fileName}`, Buffer.from(dataUrl.split(",")[1], "base64"), force);
   }
 
-  async removeImage(companyId, imageName) {
-    this.removeFile(`${this.storagePathAbsolute}/${companyId}/${this.imageDirName}/${imageName}`)
+  async removeImage(filepath) {
+    this.removeFile(pathLib.normalize(process.cwd() + filepath))
   }
 
   async addTemplate(templateName, companyId, data, force = false) {

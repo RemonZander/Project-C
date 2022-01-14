@@ -10,7 +10,7 @@ import Api from '../../helpers/Api';
 import { getToken } from '../../helpers/Token';
 import Enumerable from 'linq';
 
-async function getData() {
+export async function getData() {
     const ApiInstance = new Api(getToken());
     let portalArray = [];
     let companyListDb = [];

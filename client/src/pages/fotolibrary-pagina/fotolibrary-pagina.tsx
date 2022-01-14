@@ -56,7 +56,7 @@ const useStyles = makeStyles(() => ({
 const ApiInstance = new Api(getToken()!);
 
 function Gallery(props: PageProps) {
-    const [isAdmin] = useState(true);
+    const [isAdmin, SetIsAdmin] = useState(false);
     const [images, setImages] = useState(Array<Image>());
     const styles = useStyles();
 
@@ -65,6 +65,11 @@ function Gallery(props: PageProps) {
             const imagesFromDatabase = await ApiInstance.all('image');
             const images = Image.makeImageArray(imagesFromDatabase.content);
             setImages(images);
+            console.log(getPayloadAsJson()!);
+            let currentUser = getPayloadAsJson()!;
+            if (currentUser.type == "Admin" || "Moderator") {
+                SetIsAdmin(true);
+            }
         })();
     }, []);
 
@@ -170,13 +175,13 @@ function Gallery(props: PageProps) {
                 </Toolbar>
             </AppBar>
             <main>
-                {mainPage(props, images, isAdmin, styles)}
+                {mainPage(props, images, isAdmin, setImages, styles)}
             </main>
         </>
     );
 }
 
-export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolean, styles: ClassNameMap) {
+export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolean, setImages: React.Dispatch<React.SetStateAction<Image[]>>, styles: ClassNameMap) {
     return (
         <div>
             <Container maxWidth="md" className={styles.cardGrid}>
@@ -191,7 +196,6 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
                                 process.env.REACT_APP_SERVER_URL + image.Filepath;
                             const actualImageURL = initialImageURL.replace(/\\/g, '/');
                             const imageName = retrieveImageName(image.Filepath);
-
                             let token = getPayloadAsJson();
                             let userCompany;
                             if (
@@ -203,53 +207,122 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
                                 userCompany = props.queryParams.companyId;
                             }
                             if (userCompany == image.Company_Id) {
-                                return (
-                                    <Grid item xs={12} sm={6} md={4} key={index}>
-                                        <Card className={styles.card}>
-                                            <Button
-                                                id={'btn' + index}
-                                                variant="contained"
-                                                style={deleteButton(isAdmin)}
-                                                onMouseEnter={() =>
-                                                    imageOnHover(index)
-                                                }
-                                                onMouseLeave={() =>
-                                                    imageLeave(index)
-                                                }
-                                                onClick={(e) =>
-                                                    selectedPicture(
-                                                        e,
-                                                        isAdmin ? 'delete' : 'select',
-                                                        image.Id
-                                                    )
-                                                }
-                                            >
-                                                {isAdmin ? 'Verwijderen' : 'Selecteren'}
-                                            </Button>
-                                            <CardMedia
-                                                id={'img' + index}
-                                                className={styles.cardMedia}
-                                                title={imageName[0]}
-                                                image={actualImageURL}
-                                                onMouseEnter={() =>
-                                                    imageOnHover(index)
-                                                }
-                                                onMouseLeave={() =>
-                                                    imageLeave(index)
-                                                }
-                                            />
-                                            <CardContent className={styles.cardContent}>
-                                                <Typography
-                                                    gutterBottom
-                                                    variant="h6"
-                                                    align="center"
+                                if (isAdmin) {
+                                    return (
+                                        <Grid item xs={12} sm={6} md={4} key={index}>
+                                            <Card className={styles.card}>
+                                                <Button
+                                                    id={'btn' + index}
+                                                    variant="contained"
+                                                    style={{ color: 'white', backgroundColor: 'blue', opacity: 0 }}
+                                                    onMouseEnter={() =>
+                                                        imageOnHover(index, isAdmin)
+                                                    }
+                                                    onMouseLeave={() =>
+                                                        imageLeave(index, isAdmin)
+                                                    }
+                                                    onClick={(e) =>
+                                                        selectedPicture(
+                                                            e,'select',
+                                                            image.Id
+                                                        )
+                                                    }
                                                 >
-                                                    {imageName[0]}
-                                                </Typography>
-                                            </CardContent>
-                                        </Card>
-                                    </Grid>
-                                );
+                                                    {'Selecteren'}
+                                                </Button>
+                                                <CardMedia
+                                                    id={'img' + index}
+                                                    className={styles.cardMedia}
+                                                    title={imageName[0]}
+                                                    image={actualImageURL}
+                                                    onMouseEnter={() =>
+                                                        imageOnHover(index, isAdmin)
+                                                    }
+                                                    onMouseLeave={() =>
+                                                        imageLeave(index, isAdmin)
+                                                    }
+                                                />
+                                                <Button
+                                                    id={'btnDelete' + index} 
+                                                    variant="contained"
+                                                    style={ {color: 'white', backgroundColor: 'red', opacity: 0} }
+                                                    onMouseEnter={() =>
+                                                        imageOnHover(index, isAdmin)
+                                                    }
+                                                    onMouseLeave={() =>
+                                                        imageLeave(index, isAdmin)
+                                                    }
+                                                    onClick={(e) =>
+                                                        selectedPicture(
+                                                            e,
+                                                            'delete',
+                                                            image.Id
+                                                        ) 
+                                                    }
+                                                >
+                                                    {'Verwijderen'}
+                                                </Button>
+                                                <CardContent className={styles.cardContent}>
+                                                    <Typography
+                                                        gutterBottom
+                                                        variant="h6"
+                                                        align="center"
+                                                    >
+                                                        {imageName[0]}
+                                                    </Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    );
+                                }
+                                else {
+                                    return (
+                                        <Grid item xs={12} sm={6} md={4} key={index}>
+                                            <Card className={styles.card}>
+                                                <Button
+                                                    id={'btn' + index}
+                                                    variant="contained"
+                                                    style={{ color: 'white', backgroundColor: 'blue', opacity: 0 }}
+                                                    onMouseEnter={() =>
+                                                        imageOnHover(index, isAdmin)
+                                                    }
+                                                    onMouseLeave={() =>
+                                                        imageLeave(index, isAdmin)
+                                                    }
+                                                    onClick={(e) =>
+                                                        selectedPicture(
+                                                            e,'select',
+                                                            image.Id
+                                                        )
+                                                    }
+                                                >
+                                                    {'Selecteren'}
+                                                </Button>
+                                                <CardMedia
+                                                    id={'img' + index}
+                                                    className={styles.cardMedia}
+                                                    title={imageName[0]}
+                                                    image={actualImageURL}
+                                                    onMouseEnter={() =>
+                                                        imageOnHover(index, isAdmin)
+                                                    }
+                                                    onMouseLeave={() =>
+                                                        imageLeave(index, isAdmin)
+                                                    }
+                                                />
+                                                <CardContent className={styles.cardContent}>
+                                                    <Typography
+                                                        gutterBottom
+                                                        variant="h6"
+                                                        align="center"
+                                                    >
+                                                        {imageName[0]}
+                                                    </Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    );
+                                }
                             }
                         })
                     )}
@@ -287,32 +360,58 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
         return imageName;
     }
 
-    function deleteButton(isAdmin: Boolean) {
+    function imageOnHover(id: number, isAdmin: boolean) {
+        const imgId = 'img' + id;
         if (isAdmin) {
-            return { color: 'white', backgroundColor: 'red', opacity: 0 };
-        } else {
-            return { color: 'white', backgroundColor: 'blue', opacity: 0 };
+            const buttonId = 'btn' + id;
+            const buttonDeleteId = 'btnDelete' + id;
+            document.getElementById(imgId)!.style.filter = 'blur(4px)';
+            document.getElementById(imgId)!.style.transition = '1s';
+
+            document.getElementById(buttonId)!.style.transition = '1s';
+            document.getElementById(buttonId)!.style.opacity = '1';
+            document.getElementById(buttonId)!.style.top =
+                String(parseInt(document.getElementById(imgId)!.style.height) / 1.5) + 'px';
+            document.getElementById(buttonId)!.style.left =
+                String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px';  
+
+            document.getElementById(buttonDeleteId)!.style.transition = '1s';
+            document.getElementById(buttonDeleteId)!.style.opacity = '1';
+            document.getElementById(buttonDeleteId)!.style.top =
+                String(parseInt(document.getElementById(imgId)!.style.height) / 1.5) + 'px';
+            document.getElementById(buttonDeleteId)!.style.left =
+                String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px'; 
+        }
+        else {
+            const buttonId = 'btn' + id;
+            document.getElementById(imgId)!.style.filter = 'blur(4px)';
+            document.getElementById(imgId)!.style.transition = '1s';
+            document.getElementById(buttonId)!.style.transition = '1s';
+            document.getElementById(buttonId)!.style.opacity = '1';
+            document.getElementById(buttonId)!.style.top =
+                String(parseInt(document.getElementById(imgId)!.style.height) / 1.5) + 'px';
+            document.getElementById(buttonId)!.style.left =
+                String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px';  
         }
     }
 
-    function imageOnHover(id: number) {
+    function imageLeave(id: number, isAdmin: boolean) {
         const imgId = 'img' + id;
-        const buttonId = 'btn' + id;
-        document.getElementById(imgId)!.style.filter = 'blur(4px)';
-        document.getElementById(imgId)!.style.transition = '1s';
-        document.getElementById(buttonId)!.style.transition = '1s';
-        document.getElementById(buttonId)!.style.opacity = '1';
-        document.getElementById(buttonId)!.style.top =
-            String(parseInt(document.getElementById(imgId)!.style.height) / 1.5) + 'px';
-        document.getElementById(buttonId)!.style.left =
-            String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px';
-    }
+        if (isAdmin) {
+            const buttonId = 'btn' + id;
+            const buttonDeleteId = 'btnDelete' + id;
+            
+            document.getElementById(imgId)!.style.filter = 'none';
+            document.getElementById(buttonId)!.style.opacity = '0';
 
-    function imageLeave(id: number) {
-        const imgId = 'img' + id;
-        const buttonId = 'btn' + id;
-        document.getElementById(imgId)!.style.filter = 'none';
-        document.getElementById(buttonId)!.style.opacity = '0';
+            document.getElementById(imgId)!.style.filter = 'none';
+            document.getElementById(buttonDeleteId)!.style.opacity = '0';
+        }
+        else {
+            const buttonId = 'btn' + id; 
+            document.getElementById(imgId)!.style.filter = 'none';
+            document.getElementById(buttonId)!.style.opacity = '0';
+        }
     }
 
     function selectedPicture(picture: any, type: string, id: number) {
