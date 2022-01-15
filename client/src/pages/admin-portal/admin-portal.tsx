@@ -183,7 +183,7 @@ function AdminPortal() {
                             alt="gallery"
                             onClick={function () {
                                 window
-                                    .open('/fotogalerij?companyId=' + portalPosition, '_blank')
+                                    .open('/fotogalerij?companyId=' + (parseInt(portalPosition) + parseInt(1)), '_blank')
                                     .focus();
                             }}
                         />
@@ -191,7 +191,7 @@ function AdminPortal() {
                             <div
                                 className="ImportTemplateButton"
                                 onClick={function () {
-                                    window.location = '/editor?companyId=' + portalPosition;
+                                    window.location = '/editor?companyId=' + (parseInt(portalPosition) + parseInt(1));
                                 }}
                             >
                                 <h3>Import template</h3>
@@ -364,7 +364,7 @@ function AdminPortal() {
 
 function onSelectUserPortalButtonClick(id, userPortalList, SetUserPortalList) {
     const pos: number = id.replace('selector ', '');
-    portalPosition = parseInt(1) + parseInt(pos);
+    portalPosition = pos;
     document.getElementById('mainView').style.display = 'flex';
     document.getElementById('Gbrtoevoegen').style.display = 'none';
 
@@ -673,7 +673,6 @@ function loadUserPortalTemplatePreview(portalPos, selectedTemplateId, userPortal
 }
 
 function onAddUserButtonClick() {
-    console.log(document.getElementById('Gbrtoevoegen').style.display);
     if (document.getElementById('Gbrtoevoegen').style.display === 'block') {
         document.getElementById('Gbrtoevoegen').style.display = 'none';
         return;
@@ -699,7 +698,6 @@ async function onChangeCompanyNameButtonClick(portalPos, userPortalList) {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
         return;
     }
-    console.log(typeof companyListDb);
     const companyList = companyListDb.content;
     let result = [];
     if (
@@ -746,7 +744,6 @@ async function onDeleteUserPortalButtonClick(portalPos, deletePortal, userPortal
             .toArray()
     );
 
-    console.log(delUserIdList);
     const ApiInstance = new Api(getToken());
     let result = [];
     if (
@@ -868,7 +865,6 @@ function onChangeMainUserButtonClick(userPortalList, SetUserPortalList) {
     document.getElementById('mainViewUserData').style.display = 'flex';
     document.getElementById('changeMainUserText').style.display = 'flex';
     document.getElementById('setNewMainUser').onclick = async function () {
-        console.log(userPortalList[portalPosition].registeredEmployeeList);
         if (
             document.getElementById('changeMainUser').value !== '' &&
             Enumerable.from(userPortalList[portalPosition].registeredEmployeeList)
@@ -889,7 +885,7 @@ function onChangeMainUserButtonClick(userPortalList, SetUserPortalList) {
                     userPortalList[portalPosition].mainUserList.Id,
                     [
                         userPortalList[portalPosition].mainUserList.Email,
-                        userPortalList[portalPosition].mainUserList.Password,
+                        null,
                         3,
                         userPortalList[portalPosition].mainUserList.Name,
                         userPortalList[portalPosition].mainUserList.Company_Id,
@@ -910,7 +906,7 @@ function onChangeMainUserButtonClick(userPortalList, SetUserPortalList) {
             if (
                 typeof (result = await ApiInstance.update('user', NewMainUser[0].Id, [
                     NewMainUser[0].Email,
-                    NewMainUser[0].Password,
+                    null,
                     2,
                     NewMainUser[0].Name,
                     NewMainUser[0].Company_Id,
@@ -930,21 +926,14 @@ function onChangeMainUserButtonClick(userPortalList, SetUserPortalList) {
             userPortalList[portalPosition].registeredEmployeeList.push(
                 userPortalList[portalPosition].mainUserList
             );
-            console.log('List of user ids: ');
-            console.log(
-                Enumerable.from(userPortalList[portalPosition].registeredEmployeeList)
-                    .select((u) => u.Id)
-                    .toArray()
-            );
-            console.log('Id old main user: ' + oldMainUser.Id);
+
             userPortalList[portalPosition].registeredEmployeeList.splice(
                 Enumerable.from(userPortalList[portalPosition].registeredEmployeeList)
                     .select((u) => u.Id)
                     .indexOf(oldMainUser.Id) - 1,
                 1
             );
-            console.log('User list + old main user and - new main user: ');
-            console.log(userPortalList[portalPosition].registeredEmployeeList);
+
             userPortalList[portalPosition].mainUserList = NewMainUser[0];
 
             document.getElementById('mainViewUserDataText').style.display = 'block';

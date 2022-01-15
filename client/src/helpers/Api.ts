@@ -95,7 +95,7 @@ export default class Api {
         return await this._doFetch(this.serverUrl + `/${resource}/read`, 'POST', { id: id });
     }
 
-    async update(resource: string, id: number, values: Array<string>) {
+    async update(resource: string, id: number, values: Array<string | null>) {
         return await this._doFetch(this.serverUrl + `/${resource}/update`, 'PUT', {
             id: id,
             values: values,

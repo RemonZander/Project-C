@@ -167,7 +167,7 @@ for (let i = 0; i < TableStructure.length; i++) {
         const plainPsw = requestBody.values[pswIndex];
 
         if (plainPsw === null) {
-          let arr = [];
+            let arr = [];
 
           columns.splice(pswIndex, 1);
           values.splice(pswIndex, 1);
@@ -188,7 +188,6 @@ for (let i = 0; i < TableStructure.length; i++) {
         } else {
           bcrypt.hash(plainPsw, saltRounds).then(async hash => {
             let arr = [];
-    
             for (let i = 0; i < requestBody.values.length; i++) {
               if (table.columns[i] === "Password") {
                 arr.push(`${table.columns[i]} = '${hash}'`);
@@ -197,7 +196,6 @@ for (let i = 0; i < TableStructure.length; i++) {
   
               arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
             }
-    
             const result = await conn.runStatement(
               `
               UPDATE ${table.name} 
