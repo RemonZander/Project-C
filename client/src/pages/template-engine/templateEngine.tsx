@@ -8,7 +8,7 @@ import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
 import { Box, Grid, styled, Typography, AppBar, Toolbar } from '@material-ui/core';
 import { Button, Checkbox, FormControl, FormControlLabel, InputLabel, Link, MenuItem, Select, Stack, TextField } from '@mui/material';
 import { makeStyles } from '@material-ui/core/styles';
-import { getPayloadAsJson, getToken, isAdmin } from '../../helpers/Token';
+import { getPayloadAsJson, getToken, isAdmin, isEmployee, isModerator } from '../../helpers/Token';
 import { PageProps } from '../../@types/app';
 import { HtmlData, EntryPoint, TemplateFiles } from '../../@types/templateEngine';
 import Api from '../../helpers/Api';
@@ -123,7 +123,6 @@ function TemplateEngine(props: PageProps) {
     const [textAlign, setTextAlign] = useState("");
     const [isElementEditable, setIsElementEditable] = useState(false);
 
-    const [isChangesSaved, setIsChangesSaved] = useState(null);
     const [isDesignPending, setIsDesignPending] = useState<boolean>(true);
 
     const [templateName, setTemplateName] = useState("");
@@ -146,9 +145,9 @@ function TemplateEngine(props: PageProps) {
     const templateId = props.queryParams?.templateId;
     const designId = props.queryParams?.designId;
 
-    const isCustomerTemplateMode = !isAdmin() && companyId === undefined && templateId !== undefined && designId === undefined;
-    const isCustomerDesignMode = !isAdmin() && companyId === undefined && templateId === undefined && designId !== undefined;
-    
+    const isTemplateMode = companyId === undefined && templateId !== undefined && designId === undefined;
+    const isDesignMode = companyId === undefined && templateId === undefined && designId !== undefined;
+
     const isAdminTemplateMode = isAdmin() && companyId !== undefined && templateId === undefined && designId === undefined;
     const isAdminDesignMode = isAdmin() && companyId !== undefined && templateId === undefined && designId !== undefined;
 
@@ -156,6 +155,7 @@ function TemplateEngine(props: PageProps) {
     const [imageList, setImageList] = useState(Array<Image>());
     const queryParamsObject: { queryParams: { [key: string]: string | number } } = { queryParams: { 'companyId': getPayloadAsJson()!.company } };
     const stylesFotoLib = useStylesFotoLib();
+
     const loadImages = async () => {
         const ApiInstance = new Api(getToken()!);
         const imagesFromDatabase = await ApiInstance.all('image');
@@ -165,7 +165,7 @@ function TemplateEngine(props: PageProps) {
     useEffect(() => {
         loadImages();
 
-        if (isCustomerTemplateMode) {
+        if (isModerator() && isTemplateMode) {
             ApiInstance.read('template', templateId).then(res => {
                 if (res.status === "SUCCESS") {
                     setTemplateFiles(res.content);
@@ -174,7 +174,7 @@ function TemplateEngine(props: PageProps) {
                         .then(html => setTemplateFiles([{name: "", data: html, isFetched: true}]));
                 }
             })
-        } else if (isAdminDesignMode || isCustomerDesignMode) {
+        } else if (isAdminDesignMode || (isModerator() || isEmployee() && isDesignMode)) {
             ApiInstance.read('design', designId).then(res => {
                 if (res.status === "SUCCESS") {
                     if (res.content[templatePos].Verified === 1) {
@@ -494,22 +494,18 @@ function TemplateEngine(props: PageProps) {
     function ActionButton(props) {
         return (
             <Button variant="contained" component="span" onClick={e => {
-                let confirmResult = null;
-
-                if (isAdminTemplateMode) {
-                    confirmResult = window.confirm("Weet u zeker dat u de template wilt uploaden?");
-                } else if (isAdminDesignMode) {
-                    confirmResult = window.confirm("Weet u zeker dat u de template wilt goedkeuren?");
-                } else {
-                    confirmResult = window.confirm("Weet u zeker dat u een design wilt maken?");
-                }
+                let confirmResult = window.confirm(props.confirmMessage);
 
                 if (!confirmResult) {
                     alert("Actie geannuleerd");
                 } else {
                     if (isAdminTemplateMode) {
                         toggleEditorToUpload();
-                    } else if (isAdminDesignMode) {
+
+                        return;
+                    }
+
+                    if (isAdminDesignMode || (isModerator() && isDesignMode)) {
                         designs.forEach(design => {
                             const { Id, ...newDesign} = design;
                             newDesign.Updated_at = new Date().toLocaleDateString('en-US');
@@ -540,8 +536,14 @@ function TemplateEngine(props: PageProps) {
                                 }
                             })
                         });
-                    } else {
+
+                        return;
+                    }
+
+                    if (isModerator() && isEmployee() && isTemplateMode) {
                         toggleEditorToDesign();
+
+                        return;
                     }
                 }
             }} style={{ width: "100%" }}>
@@ -590,7 +592,7 @@ function TemplateEngine(props: PageProps) {
             {
                 isAdminTemplateMode ?
                     <Box ref={uploadSectionRef} className='toggleNone' sx={{ flexDirection: 'column', justifyContent: 'center', margin: '30px 30% 0 30%'}}>
-                    <h1>Upload template form</h1>
+                    <h1>Upload template</h1>
                     <TextField fullWidth label="Naam" id="fullWidth" style={{ marginTop: "20px" }} onChange={e => setTemplateName(e.target.value)} />
                     <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleAdminFormUploadTemplate}>Upload template</Button>
                     <Button variant="contained" color='error' style={{ marginTop: "20px", marginLeft: "20px" }} onClick={e => {
@@ -599,7 +601,7 @@ function TemplateEngine(props: PageProps) {
                 </Box>
                 :
                 <Box ref={designSectionRef} className='toggleNone' sx={{ flexDirection: 'column', justifyContent: 'center', margin: '30px 30% 0 30%' }}>
-                    <h1>Template naar design form</h1>
+                    <h1>Template naar design</h1>
                     <TextField fullWidth label="Naam" id="fullWidth" style={{ marginTop: "20px" }} onChange={e => setDesignName(e.target.value)} />
                     <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleCustomerFormUploadTemplateToDesign}>Maak design</Button>
                     <Button variant="contained" color='error' style={{ marginTop: "20px", marginLeft: "20px" }} onClick={e => {
@@ -716,20 +718,17 @@ function TemplateEngine(props: PageProps) {
                                 />
                                 </>
                             }
-                            {/* {
-                                selectedElement !== null &&
-                                <Button variant="contained" component="span" color={isChangesSaved ? "success" : "error"} onClick={handleSave} style={{ width: "100%" }}>
-                                    {isChangesSaved ? "opgeslagen" : "niet opgeslagen"}
-                                </Button>
-                            } */}
                             {
-                                templateFiles.length > 0 && isAdminTemplateMode && <ActionButton text="Upload" />
+                                templateFiles.length > 0 && isAdminTemplateMode && 
+                                <ActionButton text="Upload" confirmMessage="Weet u zeker dat u de template wilt uploaden?" />
                             }
                             {
-                                templateFiles.length > 0 && isCustomerTemplateMode && <ActionButton text="Maak design" />
+                                templateFiles.length > 0 && isModerator() && isEmployee() && isTemplateMode && 
+                                <ActionButton text="Maak design" confirmMessage="Weet u zeker dat u de template wilt goedkeuren?" />
                             }
                             {
-                                templateFiles.length > 0 && isAdminDesignMode && <ActionButton text="Valideer" />
+                                templateFiles.length > 0 && isAdminDesignMode || (isModerator() && isDesignMode) && 
+                                <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u een design wilt maken?" />
                             }
                             <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={e => {
                                 const confirmResult = window.confirm("Weet u zeker dat u terug wilt gaan? Uw veranderingen worden niet opgeslagen.");
