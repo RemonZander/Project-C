@@ -160,31 +160,56 @@ for (let i = 0; i < TableStructure.length; i++) {
 
         const conn = DBManager.startConnection();
 
-        const pswIndex = table.columns.indexOf('Password');
+        const columns = [...table.columns];
+        const values = requestBody.values;
+
+        const pswIndex = columns.indexOf('Password');
         const plainPsw = requestBody.values[pswIndex];
 
-        bcrypt.hash(plainPsw, saltRounds).then(async hash => {
+        if (plainPsw === null) {
           let arr = [];
-  
-          for (let i = 0; i < requestBody.values.length; i++) {
-            if (table.columns[i] === "Password") {
-              arr.push(`${table.columns[i]} = '${hash}'`);
-              continue;
-            }
 
-            arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
+          columns.splice(pswIndex, 1);
+          values.splice(pswIndex, 1);
+
+          for (let i = 0; i < requestBody.values.length; i++) {
+            arr.push(`${columns[i]} = '${values[i]}'`);
           }
-  
+
           const result = await conn.runStatement(
             `
-            UPDATE ${table.name} 
-            SET ${arr.join()} 
-            WHERE Id = ?`,
+              UPDATE ${table.name} 
+              SET ${arr.join()} 
+              WHERE Id = ?`,
             [requestBody.id]
           );
-  
+
           res.responseSuccess(result);
-        })
+        } else {
+          bcrypt.hash(plainPsw, saltRounds).then(async hash => {
+            let arr = [];
+    
+            for (let i = 0; i < requestBody.values.length; i++) {
+              if (table.columns[i] === "Password") {
+                arr.push(`${table.columns[i]} = '${hash}'`);
+                continue;
+              }
+  
+              arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
+            }
+    
+            const result = await conn.runStatement(
+              `
+              UPDATE ${table.name} 
+              SET ${arr.join()} 
+              WHERE Id = ?`,
+              [requestBody.id]
+            );
+    
+            res.responseSuccess(result);
+          })
+        }
+
 
       } catch (error) {
         return error;
