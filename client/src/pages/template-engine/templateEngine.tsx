@@ -54,8 +54,7 @@ const useStylesFotoLib = makeStyles(() => ({
 }));
 
 /** 
-* Algorithm om alle "entrypoints" te vinden in een template.
-* Een entrypoint is een html element die teksten bevat.
+* Algorithm om alle "entrypoints" te vinden in een template. Een entrypoint is een html element die teksten bevat.
 */
 export function getEntryPointsRecursive(container: HTMLElement, entryPoints: Array<EntryPoint> = [], closestElementWithId: string = "") {
     if (container.children.length === 0) {
@@ -414,29 +413,24 @@ function TemplateEngine(props: PageProps) {
     function handleTextChange(e) {
         selectedElement.innerText = e.target.value;
         setTextFieldValue(e.target.value);
-        setIsChangesSaved(false);
     }
 
     function handleWrapping(e) {
         selectedElement.style.whiteSpace = e.target.value;
         setTextWrap(e.target.value);
-        setIsChangesSaved(false);
     }
 
     function handleAlign(e) {
         selectedElement.style.textAlign = e.target.value;
         setTextAlign(e.target.value);
-        setIsChangesSaved(false);
     }
 
     function handleFontSizeUp(e) {
         selectedElement.style.fontSize = (parseInt(window.getComputedStyle(selectedElement, null).getPropertyValue('font-size').replaceAll('px', '')) + parseInt(parseInt(window.getComputedStyle(selectedElement, null).getPropertyValue('font-size').replaceAll('px', '')) / 48) + "px");
-        setIsChangesSaved(false);
     }
 
     function handleFontSizeDown(e) {
         selectedElement.style.fontSize = (parseInt(window.getComputedStyle(selectedElement, null).getPropertyValue('font-size').replaceAll('px', '')) - parseInt(parseInt(window.getComputedStyle(selectedElement, null).getPropertyValue('font-size').replaceAll('px', '')) / 48) + "px");
-        setIsChangesSaved(false);
     }
 
     function handleCheckboxEditable(e) {
@@ -445,13 +439,14 @@ function TemplateEngine(props: PageProps) {
         e.target.checked ? list.add(editableKeyword) : list.remove(editableKeyword);
 
         setIsElementEditable(list.contains(editableKeyword))
-        setIsChangesSaved(false);
     }
 
     function handleAdminFormUploadTemplate(e) {
         // Not too sure about this approach, refactor later if possible
         for (let i = 0; i < templateFiles.length; i++) {
             const template = templateFiles[i];
+
+            template.data = new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument);
 
             const newDoc = new DOMParser().parseFromString(template.data, 'text/html');
             const selectableElements = newDoc.querySelectorAll("." + selectableKeyword);
@@ -496,11 +491,6 @@ function TemplateEngine(props: PageProps) {
         }
     }
 
-    function handleSave(e) {
-        templateFiles[templatePos].data = new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument);
-        setIsChangesSaved(true);
-    }
-
     function ActionButton(props) {
         return (
             <Button variant="contained" component="span" onClick={e => {
@@ -531,7 +521,7 @@ function TemplateEngine(props: PageProps) {
                             for (let i = 0; i < editableElements.length; i++) {
                                 editableElements[i].classList.remove(editableKeyword);
                             }
-                            console.log(newDoc);
+
                             // changed to also update file if necessary
                             ApiInstance.updateFile(
                                 newDesign.Name,
@@ -605,7 +595,7 @@ function TemplateEngine(props: PageProps) {
                     <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleAdminFormUploadTemplate}>Upload template</Button>
                     <Button variant="contained" color='error' style={{ marginTop: "20px", marginLeft: "20px" }} onClick={e => {
                         toggleEditorToUpload();
-                    }}>Cancel</Button>
+                    }}>Annuleer</Button>
                 </Box>
                 :
                 <Box ref={designSectionRef} className='toggleNone' sx={{ flexDirection: 'column', justifyContent: 'center', margin: '30px 30% 0 30%' }}>
@@ -614,7 +604,7 @@ function TemplateEngine(props: PageProps) {
                     <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleCustomerFormUploadTemplateToDesign}>Maak design</Button>
                     <Button variant="contained" color='error' style={{ marginTop: "20px", marginLeft: "20px" }} onClick={e => {
                         toggleEditorToDesign();
-                    }}>Cancel</Button>
+                    }}>Annuleer</Button>
                 </Box>
             }
             <Grid ref={editorSectionRef} container style={{ overflow: "hidden"}}>
@@ -638,7 +628,7 @@ function TemplateEngine(props: PageProps) {
                                             onChange={loadFilesHandler}
                                         />
                                         <Button variant="contained" component="span" style={{ width: "100%" }}>
-                                            Load export files
+                                            Laad export bestanden
                                         </Button>
                                     </label>
                                 )
@@ -647,34 +637,35 @@ function TemplateEngine(props: PageProps) {
                                 templateFiles.length > 1 &&
                                 <>
                                     <Button variant="contained" component="span" onClick={() => setTemplatePos(templatePos + 1)} style={{ width: "100%" }}>
-                                        Next
+                                        Volgende
                                     </Button>
                                     <Button variant="contained" component="span" onClick={() => setTemplatePos(templatePos - 1)} style={{ width: "100%" }}>
-                                        Previous
+                                        Vorige
                                     </Button>
                                 </>
                             }
                             {
                                 selectedElement !== null &&
-                                <><TextField
-                                    id="templateEditorTextField"
-                                    label="Type text"
-                                    multiline
-                                    rows={4}
-                                    variant="filled"
-                                    value={textFieldValue}
-                                    onChange={handleTextChange}
-                                    style={{ width: "100%" }}
-                                    ref={textFieldRef}
-                                    inputProps={{ maxLength: parseInt(selectedElement.dataset.textLimit) }}
-                                />
-                                <div>
-                                    <Button variant="contained" style={{ textAlign: "center", padding: "0px", fontSize: "15px", marginRight: "10px" }}  onClick={() => { handleFontSizeUp();}}>
-                                        A^
-                                    </Button>
-                                    <Button variant="contained" style={{ textAlign: "center", padding: "0px", fontSize: "15px" }} onClick={() => { handleFontSizeDown(); }}>
-                                        a˅
-                                    </Button>
+                                <>
+                                    <TextField
+                                        id="templateEditorTextField"
+                                        label="Type text"
+                                        multiline
+                                        rows={4}
+                                        variant="filled"
+                                        value={textFieldValue}
+                                        onChange={handleTextChange}
+                                        style={{ width: "100%" }}
+                                        ref={textFieldRef}
+                                        inputProps={{ maxLength: parseInt(selectedElement.dataset.textLimit) }}
+                                    />
+                                    <div>
+                                        <Button variant="contained" style={{ textAlign: "center", padding: "0px", fontSize: "15px", marginRight: "10px" }}  onClick={() => { handleFontSizeUp();}}>
+                                            A^
+                                        </Button>
+                                        <Button variant="contained" style={{ textAlign: "center", padding: "0px", fontSize: "15px" }} onClick={() => { handleFontSizeDown(); }}>
+                                            a˅
+                                        </Button>
                                     </div>
                                     <Button variant="contained" style={{ textAlign: "center" }} onClick={() => { setFotoLibView(!fotoLibView) }}>
                                         fotolib temp button
@@ -725,12 +716,12 @@ function TemplateEngine(props: PageProps) {
                                 />
                                 </>
                             }
-                            {
+                            {/* {
                                 selectedElement !== null &&
                                 <Button variant="contained" component="span" color={isChangesSaved ? "success" : "error"} onClick={handleSave} style={{ width: "100%" }}>
-                                    {isChangesSaved ? "saved" : "not saved"}
+                                    {isChangesSaved ? "opgeslagen" : "niet opgeslagen"}
                                 </Button>
-                            }
+                            } */}
                             {
                                 templateFiles.length > 0 && isAdminTemplateMode && <ActionButton text="Upload" />
                             }
@@ -768,7 +759,7 @@ function TemplateEngine(props: PageProps) {
                             justifyContent: "center",
                             alignItems: "center",
                             height: "100vh",
-                        }}>No template selected</div>
+                        }}>Geen template geselecteerd</div>
                     }
                 </Grid>
             </Grid>

@@ -54,7 +54,7 @@ function Login(props: PageProps) {
                                     // te sturen naar de url die wordt meegegeven.
                                     // Voor meer informatie over fetch kan je naar deze url gaan
                                     // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
-                                    fetch(process.env.REACT_APP_SERVER_URL + '/auth', {
+                                    fetch(process.env.REACT_APP_SERVER_URL + '/api/auth', {
                                         method: 'POST',
                                         body: JSON.stringify({
                                             email: (email as HTMLInputElement).value,
@@ -63,10 +63,7 @@ function Login(props: PageProps) {
                                     })
                                         .then((res) => res.json())
                                         .then((data) => {
-                                            if (
-                                                'token' in data.content &&
-                                                data.content.token !== null
-                                            ) {
+                                            if ('token' in data.content && data.content.token !== null) {
                                                 document.cookie = 'token=' + data.content.token + ';';
 
                                                 const payload = JSON.parse(

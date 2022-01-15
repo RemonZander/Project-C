@@ -47,7 +47,7 @@ server.on("request", (req, res) => {
       const route = routes[i];
 
       if (req.url === route.url) {
-        if (req.url !== "/auth" && (!reqHelper.authorizationHeaderExists() || !Token.verifyJWT(reqHelper.getRequestToken()))) {
+        if (req.url !== "/api/auth" && (!reqHelper.authorizationHeaderExists() || !Token.verifyJWT(reqHelper.getRequestToken()))) {
           resHelper.responseInvalidToken();
           break;
         }
@@ -70,8 +70,13 @@ server.on("request", (req, res) => {
                 resHelper.responseRecordAlreadyExists();
               }
             } else {
-              console.error(error);
-              resHelper.responseError();
+              if (process.env.APP_ENV === 'production' || process.env.APP_ENV === 'staging') {
+                console.error(error);
+                resHelper.responseError("Something went wrong");
+              } else {
+                console.error(error);
+                resHelper.responseError(error);
+              }
             }
           }
         })();

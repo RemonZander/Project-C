@@ -7,7 +7,7 @@ class Route {
   }
 
   add(url, cb) {
-    this.urlCollection.push({ url: url, action: cb });
+    this.urlCollection.push({ url: '/api' + url, action: cb });
   }
 
   addAll(table) {
@@ -119,7 +119,7 @@ class Route {
     });
   }
 
-  addCrud(table, except = []) {
+  addCrud(table) {
     this.addAll(table);
     this.addCreate(table);
     this.addRead(table);
