@@ -527,16 +527,16 @@ function UserPortal() {
                                                         {design.Name} <br />
                                                         {!design.Verified && isModerator ?
                                                             <Button variant="contained" color="primary" onClick={() => {
-                                                                window.open('/editor?designId=' + design.Id, '_blank');
+                                                                window.location.href = '/editor?designId=' + design.Id;
                                                             }}>
                                                                 Valideren / bewerken
                                                             </Button> : !design.Verified ?
                                                                 <Button variant="contained" color="primary" onClick={() => {
-                                                                    window.open('/editor?designId=' + design.Id, '_blank');
+                                                                    window.location.href = '/editor?designId=' + design.Id;
                                                                 }}>
                                                                     Bewerken
                                                                 </Button> : <Button variant="contained" color="primary" onClick={() => {
-                                                                    window.open('/editor?designId=' + design.Id, '_blank');
+                                                                    window.location.href = '/editor?designId=' + design.Id;
                                                                 }}>
                                                                     Bekijken / Downloaden
                                                                 </Button>
@@ -568,7 +568,7 @@ function UserPortal() {
                                                         align="center">
                                                         {template.Name}<br/>
                                                         <Button variant="contained" color="primary" onClick={async () => {
-                                                            window.open('/editor?templateId=' + template.Id, '_blank');
+                                                            window.location.href = '/editor?templateId=' + template.Id;
                                                         }}>
                                                             Maak design
                                                         </Button>

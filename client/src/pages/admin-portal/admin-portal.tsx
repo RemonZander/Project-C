@@ -19,7 +19,6 @@ export async function getData() {
     let designListDb = [];
     // sets the arrays w data in them from the database
     companyListDb = await ApiInstance.all('company');
-    console.log(companyListDb);
     let companyList = Enumerable.from(companyListDb.content).toArray();
     if (typeof (userListDb = await ApiInstance.all('user')) === 'undefined') {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
@@ -192,7 +191,7 @@ function AdminPortal() {
                             <div
                                 className="ImportTemplateButton"
                                 onClick={function () {
-                                    window.open('/editor?companyId=' + portalPosition, '_blank').focus();
+                                    window.location = '/editor?companyId=' + portalPosition;
                                 }}
                             >
                                 <h3>Import template</h3>
