@@ -12,7 +12,7 @@ export default class Api {
             throw Error("ENV Variable not found.")
         }
     
-        this.serverUrl = serverUrl;
+        this.serverUrl = serverUrl + '/api';
     }
 
     async _doFetch(url: string, method: string, body: null | object = null) {
@@ -34,6 +34,13 @@ export default class Api {
         return await fetch(url, options)
             .then((res) => res.json())
             .catch((err) => console.error(err));
+    }
+
+    async verifyPassword(email: string, password: string) {
+        return await this._doFetch(this.serverUrl + `/compare`, 'POST', {
+            email: email,
+            password: password
+        });
     }
 
     async all(resource: string) {

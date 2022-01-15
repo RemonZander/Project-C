@@ -54,8 +54,7 @@ const useStylesFotoLib = makeStyles(() => ({
 }));
 
 /** 
-* Algorithm om alle "entrypoints" te vinden in een template.
-* Een entrypoint is een html element die teksten bevat.
+* Algorithm om alle "entrypoints" te vinden in een template. Een entrypoint is een html element die teksten bevat.
 */
 export function getEntryPointsRecursive(container: HTMLElement, entryPoints: Array<EntryPoint> = [], closestElementWithId: string = "") {
     if (container.children.length === 0) {

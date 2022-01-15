@@ -28,8 +28,7 @@ function App() {
         const token = getToken();
 
         if (token !== undefined) {
-
-            fetch(process.env.REACT_APP_SERVER_URL + '/auth', {
+            fetch(process.env.REACT_APP_SERVER_URL + '/api/auth', {
                 method: 'GET',
                 headers: { Authorization: 'Bear ' + token },
             })
