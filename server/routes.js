@@ -172,7 +172,7 @@ for (let i = 0; i < TableStructure.length; i++) {
           columns.splice(pswIndex, 1);
           values.splice(pswIndex, 1);
 
-          for (let i = 0; i < requestBody.values.length; i++) {
+          for (let i = 0; i < columns.length; i++) {
             arr.push(`${columns[i]} = '${values[i]}'`);
           }
 
