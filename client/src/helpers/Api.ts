@@ -66,10 +66,10 @@ export default class Api {
     async updateFile(docName: string, fileName: string, dataString: string, type: FileType, id: number, values: Array<string>, companyId: number | null = null, templateId: number | null = null) {
         return await this._doFetch(this.serverUrl + `/${type}/update`, 'PUT', {
             docName: docName,
-            id: id,
-            values: values,
             name: fileName,
             data: dataString,
+            id: id,
+            values: values,
             companyId: companyId,
             templateId: templateId,
         });

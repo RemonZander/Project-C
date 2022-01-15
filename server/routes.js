@@ -284,7 +284,7 @@ for (let i = 0; i < TableStructure.length; i++) {
 
         let arr = [];
 
-        for (let i = 0; i < requestBody.values.length; i++) {
+        for (let i = 0; i < table.columns.length; i++) {
           // if requestbody contains a datastring change filepath and change the old file or files with the new ones
           if (table.columns[i] === "Filepath" && requestBody.data !== null) {
             let result = null;
@@ -308,8 +308,6 @@ for (let i = 0; i < TableStructure.length; i++) {
             if (result !== null) {
               throw result;
             }
-
-            arr.push(`${table.columns[i]} = '${requestBody.name}'`);
 
             continue;
           }

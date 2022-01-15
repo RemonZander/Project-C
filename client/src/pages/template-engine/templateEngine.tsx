@@ -505,6 +505,12 @@ function TemplateEngine(props: PageProps) {
                         return;
                     }
 
+                    if (isModerator() && isEmployee() && isTemplateMode) {
+                        toggleEditorToDesign();
+
+                        return;
+                    }
+
                     if (isAdminDesignMode || (isModerator() && isDesignMode)) {
                         designs.forEach(design => {
                             const { Id, ...newDesign} = design;
@@ -524,9 +530,9 @@ function TemplateEngine(props: PageProps) {
                                 newDesign.Name,
                                 new XMLSerializer().serializeToString(newDoc),
                                 "design", 
-                                newDesign.Id, 
+                                design.Id, 
                                 Object.values(newDesign),
-                                companyId,
+                                getPayloadAsJson()?.company,
                                 newDesign.Template_id,
                             ).then(res => {
                                 if (res.status === "SUCCESS") {
@@ -536,12 +542,6 @@ function TemplateEngine(props: PageProps) {
                                 }
                             })
                         });
-
-                        return;
-                    }
-
-                    if (isModerator() && isEmployee() && isTemplateMode) {
-                        toggleEditorToDesign();
 
                         return;
                     }
@@ -724,11 +724,11 @@ function TemplateEngine(props: PageProps) {
                             }
                             {
                                 templateFiles.length > 0 && isModerator() && isEmployee() && isTemplateMode && 
-                                <ActionButton text="Maak design" confirmMessage="Weet u zeker dat u de template wilt goedkeuren?" />
+                                <ActionButton text="Maak design" confirmMessage="Weet u zeker dat u een design wilt maken?" />
                             }
                             {
                                 templateFiles.length > 0 && isAdminDesignMode || (isModerator() && isDesignMode) && 
-                                <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u een design wilt maken?" />
+                                <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u de design wilt goedkeuren?" />
                             }
                             <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={e => {
                                 const confirmResult = window.confirm("Weet u zeker dat u terug wilt gaan? Uw veranderingen worden niet opgeslagen.");
