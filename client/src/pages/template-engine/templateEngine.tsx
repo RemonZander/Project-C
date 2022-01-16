@@ -13,8 +13,9 @@ import { PageProps } from '../../@types/app';
 import { HtmlData, EntryPoint, TemplateFiles } from '../../@types/templateEngine';
 import Api from '../../helpers/Api';
 import { mainPage } from '../fotolibrary-pagina/fotolibrary-pagina';
-import { Image } from '../../@types/general';
+import { Image as image } from '../../@types/general';
 import kyndalogo from './kynda.png';
+import download from 'downloadjs';
 
 const ApiInstance = new Api(getToken());
 
@@ -152,14 +153,14 @@ function TemplateEngine(props: PageProps) {
     const isAdminDesignMode = isAdmin() && companyId !== undefined && templateId === undefined && designId !== undefined;
 
     const [fotoLibView, setFotoLibView] = useState(false);
-    const [imageList, setImageList] = useState(Array<Image>());
+    const [imageList, setImageList] = useState(Array<image>());
     const queryParamsObject: { queryParams: { [key: string]: string | number } } = { queryParams: { 'companyId': getPayloadAsJson()!.company } };
     const stylesFotoLib = useStylesFotoLib();
 
     const loadImages = async () => {
         const ApiInstance = new Api(getToken()!);
         const imagesFromDatabase = await ApiInstance.all('image');
-        setImageList(Image.makeImageArray(imagesFromDatabase.content));
+        setImageList(image.makeImageArray(imagesFromDatabase.content));
     };
 
     useEffect(() => {
@@ -543,6 +544,7 @@ function TemplateEngine(props: PageProps) {
                             })
                         });
 
+                        window.location.reload();
                         return;
                     }
                 }
@@ -727,9 +729,14 @@ function TemplateEngine(props: PageProps) {
                                 <ActionButton text="Maak design" confirmMessage="Weet u zeker dat u een design wilt maken?" />
                             }
                             {
-                                templateFiles.length > 0 && isAdminDesignMode || (isModerator() && isDesignMode) && 
+                                templateFiles.length > 0 && isAdminDesignMode || (isModerator() && isDesignMode) && isDesignPending &&
                                 <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u de design wilt goedkeuren?" />
                             }
+                            <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={async () => {
+                                await ApiInstance.makePDF(templateFiles[templatePos]?.data);
+                                //console.log(pdf);
+                                //download(pdf.content.pdf, "pdf.pdf");
+                            }}>Download pdf</Button>
                             <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={e => {
                                 const confirmResult = window.confirm("Weet u zeker dat u terug wilt gaan? Uw veranderingen worden niet opgeslagen.");
 
@@ -749,6 +756,7 @@ function TemplateEngine(props: PageProps) {
                             srcDoc={templateFiles[templatePos]?.data}
                             style={{ height: "100%", width: "100%" }}
                             ref={editorFrameRef}
+                            id="IframeDoc"
                         ></iframe>
                         : fotoLibView ?
                             mainPage(getPayloadAsJson()!.type === "Admin" ? props : queryParamsObject, imageList, getPayloadAsJson()!.type !== "Employee" ? true : false, setImageList, stylesFotoLib, true)

@@ -81,6 +81,33 @@ Route.add("/compare", async (req, res) => {
   }
 });
 
+Route.add("/PDF", async (req, res) => {
+    const data = await req.getRequestData();
+    const puppeteer = require('puppeteer');
+    const browser = await puppeteer.launch({ headless: true })
+    const page = await browser.newPage()
+    const html = data.html;
+
+    await page.setContent(html, {
+        waitUntil: 'domcontentloaded'
+    })
+    await page.pdf({
+        format: 'A4',
+        path: `test.pdf`
+    })
+
+/*    const pdfBuffer = await page.pdf({
+        format: 'A4'
+    })
+    
+
+    res.responseSuccess({
+        pdf: await page.pdf({
+            format: 'A4'
+        }) });*/
+    await browser.close();
+});
+
 // Adds routes based on the existing table structure defined in TableStructure.js
 for (let i = 0; i < TableStructure.length; i++) {
   const table = TableStructure[i];
