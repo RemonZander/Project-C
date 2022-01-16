@@ -1085,6 +1085,7 @@ export async function ChangePass(setCurrentPassInput: any, setConfirmPassInput: 
             'Het wachtwoord voldoet niet aan de minimale eisen.',
             'Het wachtwoord voldoet niet aan de minimale eisen.'
         ]);
+        return;
     }
 
     document.cookie = document.cookie.substring(document.cookie.indexOf('token='), 6);

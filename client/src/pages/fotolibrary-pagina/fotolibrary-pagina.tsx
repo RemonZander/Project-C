@@ -362,21 +362,22 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
 
     function imageOnHover(id: number, isAdmin: boolean, select: boolean) {
         const imgId = 'img' + id;
+        
+        const buttonId = 'btn' + id;
+        const buttonDeleteId = 'btnDelete' + id;
+        document.getElementById(imgId)!.style.filter = 'blur(4px)';
+        document.getElementById(imgId)!.style.transition = '1s';
+
+        if (select) {
+            document.getElementById(buttonId)!.style.transition = '1s';
+            document.getElementById(buttonId)!.style.opacity = '1';
+            document.getElementById(buttonId)!.style.top =
+                String(parseInt(document.getElementById(imgId)!.style.height) / 1.5) + 'px';
+            document.getElementById(buttonId)!.style.left =
+                String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px';
+        }
+
         if (isAdmin) {
-            const buttonId = 'btn' + id;
-            const buttonDeleteId = 'btnDelete' + id;
-            document.getElementById(imgId)!.style.filter = 'blur(4px)';
-            document.getElementById(imgId)!.style.transition = '1s';
-
-            if (select) {
-                document.getElementById(buttonId)!.style.transition = '1s';
-                document.getElementById(buttonId)!.style.opacity = '1';
-                document.getElementById(buttonId)!.style.top =
-                    String(parseInt(document.getElementById(imgId)!.style.height) / 1.5) + 'px';
-                document.getElementById(buttonId)!.style.left =
-                    String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px';
-            }
-
             document.getElementById(buttonDeleteId)!.style.transition = '1s';
             document.getElementById(buttonDeleteId)!.style.opacity = '1';
             document.getElementById(buttonDeleteId)!.style.top =
@@ -384,36 +385,18 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
             document.getElementById(buttonDeleteId)!.style.left =
                 String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px'; 
         }
-        else {
-            const buttonId = 'btn' + id;
-            document.getElementById(imgId)!.style.filter = 'blur(4px)';
-            document.getElementById(imgId)!.style.transition = '1s';
-            document.getElementById(buttonId)!.style.transition = '1s';
-            document.getElementById(buttonId)!.style.opacity = '1';
-            document.getElementById(buttonId)!.style.top =
-                String(parseInt(document.getElementById(imgId)!.style.height) / 1.5) + 'px';
-            document.getElementById(buttonId)!.style.left =
-                String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px';  
-        }
     }
 
     function imageLeave(id: number, isAdmin: boolean, select: boolean) {
         const imgId = 'img' + id;
-        if (isAdmin) {
-            const buttonId = 'btn' + id;
-            const buttonDeleteId = 'btnDelete' + id;
-            
-            document.getElementById(imgId)!.style.filter = 'none';
-            if (select) document.getElementById(buttonId)!.style.opacity = '0';           
-
-            document.getElementById(imgId)!.style.filter = 'none';
+        const buttonId = 'btn' + id;
+        if (isAdmin) {           
+            const buttonDeleteId = 'btnDelete' + id;            
             document.getElementById(buttonDeleteId)!.style.opacity = '0';
         }
-        else {
-            const buttonId = 'btn' + id; 
-            document.getElementById(imgId)!.style.filter = 'none';
-            if (select) document.getElementById(buttonId)!.style.opacity = '0';
-        }
+        else document.getElementById(imgId)!.style.filter = 'none';
+        if (select) document.getElementById(buttonId)!.style.opacity = '0';
+        document.getElementById(imgId)!.style.filter = 'none';
     }
 
     function selectedPicture(picture: any, type: string, id: number) {

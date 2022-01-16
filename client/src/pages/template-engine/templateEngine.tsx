@@ -158,15 +158,13 @@ function TemplateEngine(props: PageProps) {
     const stylesFotoLib = useStylesFotoLib();
 
     const loadImages = async () => {
-        const ApiInstance = new Api(getToken()!);
-        const imagesFromDatabase = await ApiInstance.all('image');
-        setImageList(image.makeImageArray(imagesFromDatabase.content));
+        setImageList(image.makeImageArray((await ApiInstance.all('image')).content));
     };
 
     useEffect(() => {
         loadImages();
 
-        if (isModerator() && isTemplateMode) {
+        if (isTemplateMode) {
             ApiInstance.read('template', templateId).then(res => {
                 if (res.status === "SUCCESS") {
                     setTemplateFiles(res.content);
@@ -554,6 +552,60 @@ function TemplateEngine(props: PageProps) {
         )
     }
 
+    function fileNameValidation(fileName: string) {
+        const FileNameArray = fileName.split('.');
+        const newFileName = FileNameArray[0];
+        return newFileName.indexOf(' ') >= 0;
+    }
+
+    function fotosToevoegenButton(isAdmin: boolean) {
+        if (!isAdmin) return;
+        return (
+            <label htmlFor="contained-button-file">
+                <Input
+                    id="contained-button-file"
+                    multiple
+                    type="file"
+                    onChange={(e) => {
+                        (async () => {
+                            var extValidation = /(\.jpg|\.jpeg|\.gif|\.png)$/i;
+                            for (let i = 0; i < e.target.files!.length; i++) {
+                                if (e.target.files![i].size > 20971520) {
+                                    alert('Uw foto is te groot!');
+                                } else if (
+                                    fileNameValidation(e.target.files![i].name) ||
+                                    !extValidation.exec(e.target.files![i].name)
+                                ) {
+                                    alert(
+                                        'Uw foto bevat een spatie in de naam of de verkeerde extensie!'
+                                    );
+                                } else {
+                                    if (
+                                        Object.keys(props.queryParams).length === 0 &&
+                                        props.queryParams.constructor === Object
+                                    ) {
+                                        await ApiInstance.createImage(e.target.files![i]);
+                                        setImageList(image.makeImageArray((await ApiInstance.all('image')).content));
+                                    } else {
+                                        await ApiInstance.createImage(
+                                            e.target.files![i],
+                                            isAdmin ? typeof (props.queryParams.companyId) === 'string' ? parseInt(props.queryParams.companyId) : props.queryParams.companyId : parseInt(getPayloadAsJson()!.company)
+                                        );
+                                        setImageList(image.makeImageArray((await ApiInstance.all('image')).content));
+                                    }
+                                }
+                            }
+                        })();
+                    }}
+                />
+                <Button variant="contained" component="span" color="primary">
+                    Foto's toevoegen
+                </Button>
+            </label>
+        );
+        
+    }
+
     return (
         <>
             <AppBar position="relative" style={{ background: 'white' }}>
@@ -569,8 +621,7 @@ function TemplateEngine(props: PageProps) {
                         Editor
                     </Typography>
                     <Grid container spacing={2} justifyContent="flex-end">
-                        <Grid item>
-                        </Grid>
+                        <Grid item>{fotosToevoegenButton((isAdmin() || isModerator()) && fotoLibView)}</Grid>
                         <Grid item>
                             <Button
                                 variant="contained"
@@ -733,6 +784,8 @@ function TemplateEngine(props: PageProps) {
                                 <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u de design wilt goedkeuren?" />
                             }
                             <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={async () => {
+                                const element = document.createElement('div');
+                                element.innerHTML = templateFiles[templatePos]?.data;
                                 await ApiInstance.makePDF(templateFiles[templatePos]?.data);
                                 //console.log(pdf);
                                 //download(pdf.content.pdf, "pdf.pdf");
