@@ -25,7 +25,7 @@ describe.skip('Adminportal tests', () => {
             await ApiInstance.delete('company',index);
         }
     
-        expect(await adminPortal.getData()).toThrowError(); 
+        expect(await adminPortal.getData()).toEqual({}); 
     });
 })
 
