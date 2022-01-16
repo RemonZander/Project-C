@@ -205,6 +205,7 @@ function TemplateEngine(props: PageProps) {
         }
     }, [])
 
+
     function toggleEditorToUpload() {
         editorSectionRef.current.classList.toggle("toggleNone")
         uploadSectionRef.current.classList.toggle("toggleNone")
