@@ -510,7 +510,7 @@ function UserPortal() {
                                                             alignItems: 'center',
                                                             justifyContent: 'center',
                                                         }}>
-                                                            {'Laadst bijgewerkt: ' + (design.Updated_at.toString() === 'Invalid Date' ? 'nooit' : design.Updated_at.toLocaleDateString())}
+                                                            {'laatst bijgewerkt: ' + (design.Updated_at.toString() === 'Invalid Date' ? 'nooit' : design.Updated_at.toLocaleDateString())}
                                                         </ListItem>
                                                         <ListItem style={{
                                                             alignItems: 'center',

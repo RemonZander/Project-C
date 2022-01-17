@@ -123,6 +123,7 @@ function TemplateEngine(props: PageProps) {
     const [textWrap, setTextWrap] = useState("");
     const [textAlign, setTextAlign] = useState("");
     const [isElementEditable, setIsElementEditable] = useState(false);
+    const [headerText, setHeaderText] = useState("", "");
 
     const [isDesignPending, setIsDesignPending] = useState<boolean>(true);
 
@@ -161,11 +162,12 @@ function TemplateEngine(props: PageProps) {
         setImageList(image.makeImageArray((await ApiInstance.all('image')).content));
     };
 
-    useEffect(() => {
+    useEffect(async () => {
+        let isVerified = true;
         loadImages();
 
         if (isTemplateMode) {
-            ApiInstance.read('template', templateId).then(res => {
+            await ApiInstance.read('template', templateId).then(res => {
                 if (res.status === "SUCCESS") {
                     setTemplateFiles(res.content);
                     fetch(process.env.REACT_APP_SERVER_URL + res.content[templatePos].Filepath)
@@ -174,10 +176,11 @@ function TemplateEngine(props: PageProps) {
                 }
             })
         } else if (isAdminDesignMode || (isModerator() || isEmployee() && isDesignMode)) {
-            ApiInstance.read('design', designId).then(res => {
+            await ApiInstance.read('design', designId).then(res => {
                 if (res.status === "SUCCESS") {
                     if (res.content[templatePos].Verified === 1) {
                         setIsDesignPending(false);
+                        isVerified = false;
                     }
 
                     setDesigns(res.content);
@@ -203,6 +206,8 @@ function TemplateEngine(props: PageProps) {
         if (editableCheckboxRef.current !== null) {
             (editableCheckboxRef.current as HTMLInputElement).checked = selectedElement.classList.contains(editableKeyword);
         }
+
+        setHeaderText(isAdminTemplateMode ? ["Template", "maken"] : isTemplateMode ? ["Design", "maken"] : isVerified ? ["Design", "Bewerken"] : ["Design", "Downloaden"]);
     }, [])
 
     function toggleEditorToUpload() {
@@ -618,7 +623,10 @@ function TemplateEngine(props: PageProps) {
                         style={{ marginRight: '20px' }}
                     />
                     <Typography variant="h5" style={{ color: 'black' }}>
-                        Editor
+                        {headerText[0]}                        
+                    </Typography>
+                    <Typography variant="h5" style={{ color: 'black', marginLeft: '6px' }}>
+                        {headerText[1]}
                     </Typography>
                     <Grid container spacing={2} justifyContent="flex-end">
                         <Grid item>{fotosToevoegenButton((isAdmin() || isModerator()) && fotoLibView)}</Grid>
@@ -786,8 +794,8 @@ function TemplateEngine(props: PageProps) {
                             <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={async () => {
                                 const element = document.createElement('div');
                                 element.innerHTML = templateFiles[templatePos]?.data;
-                                await ApiInstance.makePDF(templateFiles[templatePos]?.data);
-                                //console.log(pdf);
+                                await ApiInstance.makePDF(templateFiles[templatePos]?.data, element.offsetHeight);
+                                
                                 //download(pdf.content.pdf, "pdf.pdf");
                             }}>Download pdf</Button>
                             <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={e => {

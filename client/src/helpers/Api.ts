@@ -43,9 +43,10 @@ export default class Api {
         });
     }
 
-    async makePDF(html: string) {
+    async makePDF(html: string, height: string) {
         return await this._doFetch(this.serverUrl + `/PDF`, 'POST', {
             html: html,
+            height: height,
         });
     }
 

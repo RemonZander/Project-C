@@ -92,8 +92,16 @@ Route.add("/PDF", async (req, res) => {
         waitUntil: 'domcontentloaded'
     })
     await page.pdf({
-        format: 'A4',
-        path: `test.pdf`
+        //format: 'A4',
+        path: `test.pdf`,
+        height: 1086,
+        preferCSSPageSize: true,
+        margin: {
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+        },
     })
 
 /*    const pdfBuffer = await page.pdf({
