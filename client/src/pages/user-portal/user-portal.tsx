@@ -291,8 +291,20 @@ function UserPortal() {
                                         handleCloseMenu();
                                         setDesignView(false);
                                         settemplateView(false);
+                                        setFotoLibView(false);
                                         setheaderMsg(['Instellingen', '']);
                                         setSettingsView(true);
+                                        setCurrentPassInput("");
+                                        setConfirmPassInput("");
+                                        setNewPassInput("");
+                                        setPassErrorMsg(["", "", ""]);
+                                        setChangeNameInput("");
+                                        setChangeEmailInput("");
+                                        setNewUserNameInput("");
+                                        setnewUserEmailInput("");
+                                        setnewUserPassInput("");
+                                        setChangeName(false);
+                                        setChangeEmail(false);
                                         window.scroll(0, 0);
                                     }}
                                         style={{ marginTop: '10px' }}>
@@ -301,9 +313,21 @@ function UserPortal() {
                                     <MenuItem onClick={() => {
                                         handleCloseMenu();
                                         setDesignView(false);
+                                        setFotoLibView(false);
                                         settemplateView(false);
                                         setheaderMsg(['Instellingen', '']);
                                         setSettingsView(true);
+                                        setCurrentPassInput("");
+                                        setConfirmPassInput("");
+                                        setNewPassInput("");
+                                        setPassErrorMsg(["", "", ""]);
+                                        setChangeNameInput("");
+                                        setChangeEmailInput("");
+                                        setNewUserNameInput("");
+                                        setnewUserEmailInput("");
+                                        setnewUserPassInput("");
+                                        setChangeName(false);
+                                        setChangeEmail(false);
                                         window.scroll(0, window.innerHeight / 2.5);
                                     }}
                                         style={{ marginTop: '10px' }}>
@@ -314,8 +338,20 @@ function UserPortal() {
                                             handleCloseMenu();
                                             setDesignView(false);
                                             settemplateView(false);
+                                            setFotoLibView(false);
                                             setheaderMsg(['Instellingen', '']);
                                             setSettingsView(true);
+                                            setCurrentPassInput("");
+                                            setConfirmPassInput("");
+                                            setNewPassInput("");
+                                            setPassErrorMsg(["", "", ""]);
+                                            setChangeNameInput("");
+                                            setChangeEmailInput("");
+                                            setNewUserNameInput("");
+                                            setnewUserEmailInput("");
+                                            setnewUserPassInput("");
+                                            setChangeName(false);
+                                            setChangeEmail(false);
                                             window.scroll(0, window.innerHeight / 1);
                                         }}
                                             style={{ marginTop: '10px' }}>
@@ -646,7 +682,10 @@ function UserPortal() {
                                     changeNameOrEmail(changeNameInput, '', changeName, changeEmail, setChangeUserDataErrorMsg);
                                 }}>
                                     Toepassen
-                                </Button></> : <Typography variant="h6" style={{ cursor: 'pointer' }} onClick={() => { setChangeName(!changeName)}}>
+                                </Button></> : <Typography id="changeName" variant="h6" style={{ cursor: 'pointer' }} onClick={() => {
+                                    document.getElementById('changeEmail')!.style.pointerEvents = 'none';
+                                    setChangeName(!changeName);
+                                }}>
                                     {getPayloadAsJson()!.naam}
                                 </Typography>}                               
                         </ListItem>
@@ -658,7 +697,10 @@ function UserPortal() {
                                     changeNameOrEmail('', changeEmailInput, changeName, changeEmail, setChangeUserDataErrorMsg);
                                 }}>
                                 Toepassen
-                            </Button></> : <Typography variant="h6" style={{ cursor: 'pointer' }} onClick={() => { setChangeEmail(!changeEmail)}}>
+                                </Button></> : <Typography id="changeEmail" variant="h6" style={{ cursor: 'pointer' }} onClick={() => {
+                                    document.getElementById('changeName')!.style.pointerEvents = 'none';
+                                    setChangeEmail(!changeEmail);
+                                }}>
                                     {getPayloadAsJson()!.email}
                                 </Typography>}
                         </ListItem>
