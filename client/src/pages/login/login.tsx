@@ -87,9 +87,6 @@ function Login(props: PageProps) {
                             }
 
                         ></input>
-                        <div className="pass-adminlogin">
-                            <a href="./forgot_password">Wachtwoord vergeten?</a>
-                        </div>
                     </form>
                 </div>
             </React.Fragment>

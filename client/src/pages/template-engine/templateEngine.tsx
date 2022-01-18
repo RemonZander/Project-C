@@ -578,7 +578,7 @@ function TemplateEngine(props: PageProps) {
                         return;
                     }
 
-                    if (isModerator() && isEmployee() && isTemplateMode) {
+                    if ((isModerator() || isEmployee()) && isTemplateMode) {
                         toggleEditorToDesign();
 
                         return;
@@ -895,7 +895,7 @@ function TemplateEngine(props: PageProps) {
                                 <ActionButton text="Upload" confirmMessage="Weet u zeker dat u de template wilt uploaden?" />
                             }
                             {
-                                templateFiles.length > 0 && isModerator() && isEmployee() && isTemplateMode && 
+                                templateFiles.length > 0 && (isModerator() || isEmployee()) && isTemplateMode && 
                                 <ActionButton text="Maak design" confirmMessage="Weet u zeker dat u een design wilt maken?" />
                             }
                             {

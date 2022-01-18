@@ -2,16 +2,15 @@ import './App.css';
 import user_portal from './pages/user-portal/user-portal';
 import admin_portal from './pages/admin-portal/admin-portal';
 import LoginPage from './pages/login/login';
-import ForgotPasswordPage from './pages/forgot password/forgot_pass';
 import TemplateEngine from './pages/template-engine/templateEngine';
 import { useEffect, useState } from 'react';
 import fotolibraryPagina from './pages/fotolibrary-pagina/fotolibrary-pagina';
 import { ICreateObject } from './@types/app';
 import { getToken } from './helpers/Token';
+import ErrorPage from './errorPage';
 
 const pages: Array<ICreateObject> = [
     LoginPage,
-    ForgotPasswordPage,
     user_portal,
     admin_portal,
     TemplateEngine,
@@ -87,15 +86,14 @@ function App() {
                 } else if (isUserAuth && page.allowedUsers.includes(userType)) {
                     return <page.component queryParams={queryParamsObject} />;
                 } else {
-                    return <h1>403 Not Authorized</h1>;
+                    return <ErrorPage error={403} />;
                 }
             } else {
                 return <page.component queryParams={queryParamsObject} />;
             }
         }
     }
-
-    return <h1>ERROR 404</h1>;
+    return <ErrorPage error={404}/>;
 }
 
 export default App;

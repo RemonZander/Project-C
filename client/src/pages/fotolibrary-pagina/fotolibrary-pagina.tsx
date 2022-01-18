@@ -145,11 +145,6 @@ function Gallery(props: PageProps) {
                     <Grid container spacing={2} justifyContent="flex-end">
                         <Grid item>{adminButton(isAdmin)}</Grid>
                         <Grid item>
-                            <div className="searchbar">
-                                <input type="text" placeholder="Zoeken..." />
-                            </div>
-                        </Grid>
-                        <Grid item>
                             <Button
                                 variant="contained"
                                 color="primary"
@@ -163,13 +158,6 @@ function Gallery(props: PageProps) {
                             >
                                 Uitloggen
                             </Button>
-                        </Grid>
-                        <Grid item>
-                            <Settings
-                                className={styles.icon}
-                                style={{ color: 'black' }}
-                                fontSize="large"
-                            />
                         </Grid>
                     </Grid>
                 </Toolbar>
