@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import fotolibraryPagina from './pages/fotolibrary-pagina/fotolibrary-pagina';
 import { ICreateObject } from './@types/app';
 import { getToken } from './helpers/Token';
-import ErrorPage from './errorPage';
+import ErrorPage from './components/ErrorPage';
 
 const pages: Array<ICreateObject> = [
     LoginPage,
@@ -20,8 +20,8 @@ const pages: Array<ICreateObject> = [
 function App() {
     const pathName = window.location.pathname;
 
-    const [isUserAuth, setIsUserAuth] = useState(false);
-    const [userType, setUserType] = useState(null);
+    const [isUserAuth, setIsUserAuth] = useState<boolean>(false);
+    const [userType, setUserType] = useState<string | null>(null);
 
     useEffect(() => {
         const token = getToken();
@@ -78,12 +78,8 @@ function App() {
                 }
             }
 
-            const isLoaded = isUserAuth !== null && userType !== null;
-
             if (page.auth) {
-                if (!isLoaded) {
-                    return null;
-                } else if (isUserAuth && page.allowedUsers.includes(userType)) {
+                if (isUserAuth && userType !== null && page.allowedUsers.includes(userType)) {
                     return <page.component queryParams={queryParamsObject} />;
                 } else {
                     return <ErrorPage error={403} />;
@@ -93,6 +89,7 @@ function App() {
             }
         }
     }
+
     return <ErrorPage error={404}/>;
 }
 
