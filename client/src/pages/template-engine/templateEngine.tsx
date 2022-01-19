@@ -721,7 +721,7 @@ function TemplateEngine(props: PageProps) {
     function EditorTextWrap() {
         return (
             <FormControl style={{ width: "100%" }}>
-                <InputLabel id="templateEditorSelectWrapLabel">Wrap</InputLabel>
+                <InputLabel id="templateEditorSelectWrapLabel">Tekstomloop</InputLabel>
                 <Select
                     id="templateEditorSelectWrap"
                     labelId='templateEditorSelectWrapLabel'
@@ -730,8 +730,8 @@ function TemplateEngine(props: PageProps) {
                     onChange={handleWrapping}
                     ref={wrapOptionsRef}
                 >
-                    <MenuItem value={"normal"}>Wrap</MenuItem>
-                    <MenuItem value={"nowrap"}>No wrap</MenuItem>
+                    <MenuItem value={"normal"}>Tekstomloop</MenuItem>
+                    <MenuItem value={"nowrap"}>Geen tekstomloop</MenuItem>
                 </Select>
             </FormControl>
         )
@@ -740,7 +740,7 @@ function TemplateEngine(props: PageProps) {
     function EditorTextAlign() {
         return (
             <FormControl style={{ width: "100%" }}>
-                <InputLabel id="templateEditorSelectAlignLabel">Align</InputLabel>
+                <InputLabel id="templateEditorSelectAlignLabel">Tekstuitlijning</InputLabel>
                 <Select
                     id="templateEditorSelectAlign"
                     labelId='templateEditorSelectAlignLabel'
@@ -749,9 +749,9 @@ function TemplateEngine(props: PageProps) {
                     onChange={handleAlign}
                     ref={alignOptionsRef}
                 >
-                    <MenuItem value={"left"}>Left</MenuItem>
-                    <MenuItem value={"center"}>Center</MenuItem>
-                    <MenuItem value={"right"}>Right</MenuItem>
+                    <MenuItem value={"left"}>Links</MenuItem>
+                    <MenuItem value={"center"}>Midden</MenuItem>
+                    <MenuItem value={"right"}>Richts</MenuItem>
                 </Select>
             </FormControl>
         )
@@ -929,11 +929,11 @@ function TemplateEngine(props: PageProps) {
             {
                 isAdminTemplateMode ?
                     <Box ref={uploadSectionRef} className='toggleNone' sx={{ flexDirection: 'column', justifyContent: 'center', margin: '30px 30% 0 30%'}}>
-                    <h1>Upload template</h1>
-                    <TextField fullWidth label="Naam" id="fullWidth" style={{ marginTop: "20px" }} onChange={e => setTemplateName(e.target.value)} />
-                    <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleAdminFormUploadTemplate}>Upload template</Button>
-                    <Button variant="contained" color='error' style={{ marginTop: "20px", marginLeft: "20px" }} onClick={e => {
-                        toggleEditorToUpload();
+                        <h1>Template uploaden</h1>
+                        <TextField fullWidth label="Naam" id="fullWidth" style={{ marginTop: "20px" }} onChange={e => setTemplateName(e.target.value)} />
+                        <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleAdminFormUploadTemplate}>Upload template</Button>
+                        <Button variant="contained" color='error' style={{ marginTop: "20px", marginLeft: "20px" }} onClick={e => {
+                            toggleEditorToUpload();
                     }}>Annuleer</Button>
                 </Box>
                 :
@@ -967,7 +967,7 @@ function TemplateEngine(props: PageProps) {
                                             onChange={loadFilesHandler}
                                         />
                                         <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }}>
-                                            Laad export bestanden
+                                            Exportbestanden laden
                                         </Button>
                                     </label>
                                 )
@@ -994,7 +994,7 @@ function TemplateEngine(props: PageProps) {
                             }
                             {
                                 templateFiles.length > 0 && isAdminDesignMode || (isModerator() && isDesignMode) && isDesignPending &&
-                                <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u de design wilt goedkeuren?" />
+                                <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u het design wilt goedkeuren?" />
                             }
                             <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={async () => {
                                 const element = document.createElement('div');
@@ -1010,7 +1010,7 @@ function TemplateEngine(props: PageProps) {
                                     window.location = isAdmin() ? "/admin-portal" : "/user-portal";
                                 }
                             }}>
-                                Terug naar {isAdmin() ? "admin portaal" : "user portaal"}
+                                Terug naar {isAdmin() ? "admin portal" : "user portal"}
                             </Button>
                         </Stack>
                     </Box>

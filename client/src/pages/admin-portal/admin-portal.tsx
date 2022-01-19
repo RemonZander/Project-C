@@ -9,6 +9,7 @@ import Api from '../../helpers/Api';
 import { getToken } from '../../helpers/Token';
 import Enumerable from 'linq';
 import testimg2 from './testimg2.png';
+import { User } from '../../@types/general';
 
 export async function getData() {
     const ApiInstance = new Api(getToken());
@@ -103,7 +104,7 @@ function AdminPortal() {
                 <div class="kyndaLogo">
                     <img src={kyndaLetter} width="104" height="55" alt="kyndaLogoImg" />
                 </div>
-                <div class="adminPortalHeader">Adminportaal</div>
+                <div class="adminPortalHeader">Admin portal</div>
                 <div class="logOutButton">
                     <div className="logUitButton" onClick={() => onLogOutButtonClick()}>
                         Uitloggen
@@ -194,7 +195,7 @@ function AdminPortal() {
                                     window.location = '/editor?companyId=' + (parseInt(portalPosition) + parseInt(1));
                                 }}
                             >
-                                <h3>Import template</h3>
+                                <h3>Template importeren</h3>
                             </div>
                             <div
                                 className="GebruikerToevoegen"
@@ -213,7 +214,7 @@ function AdminPortal() {
                                 <h3>Hoofdgebruiker account wijzigen</h3>
                             </div>
                             <div className="BedrijfnaamWijzigen" id="BedrijfnaamWijzigen">
-                                <h3>Bedrijfnaam wijzigen</h3>
+                                <h3>Bedrijfsnaam wijzigen</h3>
                             </div>
                         </div>
                         <div className="DeletePortal" id="DeletePortal">
@@ -244,7 +245,7 @@ function AdminPortal() {
                                 Naam: <input type="text" id="GbrNaamInvoer" />
                             </div>
                             <div className="GbrInvoer">
-                                Email: <input type="text" id="GbrEmailInvoer" />
+                                E-mail: <input type="text" id="GbrEmailInvoer" />
                             </div>
                             <div className="GbrInvoer">
                                 Wachtwoord: <input type="password" id="GbrPassInvoer" />
@@ -274,7 +275,7 @@ function AdminPortal() {
                             />
                         </div>
                         <div className="CompanyInput">
-                            Telefoon:{' '}
+                            Telefoonnummer:{' '}
                             <input
                                 style={{ marginLeft: '5px', width: '75.6%' }}
                                 type="text"
@@ -282,7 +283,7 @@ function AdminPortal() {
                             />
                         </div>
                         <div className="CompanyInput">
-                            Email:{' '}
+                            E-mail:{' '}
                             <input
                                 style={{ marginLeft: '28px', width: '75.6%' }}
                                 type="text"
@@ -393,7 +394,7 @@ function onSelectUserPortalButtonClick(id, userPortalList, SetUserPortalList) {
             `<br/>` +
             'E-mail: ' +
             userPortalList[pos].mainUserList.Email +
-            `</p><div class="changeMainUserText" id="changeMainUserText">Email gebruiker:
+            `</p><div class="changeMainUserText" id="changeMainUserText">E-mail gebruiker:
             <input type="text" class="changeMainUser" id="changeMainUser"/>
             <div class="setNewMainUser" id="setNewMainUser">Maak hoofdgebruiker</div></div>`;
     }
@@ -474,6 +475,11 @@ function loadUserPortalUsers(portalPos, userPortalList) {
         }
         const ApiInstance = new Api(getToken());
         // sets the arrays w data in them from the database
+
+        if (Enumerable.from(User.makeUserArray((await ApiInstance.all('user')).content)).select(u => u.Email).contains(document.getElementById('GbrEmailInvoer').value)) {
+            alert("Er bestaat al een gebruiker met deze email");
+            return;
+        }
 
         let result = [];
         if (
@@ -605,7 +611,7 @@ function loadUserPortalTemplates(portalPos, userPortalList) {
         ShowTemplate.onclick = function () {
             loadUserPortalTemplatePreview(portalPos, TempPos, userPortalList, name);
         };
-        ShowTemplate.innerHTML = 'Bekijk Template';
+        ShowTemplate.innerHTML = 'Bekijk template';
 
         let TemplateItem = document.createElement('div');
         TemplateItem.className = 'TemplateItem';
@@ -686,6 +692,7 @@ async function onChangeCompanyNameButtonClick(portalPos, userPortalList) {
     let companyInput = prompt('Voer de nieuwe bedrijfsnaam in.');
     if (!(companyInput != '') || typeof companyInput === 'object') return;
     userPortalList[portalPos].companyName = companyInput;
+    console.log(userPortalList[portalPos]);
 
     const ApiInstance = new Api(getToken());
     let companyListDb = [];
@@ -695,8 +702,8 @@ async function onChangeCompanyNameButtonClick(portalPos, userPortalList) {
             userPortalList[portalPos].DbId
         )) === 'undefined'
     ) {
-        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
-        return;
+        //window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        //return;
     }
     const companyList = companyListDb.content;
     let result = [];
@@ -713,12 +720,8 @@ async function onChangeCompanyNameButtonClick(portalPos, userPortalList) {
                 companyList[0].Housenumber,
             ])) === 'undefined')
     ) {
-        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
-        return;
-    }
-    if (result.status !== 'SUCCESS') {
-        window.alert('Bedrijfsnaam kon niet veranderd worden. Probeer het opnieuw.');
-        return;
+        //window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        //return;
     }
 
     document.getElementById('userPortalItemCompanyselector ' + portalPos).innerHTML = companyInput;
@@ -728,6 +731,8 @@ async function onChangeCompanyNameButtonClick(portalPos, userPortalList) {
         `</h1>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<p class="CompanyName">` +
         document.getElementById('userPortalItemCompanyselector ' + portalPos).innerHTML +
         `</p>`;
+
+    
 }
 
 async function onDeleteUserPortalButtonClick(portalPos, deletePortal, userPortalList, SetUserPortalList) {
@@ -738,11 +743,10 @@ async function onDeleteUserPortalButtonClick(portalPos, deletePortal, userPortal
     }
     document.getElementById('mainView').style.display = 'none';
     const delUserIdList = Enumerable.from(
-        userPortalList[portalPos].registeredEmployeeList
-            .where((u) => u.Company_Id === userPortalList[portalPos].DbId)
-            .select((i) => i.Id)
-            .toArray()
-    );
+        userPortalList[portalPos].registeredEmployeeList)
+        .where((u) => u.Company_Id === userPortalList[portalPos].DbId)
+        .select((i) => i.Id)
+        .toArray();
 
     const ApiInstance = new Api(getToken());
     let result = [];
@@ -776,6 +780,8 @@ async function onDeleteUserPortalButtonClick(portalPos, deletePortal, userPortal
             .where((p) => p.DbId !== userPortalList[portalPos].DbId)
             .toArray()
     );
+
+    //window.location.reload();
 }
 
 async function onAddNewUserPortalButtonClick(SetUserPortalList) {
@@ -792,7 +798,7 @@ async function onAddNewUserPortalButtonClick(SetUserPortalList) {
         document.getElementById('newMainUserPassword').value === ''
     ) {
         window.alert(
-            'Het enige veld dat niet verplicht is om in te vullen is het telefoonnummer veld.'
+            'Telefoonnummer veld is optioneel.'
         );
         return;
     }
@@ -817,7 +823,7 @@ async function onAddNewUserPortalButtonClick(SetUserPortalList) {
     }
 
     if (response.status !== 'SUCCESS') {
-        window.alert('Nieuw bedrijf kan niet woden aangemaakt. Probeer het opnieuw.');
+        window.alert('Nieuw bedrijf kan niet worden aangemaakt. Probeer het opnieuw.');
         return;
     }
 
