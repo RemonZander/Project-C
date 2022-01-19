@@ -265,11 +265,21 @@ describe("Api helper tests", () => {
             "8",
         ];
 
+        let expectUser = {"content": [
+            {
+                "Company_Id": 7, 
+                "Email": "test@gmail.com", 
+                "Id": 28, 
+                "Name": "test", 
+                "Password": "wachtwoord123", 
+                "Role_Id": 1
+            }
+        ]}
+
         await ApiInstance.update('user', 1, testUpdateUser);
         fetchMock.mockResponseOnce(mockCreateUser);
         let user = await ApiInstance.read('user', 1);
-
-        expect(user.content[0]).toEqual(testUpdateUser);
+        expect(user).toEqual(expectUser);
     });
     
     test.skip("UPDATE: database server staat uit (UITVOEREN MET SERVER UIT)", async () => {
