@@ -25,20 +25,20 @@ function Login(props: PageProps) {
                     <img src={kynda} alt="Kynda logo" className="image"></img>
                     <h2>
                         {queryParams.adminPage
-                            ? 'Log in op het admin-portaal'
-                            : 'Log in op het klanten-portaal'}
+                            ? 'Log in op het admin-portal'
+                            : 'Log in op het klanten-portal'}
                     </h2>
                     <form method="post">
                         <div className="txt_field">
                             <input type="text" id="email" name="email" required ref={emailInputRef}></input>
-                            <label>Email</label>
+                            <label>E-mail</label>
                         </div>
                         <div className="txt_field">
                             <input type="password" id="password" name="password" required ref={passwordInputRef}></input>
                             <label>Wachtwoord</label>
                         </div>
                         <div className="Errormsg">
-                            {isAuthError === true && 'Uw login gegevens kloppen niet!'}
+                            {isAuthError === true && 'Uw inloggegevens kloppen niet!'}
                         </div>
                         <input
                             type="submit"

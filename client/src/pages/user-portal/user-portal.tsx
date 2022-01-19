@@ -669,7 +669,7 @@ function UserPortal() {
                         <List>
                             <ListItem>
                                 <Typography variant="h6" style={{textAlign: 'center', marginLeft: '120px'}}>
-                                    Hieronder kunt u uw naam of email veranderen.<br />
+                                    Hieronder kunt u uw naam of e-mail veranderen.<br />
                                     U wordt hierna uitgelogd.
                                 </Typography>
                             </ListItem>
@@ -734,8 +734,8 @@ function UserPortal() {
                     <List>
                         {getPayloadAsJson()!.type === 'Moderator' ? <ListItem style={{ alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
                             <Typography variant="h6">
-                                Hieronder kunt u een gebruiker selecteren om hoofdgebruiker te maken.<br />
-                                Er kan maar een hoofdgebruiker zijn. Dit betekent dat <br />het huidige hoofdgebruiker account een normale gebruiker wordt.
+                                Hieronder kunt u een gebruiker promoveren tot hoofdgebruiker.<br />
+                                Er kan maar één hoofdgebruiker zijn. Dit betekent dat <br />het huidige hoofdgebruikeraccount een normale gebruiker wordt.
                             </Typography>
                         </ListItem> : ''}
                         {getPayloadAsJson()!.type === 'Moderator'
@@ -826,7 +826,7 @@ function UserPortal() {
                                     <AccountCircle style={{ fontSize: '100px', marginRight: '15px' }} />
                                     <Typography variant="h6">Naam: &emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp;<TextField required error={newUserErrorMsg[0] !== ''} helperText={newUserErrorMsg[0]} value={newUserNameInput} onChange={handleInputChangeNewUserName} />
                                         <br /><br />
-                                        Email: &emsp;&emsp;&emsp;&emsp;&emsp;<TextField required error={newUserErrorMsg[1] !== ''} helperText={newUserErrorMsg[1]} value={newUserEmailInput} onChange={handleInputChangeNewUserEmail} />
+                                        E-mail: &emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp;<TextField required error={newUserErrorMsg[1] !== ''} helperText={newUserErrorMsg[1]} value={newUserEmailInput} onChange={handleInputChangeNewUserEmail} />
                                         <br /><br />
                                         Wachtwoord: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<TextField required type={'password'} error={newUserErrorMsg[2] !== ''} helperText={newUserErrorMsg[2]} value={newUserPassInput} onChange={handleInputChangeNewUserPass} />
                                     </Typography>
@@ -898,9 +898,8 @@ async function OnAddNewUserButtonClick(setnewUserPassInput: any, setnewUserEmail
             window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
             return;
         };
-        const UserEmailList = Enumerable.from(User.makeUserArray(userListDb.content)).select(u => u.Email).toArray();
 
-        if (UserEmailList.indexOf(newUserEmail) !== -1) {
+        if (Enumerable.from(User.makeUserArray((await ApiInstance.all('user')).content)).select(u => u.Email).contains(newUserEmail)) {
             setnewUserErrorMsg(['', 'Dit email adres bestaat al.', '']);
             return;
         }

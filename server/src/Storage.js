@@ -92,12 +92,16 @@ class Storage {
     }
   }
 
-  async removeCompany(companyId) {
-    fsPromises.rm(
-      path.normalize(this.storagePathAbsolute + `/${companyId}`),
-      { recursive: true, force: true },
-      (err) => { if (err) throw err; }
-    );
+    async removeCompany(companyId) {
+        try {
+            fsPromises.rm(
+                pathLib.normalize(this.storagePathAbsolute + `/${companyId}`),
+                { recursive: true, force: true },
+            );
+        } catch (e) {
+            console.log(e);
+        }
+
   }
 
   async addImage(fileName, companyId, dataUrl, force = false) {

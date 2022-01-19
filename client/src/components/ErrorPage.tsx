@@ -21,10 +21,21 @@ export default function ErrorPage(props: { error: number }) {
                 <ListItem>
                     <div>
                         <Typography variant="body1" gutterBottom component="div">{props.error === 404 ? `De URL ${window.location.href} is bij ons onbekend.` : props.error === 403 ? `U heeft geen toegang tot de URL ${window.location.href}.` : `Er is iets fout gegaan en deze error is bij ons niet bekend.`}</Typography>
-                        <Typography variant="body2" gutterBottom component="div"><a href="/">Klik hier om terug te gaan naar de login pagina.</a></Typography>
+                        <Typography variant="body2" gutterBottom component="div"><a href="/" onClick={() => { logout(); }}>Klik hier om terug te gaan naar de login pagina.</a></Typography>
                     </div>
                 </ListItem>
             </List>
         </Box>
     )
+
+    function logout() {
+        if (props.error !== 403) {
+            return;
+        }
+        document.cookie = document.cookie.substring(
+            document.cookie.indexOf('token='),
+            6
+        );
+        window.location.replace('/');
+    }
 }

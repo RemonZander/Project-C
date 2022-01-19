@@ -23,7 +23,9 @@ import Api from '../../helpers/Api';
 import { getPayloadAsJson, getToken } from '../../helpers/Token';
 import { PageProps } from '../../@types/app';
 import { Image } from '../../@types/general';
+import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
 import { ClassNameMap } from '@mui/material';
+import Enumerable from 'linq';
 
 //===========MATERIAL DESIGN styles===========
 const Input = styled('input')({
@@ -387,9 +389,16 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
         document.getElementById(imgId)!.style.filter = 'none';
     }
 
-    function selectedPicture(picture: any, type: string, id: number) {
+    async function selectedPicture(picture: any, type: string, id: number) {
         picture.preventDefault();
-        if (type === 'select') {
+        if (type === 'select') {            
+            const image: Image = Enumerable.from(images).where(i => i.Id === id).toArray()[0];
+            await fetch(process.env.REACT_APP_SERVER_URL + image.Filepath)
+                .then(response => response.blob())
+                .then(async data => {
+                    const imgURL = await readFileAsDataUrl(new File([data], "name"));
+                });
+
             alert('Uw foto is geselecteerd!');
         } else {
             console.log(id);
