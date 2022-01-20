@@ -505,6 +505,7 @@ function TemplateEngine(props: PageProps) {
     }
 
     function saveChanges(fileIndex: number, newDocument: Document) {
+        // Saves changes in current session
         editorFiles[fileIndex].data = new XMLSerializer().serializeToString(newDocument);
     }
 
@@ -605,7 +606,7 @@ function TemplateEngine(props: PageProps) {
         for (let i = 0; i < editorFiles.length; i++) {
             const template = editorFiles[i];
 
-            saveChanges(i, editorFrameRef.current.contentDocument);
+            saveChanges(editorPosition, editorFrameRef.current.contentDocument);
 
             ApiInstance.createFile(
                 templateName, 
@@ -631,7 +632,7 @@ function TemplateEngine(props: PageProps) {
         for (let i = 0; i < editorFiles.length; i++) {
             const template = editorFiles[i];
 
-            saveChanges(i, editorFrameRef.current.contentDocument);
+            saveChanges(editorPosition, editorFrameRef.current.contentDocument);
 
             ApiInstance.createFile(
                 designName,
@@ -693,56 +694,43 @@ function TemplateEngine(props: PageProps) {
         )
     }
 
-    function fileNameValidation(fileName: string) {
-        const FileNameArray = fileName.split('.');
-        const newFileName = FileNameArray[0];
-        return newFileName.indexOf(' ') >= 0;
-    }
-
     function fotosToevoegenButton(isAdmin: boolean) {
         if (!isAdmin) return;
         return (
-            <label htmlFor="contained-button-file">
+            <>
                 <Input
                     id="contained-button-file"
                     multiple
                     type="file"
-                    onChange={(e) => {
-                        (async () => {
-                            var extValidation = /(\.jpg|\.jpeg|\.gif|\.png)$/i;
-                            for (let i = 0; i < e.target.files!.length; i++) {
-                                if (e.target.files![i].size > 20971520) {
-                                    alert('Uw foto is te groot!');
-                                } else if (
-                                    fileNameValidation(e.target.files![i].name) ||
-                                    !extValidation.exec(e.target.files![i].name)
+                    accept='image/*'
+                    onChange={async (e) => {
+                        for (let i = 0; i < e.target.files!.length; i++) {
+                            if (e.target.files![i].size > 20971520) {
+                                alert('Uw foto is te groot!');
+                            } else if (e.target.files![i].name.split('.')[0].indexOf(' ') >= 0) {
+                                alert('Uw foto bevat een spatie in de naam!');
+                            } else {
+                                if (Object.keys(props.queryParams).length === 0 &&props.queryParams.constructor === Object
                                 ) {
-                                    alert(
-                                        'Uw foto bevat een spatie in de naam of de verkeerde extensie!'
-                                    );
+                                    await ApiInstance.createImage(e.target.files![i]);
+                                    setImageList(image.makeImageArray((await ApiInstance.all('image')).content));
                                 } else {
-                                    if (
-                                        Object.keys(props.queryParams).length === 0 &&
-                                        props.queryParams.constructor === Object
-                                    ) {
-                                        await ApiInstance.createImage(e.target.files![i]);
-                                        setImageList(image.makeImageArray((await ApiInstance.all('image')).content));
-                                    } else {
-                                        await ApiInstance.createImage(
-                                            e.target.files![i],
-                                            isAdmin ? typeof (props.queryParams.companyId) === 'string' ? parseInt(props.queryParams.companyId) : props.queryParams.companyId : parseInt(getPayloadAsJson()!.company)
-                                        );
-                                        setImageList(image.makeImageArray((await ApiInstance.all('image')).content));
-                                    }
+                                    await ApiInstance.createImage(
+                                        e.target.files![i],
+                                        isAdmin ? typeof (props.queryParams.companyId) === 'string' ? parseInt(props.queryParams.companyId) : props.queryParams.companyId : parseInt(getPayloadAsJson()!.company)
+                                    );
+                                    setImageList(image.makeImageArray((await ApiInstance.all('image')).content));
                                 }
                             }
-                        })();
+                        }
                     }}
                 />
-                <Button variant="contained" component="span" color="primary">
-                    Foto's toevoegen
-                </Button>
-            </label>
+                <label htmlFor="contained-button-file">
+                    <Button variant="contained" component="span" color="primary">
+                        Foto's toevoegen
+                    </Button>
+                </label>
+            </>
         );
         
     }
@@ -1002,7 +990,7 @@ function TemplateEngine(props: PageProps) {
                                 </div>
                             }
                             {
-                                (isTemplateMode || isAdminTemplateMode) || ((isModerator() || isEmployee()) && isDesignMode) && selectedElement !== null && selectedElement.type === "text" &&
+                                (isAdminTemplateMode || (isModerator() || isEmployee() && (isTemplateMode || isDesignMode))) && selectedElement !== null && selectedElement.type === "text" &&
                                 <>
                                     <TextField
                                         id="templateEditorTextField"
@@ -1014,7 +1002,7 @@ function TemplateEngine(props: PageProps) {
                                         onChange={handleTextChange}
                                         style={{ width: "100%" }}
                                         ref={textFieldRef}
-                                        inputProps={{ maxLength: parseInt(selectedElement.element.dataset.textLimit) }}
+                                        // inputProps={{ maxLength: parseInt(selectedElement.element.dataset.textLimit) }}
                                     />
                                     <EditorTextSize />
                                     <EditorTextWrap />
@@ -1022,7 +1010,7 @@ function TemplateEngine(props: PageProps) {
                                 </>
                             }
                             {
-                                (isTemplateMode || isAdminTemplateMode) || ((isModerator() || isEmployee()) && isDesignMode) && selectedElement !== null && selectedElement.type === "image" &&
+                                (isAdminTemplateMode || (isModerator() || isEmployee() && (isTemplateMode || isDesignMode))) && selectedElement !== null && selectedElement.type === "image" &&
                                 <>
                                     <Button variant="contained" style={{ textAlign: "center", width: "100%" }} onClick={() => { setFotoLibView(!fotoLibView) }}>
                                         afbeelding selecteren
@@ -1081,6 +1069,7 @@ function TemplateEngine(props: PageProps) {
                                 <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u de design wilt goedkeuren?" />
                             }
                             <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={e => {
+                                saveChanges(editorPosition, editorFrameRef.current.contentDocument)
                                 window.location = isAdmin() ? "/admin-portal" : "/user-portal";
                             }}>Terug naar {isAdmin() ? "admin portaal" : "user portaal"}</Button>
                         </Stack>
