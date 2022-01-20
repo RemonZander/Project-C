@@ -1,27 +1,54 @@
 const pathLib = require("path");
-const fs = require("fs/promises");
+const fsPromises = require("fs/promises");
+const fs = require("fs");
 
 class Storage {
-  constructor(path = null) {
-    this.storagePathAbsolute =
-      path === null ? pathLib.normalize(process.cwd() + "/storage") : path;
-    this.storagePathRelative =
-      path === null ? pathLib.normalize("/storage") : path;
+  constructor() {
+    this.storagePathAbsolute = pathLib.normalize(process.cwd() + "/storage");
+    this.storagePathRelative = pathLib.normalize("/storage");
+    this.imageDirName = "images";
+    this.designDirName = "designs";
+    this.templateDirName = "templates";
+  }
+  
+  async addFileToStorage(path, data, force = false) {
+    try {
+      const normalizedPath = pathLib.normalize(path);
+      const parsedPath = pathLib.parse(normalizedPath);
+
+      if (!fs.existsSync(parsedPath.dir)) {
+        await fsPromises.mkdir(parsedPath.dir, { recursive: true }, (err) => { if (err) throw err; });
+      }
+
+      if (fs.existsSync(normalizedPath) && force) {
+        await fsPromises.rm(normalizedPath);
+      }
+
+      fsPromises.appendFile(normalizedPath, data, (err) => { if (err) throw err; })
+
+      return null;
+    } catch (error) {
+      return error;
+    }
   }
 
-  async addCompany(companyName, sync = false) {
+  async removeFile(filePath) {
+    fsPromises.rm(pathLib.normalize(filePath), {}, (err) => { if (err) throw err; });
+  }
+
+  async addCompany(companyId, sync = false) {
     if (!sync) {
-      fs.mkdir(
-        pathLib.normalize(this.storagePathAbsolute + `/${companyName}/images`),
+      fsPromises.mkdir(
+        pathLib.normalize(this.storagePathAbsolute + `/${companyId}/${this.imageDirName}`),
         { recursive: true },
         (err) => {
           if (err) throw err;
         }
       );
 
-      fs.mkdir(
+      fsPromises.mkdir(
         pathLib.normalize(
-          this.storagePathAbsolute + `/${companyName}/templates`
+          this.storagePathAbsolute + `/${companyId}/${this.templateDirName}`
         ),
         { recursive: true },
         (err) => {
@@ -29,25 +56,25 @@ class Storage {
         }
       );
 
-      fs.mkdir(
-        pathLib.normalize(this.storagePathAbsolute + `/${companyName}/designs`),
+      fsPromises.mkdir(
+        pathLib.normalize(this.storagePathAbsolute + `/${companyId}/${this.designDirName}`),
         { recursive: true },
         (err) => {
           if (err) throw err;
         }
       );
     } else {
-      await fs.mkdir(
-        pathLib.normalize(this.storagePathAbsolute + `/${companyName}/images`),
+      await fsPromises.mkdir(
+        pathLib.normalize(this.storagePathAbsolute + `/${companyId}/${this.imageDirName}`),
         { recursive: true },
         (err) => {
           if (err) throw err;
         }
       );
 
-      await fs.mkdir(
+      await fsPromises.mkdir(
         pathLib.normalize(
-          this.storagePathAbsolute + `/${companyName}/templates`
+          this.storagePathAbsolute + `/${companyId}/${this.templateDirName}`
         ),
         { recursive: true },
         (err) => {
@@ -55,8 +82,8 @@ class Storage {
         }
       );
 
-      await fs.mkdir(
-        pathLib.normalize(this.storagePathAbsolute + `/${companyName}/designs`),
+      await fsPromises.mkdir(
+        pathLib.normalize(this.storagePathAbsolute + `/${companyId}/${this.designDirName}`),
         { recursive: true },
         (err) => {
           if (err) throw err;
@@ -65,32 +92,40 @@ class Storage {
     }
   }
 
-  removeCompany(companyId) {
-    fs.rm(
-      pathLib.normalize(this.storagePathAbsolute + `/${companyId}`),
-      { recursive: true, force: true },
-      (err) => {
-        if (err) throw err;
-      }
-    );
+    async removeCompany(companyId) {
+        try {
+            fsPromises.rm(
+                pathLib.normalize(this.storagePathAbsolute + `/${companyId}`),
+                { recursive: true, force: true },
+            );
+        } catch (e) {
+            console.log(e);
+        }
+
   }
 
-  addImage(fileName, companyId, dataUrl) {
-    fs.appendFile(
-      pathLib.normalize(
-        this.storagePathAbsolute + `/${companyId}/images/${fileName}`
-      ),
-      Buffer.from(dataUrl.split(",")[1], "base64"),
-      (err) => {
-        if (err) throw err;
-      }
-    );
+  async addImage(fileName, companyId, dataUrl, force = false) {
+    return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.imageDirName}/${fileName}`, Buffer.from(dataUrl.split(",")[1], "base64"), force);
   }
 
-  removeImage(filePath) {
-    fs.rm(filePath, {}, (err) => {
-      if (err) throw err;
-    });
+  async removeImage(filepath) {
+    this.removeFile(pathLib.normalize(process.cwd() + filepath))
+  }
+
+  async addTemplate(templateName, companyId, data, force = false) {
+    return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.templateDirName}/${templateName}`, data, force);
+  }
+
+  async removeTemplate(companyId, templateName) {
+    this.removeFile(`${this.storagePathAbsolute}/${companyId}/${this.templateDirName}/${templateName}`)
+  }
+
+  async addDesign(designName, companyId, templateId, data, force = false) {
+    return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.designDirName}/${templateId}/${designName}`, data, force);
+  }
+
+  async removeDesign(designName, companyId, templateId) {
+    this.removeFile(`${this.storagePathAbsolute}/${companyId}/${this.designDirName}/${templateId}/${designName}`)
   }
 }
 

@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS "template" (
 	"Filepath"	text NOT NULL,
 	"Company_id"	integer NOT NULL,
 	"Name"		text NOT NULL,
+	UNIQUE("Name","Company_id")
 	FOREIGN KEY("Company_id") REFERENCES "company"("Id") ON DELETE CASCADE ON UPDATE CASCADE,
 	PRIMARY KEY("Id" AUTOINCREMENT)
 );
@@ -43,6 +44,7 @@ CREATE TABLE IF NOT EXISTS "design" (
 	"Verified"	tinyint(4) NOT NULL,
 	"Template_id"	integer NOT NULL,
 	"Name"		text NOT NULL,
+	UNIQUE("Name","Template_id")
 	FOREIGN KEY("Template_id") REFERENCES "template"("Id") ON DELETE CASCADE ON UPDATE CASCADE,
 	PRIMARY KEY("Id" AUTOINCREMENT)
 );

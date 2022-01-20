@@ -10,9 +10,11 @@
     "db-prod": "SET NODE_ENV=production&& node commands/db/setupDatabase dbFile.sql"
   },
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "dotenv": "^10.0.0",
     "mysql": "^2.18.1",
     "node-static": "^0.7.11",
+    "puppeteer": "^1.20.0",
     "sqlite3": "^5.0.2"
   },
   "author": "",

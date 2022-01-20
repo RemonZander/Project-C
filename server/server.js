@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const statik = require('node-static');
 
+
 // Create a local server to receive data from
 let protocol = process.env.ENABLE_SSL === 'true' ? require("https") : require("http");
 let options = process.env.ENABLE_SSL === 'true' ? {
@@ -19,6 +20,8 @@ const server = protocol.createServer(options);
 const fileServer = new statik.Server('./public');
 
 const routes = require("./routes");
+const SQLException = require("./src/exceptions/SQLException");
+const InvalidJsonException = require("./src/exceptions/InvalidJsonException");
 
 // Listen to the request event
 server.on("request", (req, res) => {
@@ -30,7 +33,6 @@ server.on("request", (req, res) => {
     "PUT",
     "DELETE",
   ]);
-  req.setEncoding("utf-8");
 
   // Serves static files TODO: Handle server letting the routing done via the client
   if (process.env.NODE_ENV === "production") {
@@ -56,41 +58,46 @@ server.on("request", (req, res) => {
     return;
   }
 
-  for (let i = 0; i < routes.length; i++) {
-    const route = routes[i];
+  if (req.headers.origin === process.env.APP_URL) {
+    req.setEncoding("utf-8");
+    for (let i = 0; i < routes.length; i++) {
+      const route = routes[i];
 
-    if (req.url === route.url) {
-      if (
-        req.url !== "/auth" &&
-        (!reqHelper.authorizationHeaderExists() ||
-          !Token.verifyJWT(reqHelper.getRequestToken()))
-      ) {
-        resHelper.responseInvalidToken();
-        break;
-      }
-
-      (async () => {
-        try {
-          const result = await route.action(reqHelper, resHelper);
-
-          if (result instanceof Error) throw result;
-        } catch (error) {
-          if (error instanceof SyntaxError) {
-            console.error(error);
-            resHelper.responseInvalidJson();
-          } else if (
-            error instanceof Error &&
-            "code" in error &&
-            error.code === "SQLITE_ERROR"
-          ) {
-            console.error(error);
-            resHelper.responseInvalidCrudData();
-          } else {
-            console.error(error);
-            resHelper.responseError(error.message);
-          }
+      if (req.url === route.url) {
+        if (req.url !== "/api/auth" && (!reqHelper.authorizationHeaderExists() || !Token.verifyJWT(reqHelper.getRequestToken()))) {
+          resHelper.responseInvalidToken();
+          break;
         }
-      })();
+
+        (async () => {
+          try {
+            const result = await route.action(reqHelper, resHelper);
+
+            if (result instanceof Error) throw result;
+          } catch (error) {
+            if (error instanceof InvalidJsonException) {
+              console.error(error);
+              resHelper.responseInvalidJson();
+            } else if (error instanceof SQLException) {
+              if (error.code === "SQLITE_ERROR") {
+                console.error(error);
+                resHelper.responseInvalidCrudData();
+              } else if (error.code === "SQLITE_CONSTRAINT") {
+                console.error(error);
+                resHelper.responseRecordAlreadyExists();
+              }
+            } else {
+              if (process.env.APP_ENV === 'production' || process.env.APP_ENV === 'staging') {
+                console.error(error);
+                resHelper.responseError("Something went wrong");
+              } else {
+                console.error(error);
+                resHelper.responseError(error);
+              }
+            }
+          }
+        })();
+      }
     }
   }
 });

@@ -1,4 +1,3 @@
-.templateEngineFrame {
-    display: none;
-    margin: 0 auto;
+.toggleNone {
+    display: none !important;
 }
