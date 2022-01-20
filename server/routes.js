@@ -4,6 +4,7 @@ const DBManager = new (require("./src/db/DB"))();
 const Token = new (require("./src/Token"))();
 const Storage = new (require("./src/Storage"))();
 const path = require("path");
+const puppeteer = require('puppeteer');
 
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
@@ -74,46 +75,64 @@ Route.add("/compare", async (req, res) => {
     bcrypt.compare(data.password, result[0].Password).then(async result => {
       result ? res.responseSuccess({ valid: true }) : res.responseSuccess({ valid: false });
 
-      conn.endConnection();
+      conn.endConnection(); 
     })
   } catch (error) {
     return error;
   }
 });
 
-Route.add("/PDF", async (req, res) => {
-    const data = await req.getRequestData();
-    const puppeteer = require('puppeteer');
-    const browser = await puppeteer.launch({ headless: true })
-    const page = await browser.newPage()
-    const html = data.html;
+Route.add("/pdf", (req, res) => {
+  puppeteer.launch({ headless: true })
+  .then(browser => {
+    browser.pages()
+      .then(pages => {
+        return Promise.all([pages[0], req.getRequestData()]);
+      })
+      .then(results => {
+        const page = results[0];
+        const data = results[1];
+        
+        page.setContent(data.html, { waitUntil: ['domcontentloaded', 'load', 'networkidle0'] })
+        .then(() => {
+          return page.addStyleTag({ content: "html { -webkit-print-color-adjust: exact;  }" });
+        })
+        .then(() => {
+          return Promise.all([
+            page.pdf({
+              height: 1086,
+              preferCSSPageSize: true,
+              margin: {
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+              },
+            }),
+            data.design,
+          ])
+        })
+        .then(results => {
+          const pdfBuffer = results[0];
+          const designObject = results[1];
+          const parsedPath = path.parse(designObject.Filepath);
 
-    await page.setContent(html, {
-        waitUntil: 'domcontentloaded'
-    })
-    await page.pdf({
-        //format: 'A4',
-        path: `test.pdf`,
-        height: 1086,
-        preferCSSPageSize: true,
-        margin: {
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-        },
-    })
+          const newPath = path.normalize(parsedPath.dir + "/" + parsedPath.name + ".pdf");
 
-/*    const pdfBuffer = await page.pdf({
-        format: 'A4'
-    })
-    
+          Storage.addFileToStorage(path.normalize(process.cwd() + newPath), pdfBuffer)
+          Storage.removeFile(path.normalize(process.cwd() + designObject.Filepath))
 
-    res.responseSuccess({
-        pdf: await page.pdf({
-            format: 'A4'
-        }) });*/
-    await browser.close();
+          const conn = DBManager.startConnection();
+
+          conn.runStatement(`UPDATE design SET Updated_at = '${new Date().toLocaleDateString('en-US')}', Verified = '1', Filepath='${newPath}' WHERE Id = ?`, [designObject.Id]);
+
+          conn.endConnection();
+
+          res.responseSuccess({ url: newPath});
+        })
+        .then(() => browser.close())
+      })
+  })
 });
 
 // Adds routes based on the existing table structure defined in TableStructure.js

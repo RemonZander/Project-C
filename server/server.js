@@ -5,6 +5,9 @@ const RequestHelper = require("./src/RequestHelper");
 const ResponseHelper = require("./src/ResponseHelper");
 const Token = new (require("./src/Token"))();
 const fs = require("fs");
+const puppeteer = require('puppeteer');
+const { Readable } = require('stream');
+
 
 // Create a local server to receive data from
 const server = http.createServer();

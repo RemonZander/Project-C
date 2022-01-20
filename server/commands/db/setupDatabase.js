@@ -29,7 +29,8 @@ const sqlData = fs
 console.log("Succesfully created database.");
 console.log("Copying test data.");
 (async () => {
-    await copyDir("./storage testdata", "./storage");
+    // await copyDir("./storage_testdata", "./storage");
+    await copyDir("./test_files", "./storage");
 })();
 console.log("Test data copied.");
 
@@ -133,38 +134,14 @@ async function copyDir(src, dest) {
 
   await conn.runStatement(
     `INSERT INTO template (Filepath, Company_id, Name) VALUES
-        ('\\storage\\1\\templates\\template1_com1.html', '1', 'template1_com1'),
-        ('\\storage\\1\\templates\\template2_com1.html', '1', 'template2_com1'),
-        ('\\storage\\1\\templates\\template3_com1.html', '1', 'template3_com1'),
-        ('\\storage\\2\\templates\\template1_com2.html', '2', 'template1_com2'),
-        ('\\storage\\3\\templates\\template1_com3.html', '3', 'template1_com3'),
-        ('\\storage\\3\\templates\\template2_com3.html', '3', 'template2_com3'),
-        ('\\storage\\3\\templates\\template3_com3.html', '3', 'template3_com3'),
-        ('\\storage\\3\\templates\\template4_com3.html', '3', 'template4_com3')`
+        ('\\storage\\1\\templates\\template_1.html', '1', 'template_1')`
   );
 
-    //mm-dd-jjjj
+  //mm-dd-jjjj
   await conn.runStatement(
     `INSERT INTO design (Filepath, Created_at, Updated_at, Downloads, Verified, Template_id, Name) VALUES
-        ('\\storage\\1\\designs\\1\\design1_template1_0.html', '6-11-2021', '0-0-0000', '', FALSE, 1, 'design1_template1'),
-        ('\\storage\\1\\designs\\1\\design2_template1_0.html', '1-10-2021', '6-11-2021', '10', TRUE, 1, 'design2_template1'),
-        ('\\storage\\1\\designs\\2\\design1_template2_0.html', '10-11-2020', '4-5-2021', '', FALSE, 2, 'design1_template2'),
-        ('\\storage\\2\\designs\\4\\design1_template4_0.html', '18-2-2021', '0-0-0000', '', FALSE, 4, 'design1_template4'),
-        ('\\storage\\2\\designs\\4\\design2_template4_0.html', '1-3-2021', '3-3-2021', '99999999999', TRUE, 4, 'design2_template4'),
-        ('\\storage\\3\\designs\\7\\design1_template7_0.html', '4-4-2021', '0-0-0000', '-1', TRUE, 7, 'design1_template7'),
-        ('\\storage\\3\\designs\\7design2_template7_0.html', '8-7-2021', '0-0-0000', '', FALSE, 7, 'design2_template7'),
-        ('\\storage\\3\\designs\\7\\design3_template7_0.html', '7-8-2021', '8-7-2021', '69', TRUE, 7, 'design3_template7'),
-        ('\\storage\\3\\designs\\7\\design4_template7_0.html', '4-24-1900', '0-0-0000', '', FALSE, 7, 'design4_template7'),
-        ('\\storage\\3\\designs\\7\\design5_template7_0.html', '6-11-2021', '5-2-2019', '50', FALSE, 7, 'design5_template7'),
-        ('\\storage\\3\\designs\\7\\design6_template7_0.html', '10-8-2021', '1-1-2000', '10', TRUE, 7, 'design6_template7'),
-        ('\\storage\\3\\designs\\8\\design1_template8_0.html', '12-5-2021', '7-6-1800', '1000', TRUE, 8, 'design1_template8')`
-  );
-
-  await conn.runStatement(
-    `INSERT INTO image (Filepath, Created_at, Updated_at, Company_id) VALUES
-        ('${path.normalize(
-          Storage.storagePathRelative + "/1/images/test.gif"
-        )}', '6-11-2021', '8-11-2021', 1)`
+        ('\\storage\\1\\designs\\1\\design_1_0.html', '6-11-2021', '0-0-0000', '', FALSE, 1, 'design_1'),
+        ('\\storage\\1\\designs\\1\\design_2_0.pdf', '1-10-2021', '6-11-2021', '10', TRUE, 1, 'design_2')`
   );
 
   // DB CONNECTION END

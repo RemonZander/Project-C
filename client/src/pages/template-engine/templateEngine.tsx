@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
 import { Box, Grid, styled, Typography, AppBar, Toolbar, Card, CardMedia, CardContent, Container } from '@material-ui/core';
-import { Button, Checkbox, FormControl, FormControlLabel, InputLabel, Link, MenuItem, Select, Stack, TextField } from '@mui/material';
+import { Button, Checkbox, Divider, FormControl, FormControlLabel, InputLabel, Link, MenuItem, Select, Stack, TextField } from '@mui/material';
 import { makeStyles } from '@material-ui/core/styles';
 import { getPayloadAsJson, getToken, isAdmin, isEmployee, isModerator } from '../../helpers/Token';
 import { PageProps } from '../../@types/app';
@@ -58,6 +58,30 @@ const useStylesFotoLib = makeStyles(() => ({
 export const findImageByUrl = (url: string, imageFiles: Array<ImagesData>) => imageFiles.find(obj => obj['name'] === url.split('/').at(-1));
 
 export const createSelectedElement = (element: HTMLElement, type: "image" | "text"): SelectedElement => ({ element: element, type: type });
+
+/**
+ * Creates a copy of the template and removes any keywords that are found.
+ * @param template 
+ * @param keyword 
+ * @returns A new document with the removed keyword
+ */
+export const removeKeywordFromTemplate = (templateString: string, keywords: Array<string>): string => {
+    // Copy document to a new document
+    // TODO: Refactor
+    const newDoc = new DOMParser().parseFromString(templateString, 'text/html');
+
+    function removeKeyword(identifier: string) {
+        const elements = newDoc.querySelectorAll("." + identifier);
+
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].classList.remove(identifier);
+        }
+    }
+
+    keywords.forEach(keyword => removeKeyword(keyword))
+
+    return new XMLSerializer().serializeToString(newDoc);
+}
 
 /** 
 * Algorithm om alle "entrypoints" te vinden in een template. Een entrypoint is een html element die teksten bevat.
@@ -132,9 +156,9 @@ export function getEntryPointsRecursive(files: TemplateFiles, container: HTMLEle
 }
 
 function TemplateEngine(props: PageProps) {
-    const [templatePos, setTemplatePos] = useState(0);
+    const [editorPosition, setEditorPosition] = useState(0);
     const [designs, setDesigns] = useState([]);
-    const [templateFiles, setTemplateFiles] = useState<Array<HtmlData>>([]);
+    const [editorFiles, setEditorFiles] = useState<Array<HtmlData>>([]);
     const [selectedElement, setSelectedElement] = useState<SelectedElement>(null);
     const [textFieldValue, setTextFieldValue] = useState("");
     const [textWrap, setTextWrap] = useState("");
@@ -182,36 +206,35 @@ function TemplateEngine(props: PageProps) {
     const queryParamsObject: { queryParams: { [key: string]: string | number } } = { queryParams: { 'companyId': getPayloadAsJson()!.company } };
     const stylesFotoLib = useStylesFotoLib();
 
-/*    const loadImages = async () => {
-        setImageList(image.makeImageArray((await ApiInstance.all('image')).content));
-    };*/
-
     useEffect(async () => {
         let isVerified = true;
         setImageList(image.makeImageArray((await ApiInstance.all('image')).content));
-        //loadImages();
 
         if (isTemplateMode) {
             await ApiInstance.read('template', templateId).then(res => {
                 if (res.status === "SUCCESS") {
-                    setTemplateFiles(res.content);
-                    fetch(process.env.REACT_APP_SERVER_URL + res.content[templatePos].Filepath)
+                    setEditorFiles(res.content);
+                    fetch(process.env.REACT_APP_SERVER_URL + res.content[editorPosition].Filepath)
                         .then(res => res.text())
-                        .then(html => setTemplateFiles([{name: "", data: html, isFetched: true}]));
+                        .then(html => setEditorFiles([{name: "", data: html, isFetched: true}]));
                 }
             })
         } else if (isAdminDesignMode || (isModerator() || isEmployee() && isDesignMode)) {
             await ApiInstance.read('design', designId).then(res => {
                 if (res.status === "SUCCESS") {
-                    if (res.content[templatePos].Verified === 1) {
+                    if (res.content[editorPosition].Verified === 1) {
                         setIsDesignPending(false);
                         isVerified = false;
+
+                        window.location = process.env.REACT_APP_SERVER_URL + res.content[editorPosition].Filepath;
+                        return;
                     }
 
                     setDesigns(res.content);
-                    fetch(process.env.REACT_APP_SERVER_URL + res.content[templatePos].Filepath)
+
+                    fetch(process.env.REACT_APP_SERVER_URL + res.content[editorPosition].Filepath)
                         .then(res => res.text())
-                        .then(html => setTemplateFiles([{ name: "", data: html, isFetched: true }]));
+                        .then(html => setEditorFiles([{ name: "", data: html, isFetched: true }]));
                 }
             })
         }
@@ -433,16 +456,16 @@ function TemplateEngine(props: PageProps) {
                     files['html'][i].isFetched = false;
                 }
     
-                setTemplateFiles(files['html']);
+                setEditorFiles(files['html']);
             })();
         }
     }
 
-    function handleTemplateLoad(e) {
+    function handleFileLoad(e) {
         // TODO: Make compatible for multiple templates
         const doc: Document = e.target.contentDocument;
 
-        if (templateFiles[templatePos].isFetched) {
+        if (editorFiles[editorPosition].isFetched) {
 
             doc.querySelectorAll("." + editableKeyword).forEach(el => 
                 el.onclick = (e) => {
@@ -478,6 +501,10 @@ function TemplateEngine(props: PageProps) {
         })
     }
 
+    function saveChanges(fileIndex: number, newDocument: Document) {
+        editorFiles[fileIndex].data = new XMLSerializer().serializeToString(newDocument);
+    }
+
     function handleTextChange(e) {
         selectedElement.element.innerText = e.target.value;
         setTextFieldValue(e.target.value);
@@ -494,9 +521,7 @@ function TemplateEngine(props: PageProps) {
     }
 
     function handleImageSelect(dataURL: string) {
-        console.log(dataURL);       
         selectedElement.element.src = dataURL;
-        console.log(selectedElement);
     }
 
     function handleFontSizeUp() {
@@ -524,19 +549,18 @@ function TemplateEngine(props: PageProps) {
 
     function handleAdminFormUploadTemplate(e) {
         // Not too sure about this approach, refactor later if possible
-        for (let i = 0; i < templateFiles.length; i++) {
-            const template = templateFiles[i];
+        for (let i = 0; i < editorFiles.length; i++) {
+            const template = editorFiles[i];
 
-            template.data = new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument);
+            saveChanges(i, editorFrameRef.current.contentDocument);
 
-            const newDoc = new DOMParser().parseFromString(template.data, 'text/html');
-            const selectableElements = newDoc.querySelectorAll("." + selectableKeyword);
-
-            for (let i = 0; i < selectableElements.length; i++) {
-                selectableElements[i].classList.remove(selectableKeyword);
-            }
-
-            ApiInstance.createFile(templateName, `${templateName.replaceAll(' ', '_')}`, new XMLSerializer().serializeToString(newDoc), "template", companyId).then(res => {
+            ApiInstance.createFile(
+                templateName, 
+                `${templateName.replaceAll(' ', '_')}`, 
+                removeKeywordFromTemplate(template.data, [selectableKeyword, selectableImageKeyword]),
+                "template", 
+                companyId
+            ).then(res => {
                 if (res.status === "SUCCESS") {
                     alert("Template is geupload.");
                     toggleEditorToUpload();
@@ -551,8 +575,11 @@ function TemplateEngine(props: PageProps) {
     // TODO: new name if possible
     function handleCustomerFormUploadTemplateToDesign(e) {
         // Not too sure about this approach, refactor later if possible
-        for (let i = 0; i < templateFiles.length; i++) {
-            const template = templateFiles[i];
+        for (let i = 0; i < editorFiles.length; i++) {
+            const template = editorFiles[i];
+
+            saveChanges(i, editorFrameRef.current.contentDocument);
+
             ApiInstance.createFile(
                 designName,
                 `${designName.replaceAll(' ', '_')}_${i}`,
@@ -564,7 +591,7 @@ function TemplateEngine(props: PageProps) {
                 if (res.status === "FAIL") {
                     alert("Design is NIET gemaakt. Er ging iets mis.");
                     toggleEditorToDesign();
-                } else if (i === templateFiles.length - 1 && res.status === "SUCCESS") {
+                } else if (i === editorFiles.length - 1 && res.status === "SUCCESS") {
                     alert("Design is gemaakt. U kunt het design nog aanpassen zolang het nog niet gevalideerd is.");
                     toggleEditorToDesign();
                 }
@@ -593,39 +620,18 @@ function TemplateEngine(props: PageProps) {
                     }
 
                     if (isAdminDesignMode || (isModerator() && isDesignMode)) {
-                        designs.forEach(design => {
-                            const { Id, ...newDesign} = design;
-                            newDesign.Updated_at = new Date().toLocaleDateString('en-US');
-                            newDesign.Verified = 1;
-
-                            const newDoc = new DOMParser().parseFromString(new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 'text/html');
-                            const editableElements = newDoc.querySelectorAll("." + editableKeyword);
-                            
-                            for (let i = 0; i < editableElements.length; i++) {
-                                editableElements[i].classList.remove(editableKeyword);
+                        ApiInstance.makePDF(
+                            designs[editorPosition],
+                            removeKeywordFromTemplate(editorFiles[editorPosition].data, [editableKeyword, editableImageKeyword]),
+                            1
+                        ).then(res => {
+                            if (res.status === "SUCCESS") {
+                                alert("Design is goedgekeurd")
+                                window.location.reload();
+                            } else {
+                                alert("Design is NIET goedgekeurd.");
                             }
-
-                            // changed to also update file if necessary
-                            ApiInstance.updateFile(
-                                newDesign.Name,
-                                newDesign.Name,
-                                new XMLSerializer().serializeToString(newDoc),
-                                "design", 
-                                design.Id, 
-                                Object.values(newDesign),
-                                getPayloadAsJson()?.company,
-                                newDesign.Template_id,
-                            ).then(res => {
-                                if (res.status === "SUCCESS") {
-                                    alert("Design is goedgekeurd")
-                                } else {
-                                    alert("Design is NIET goedgekeurd.");
-                                }
-                            })
-                        });
-
-                        window.location.reload();
-                        return;
+                        })
                     }
                 }
             }} style={{ width: "100%" }}>
@@ -688,23 +694,6 @@ function TemplateEngine(props: PageProps) {
         
     }
 
-    function EditorTextField() {
-        return (
-            <TextField
-                id="templateEditorTextField"
-                label="Type text"
-                multiline
-                rows={4}
-                variant="filled"
-                value={textFieldValue}
-                onChange={handleTextChange}
-                style={{ width: "100%" }}
-                ref={textFieldRef}
-                inputProps={{ maxLength: parseInt(selectedElement.element.dataset.textLimit) }}
-            />
-        )
-    }
-
     function EditorTextSize() {
         return (
             <div>
@@ -759,7 +748,7 @@ function TemplateEngine(props: PageProps) {
 
     function EditorImageGallery() {
         return (
-            <Button variant="contained" style={{ textAlign: "center" }} onClick={() => { setFotoLibView(!fotoLibView) }}>
+            <Button variant="contained" style={{ textAlign: "center", width: "100%" }} onClick={() => { setFotoLibView(!fotoLibView) }}>
                 Kies een afbeelding
             </Button>
         )
@@ -829,25 +818,22 @@ function TemplateEngine(props: PageProps) {
         document.getElementById(imgId)!.style.filter = 'none';
     }
 
-    async function selectedPicture(picture: any, type: string, id: number) {
-        picture.preventDefault();
+    async function selectedPicture(e: Event, type: string, id: number) {
+        e.preventDefault();
+
         if (type === 'select') {
             const image: Image = Enumerable.from(imageList).where(i => i.Id === id).toArray()[0];
-            await fetch(process.env.REACT_APP_SERVER_URL + image.Filepath)
-                .then(response => response.blob())
-                .then(async data => {
-                    const imgURL = await readFileAsDataUrl(new File([data], "name"));
-
-                    handleImageSelect(imgURL);
+            fetch(process.env.REACT_APP_SERVER_URL + image.Filepath)
+            .then(response => response.blob())
+            .then(data => {
+                readFileAsDataUrl(new File([data], "name")).then(result => {
+                    handleImageSelect(result);
                     setFotoLibView(false);
+                    alert('Uw foto is geselecteerd!');
                 });
-
-            alert('Uw foto is geselecteerd!');
+            });
         } else {
-            (async () => {
-                await ApiInstance.removeImage(id);
-                window.location.reload();
-            })();
+            ApiInstance.removeImage(id).then(() => window.location.reload());
         }
     }
 
@@ -864,27 +850,6 @@ function TemplateEngine(props: PageProps) {
                 }
             />
         )
-    }
-
-    function generateEditorMenu() {
-        const elements = [];
-
-        if (selectedElement !== null && selectedElement.type === "text") {
-            elements.push(<EditorTextField />)
-            elements.push(<EditorTextSize />)
-            elements.push(<EditorTextWrap />)
-            elements.push(<EditorTextAlign />)
-        }
-
-        if (selectedElement !== null && selectedElement.type === "image") {
-            elements.push(<EditorImageGallery />)
-        }
-
-        if (selectedElement !== null) {
-            elements.push(<EditorMarkAsEditable />)
-        }
-
-        return elements;
     }
 
     return (
@@ -973,206 +938,232 @@ function TemplateEngine(props: PageProps) {
                                 )
                             }
                             {
-                                templateFiles.length > 1 &&
+                                editorFiles.length > 1 &&
+                                <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                                    <Button 
+                                        variant="contained" 
+                                        component="span" 
+                                        onClick={() => setEditorPosition(editorPosition - 1)} 
+                                        style={{ width: "40%" }}
+                                        disabled={ editorPosition <= 0 }
+                                    >Vorige</Button>
+                                    <Button 
+                                        variant="contained" 
+                                        component="span" 
+                                        onClick={() => setEditorPosition(editorPosition + 1)} 
+                                        style={{ width: "40%" }}
+                                        disabled={editorPosition >= editorFiles.length - 1}
+                                    >Volgende</Button>
+                                </div>
+                            }
+                            {
+                                (isTemplateMode || isAdminTemplateMode) && selectedElement !== null && selectedElement.type === "text" &&
                                 <>
-                                    <Button variant="contained" component="span" onClick={() => setTemplatePos(templatePos + 1)} style={{ width: "100%" }}>
-                                        Volgende
-                                    </Button>
-                                    <Button variant="contained" component="span" onClick={() => setTemplatePos(templatePos - 1)} style={{ width: "100%" }}>
-                                        Vorige
-                                    </Button>
+                                    <TextField
+                                        id="templateEditorTextField"
+                                        label="Type text"
+                                        multiline
+                                        rows={4}
+                                        variant="filled"
+                                        value={textFieldValue}
+                                        onChange={handleTextChange}
+                                        style={{ width: "100%" }}
+                                        ref={textFieldRef}
+                                        inputProps={{ maxLength: parseInt(selectedElement.element.dataset.textLimit) }}
+                                    />
+                                    <EditorTextSize />
+                                    <EditorTextWrap />
+                                    <EditorTextAlign />
                                 </>
                             }
-                            <>{generateEditorMenu()}</>
                             {
-                                templateFiles.length > 0 && isAdminTemplateMode && 
+                                (isTemplateMode || isAdminTemplateMode) && selectedElement !== null && selectedElement.type === "image" &&
+                                <>
+                                    <EditorImageGallery />
+                                </>
+                            }
+                            {
+                                isAdminTemplateMode && selectedElement !== null &&
+                                <EditorMarkAsEditable />
+                            }
+                            {
+                                editorFiles.length > 0 && isAdminTemplateMode && 
                                 <ActionButton text="Upload" confirmMessage="Weet u zeker dat u de template wilt uploaden?" />
                             }
                             {
-                                templateFiles.length > 0 && (isModerator() || isEmployee()) && isTemplateMode && 
+                                editorFiles.length > 0 && (isModerator() || isEmployee()) && isTemplateMode && 
                                 <ActionButton text="Maak design" confirmMessage="Weet u zeker dat u een design wilt maken?" />
                             }
                             {
-                                templateFiles.length > 0 && isAdminDesignMode || (isModerator() && isDesignMode) && isDesignPending &&
-                                <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u het design wilt goedkeuren?" />
+                                editorFiles.length > 0 && isAdminDesignMode || (isModerator() && isDesignMode) && isDesignPending &&
+                                <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u de design wilt goedkeuren?" />
                             }
-                            <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={async () => {
-                                const element = document.createElement('div');
-                                element.innerHTML = templateFiles[templatePos]?.data;
-                                await ApiInstance.makePDF(templateFiles[templatePos]?.data, element.offsetHeight);
-                                
-                                //download(pdf.content.pdf, "pdf.pdf");
-                            }}>Download pdf</Button>
                             <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={e => {
-                                const confirmResult = window.confirm("Weet u zeker dat u terug wilt gaan? Uw veranderingen worden niet opgeslagen.");
-
-                                if (confirmResult) {
-                                    window.location = isAdmin() ? "/admin-portal" : "/user-portal";
-                                }
-                            }}>
-                                Terug naar {isAdmin() ? "admin portal" : "user portal"}
-                            </Button>
+                                window.location = isAdmin() ? "/admin-portal" : "/user-portal";
+                            }}>Terug naar {isAdmin() ? "admin portaal" : "user portaal"}</Button>
                         </Stack>
                     </Box>
                 </Grid>
                 <Grid item xs={true}>
-                    {templateFiles.length > 0 && templatePos >= 0 && templatePos <= templateFiles.length - 1 && !fotoLibView ?
-                        <iframe onLoad={handleTemplateLoad}
+                    {editorFiles.length > 0 && editorPosition >= 0 && editorPosition <= editorFiles.length - 1 && (isAdminTemplateMode || isTemplateMode || isDesignMode) &&
+                        <iframe onLoad={handleFileLoad}
                             title="templateViewer"
-                            srcDoc={templateFiles[templatePos]?.data}
-                            style={{ height: "100%", width: "100%" }}
+                            srcDoc={editorFiles[editorPosition]?.data}
+                            style={{ height: "100%", width: "100%", display: fotoLibView ? "none" : "block" }}
                             ref={editorFrameRef}
                             id="IframeDoc"
                         ></iframe>
-                        : fotoLibView ?
-                            <div>
-                                <Container maxWidth="md" className={stylesFotoLib.cardGrid}>
-                                    <Grid container spacing={4}>
-                                        {imagesEmpty(imageList) ? (
-                                            <Typography gutterBottom variant="h6" align="center">
-                                                Geen foto's
-                                            </Typography>
-                                        ) : (
-                                            imageList.map((image, index) => {
-                                                const initialImageURL =
-                                                    process.env.REACT_APP_SERVER_URL + image.Filepath;
-                                                const actualImageURL = initialImageURL.replace(/\\/g, '/');
-                                                const imageName = retrieveImageName(image.Filepath);
-                                                const propsFotolib = getPayloadAsJson()!.type === "Admin" ? props : queryParamsObject;
-                                                let token = getPayloadAsJson();
-                                                let userCompany;
-                                                if (
-                                                    Object.keys(propsFotolib.queryParams).length === 0 &&
-                                                    propsFotolib.queryParams.constructor === Object
-                                                ) {
-                                                    userCompany = token!.company;
-                                                } else {
-                                                    userCompany = propsFotolib.queryParams.companyId;
+                    }
+                    {selectedElement !== null && selectedElement.type === "image" && fotoLibView &&
+                        <div>
+                            <Container maxWidth="md" className={stylesFotoLib.cardGrid}>
+                                <Grid container spacing={4}>
+                                    {imagesEmpty(imageList) ? (
+                                        <Typography gutterBottom variant="h6" align="center">
+                                            Geen foto's
+                                        </Typography>
+                                    ) : (
+                                        imageList.map((image, index) => {
+                                            const initialImageURL =
+                                                process.env.REACT_APP_SERVER_URL + image.Filepath;
+                                            const actualImageURL = initialImageURL.replace(/\\/g, '/');
+                                            const imageName = retrieveImageName(image.Filepath);
+                                            const propsFotolib = getPayloadAsJson()!.type === "Admin" ? props : queryParamsObject;
+                                            let token = getPayloadAsJson();
+                                            let userCompany;
+                                            if (
+                                                Object.keys(propsFotolib.queryParams).length === 0 &&
+                                                propsFotolib.queryParams.constructor === Object
+                                            ) {
+                                                userCompany = token!.company;
+                                            } else {
+                                                userCompany = propsFotolib.queryParams.companyId;
+                                            }
+                                            if (userCompany == image.Company_Id) {
+                                                if (!isEmployee()) {
+                                                    return (
+                                                        <Grid item xs={12} sm={6} md={4} key={index}>
+                                                            <Card className={stylesFotoLib.card}>
+                                                                <Button
+                                                                    id={'btn' + index}
+                                                                    variant="contained"
+                                                                    style={{ color: 'white', backgroundColor: 'blue', opacity: 0 }}
+                                                                    onMouseEnter={() =>
+                                                                        imageOnHover(index, !isEmployee(), true)
+                                                                    }
+                                                                    onMouseLeave={() =>
+                                                                        imageLeave(index, !isEmployee(), true)
+                                                                    }
+                                                                    onClick={(e) =>
+                                                                        selectedPicture(
+                                                                            e, 'select',
+                                                                            image.Id
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {'Selecteren'}
+                                                                </Button>
+                                                                <CardMedia
+                                                                    id={'img' + index}
+                                                                    className={stylesFotoLib.cardMedia}
+                                                                    title={imageName[0]}
+                                                                    image={actualImageURL}
+                                                                    onMouseEnter={() =>
+                                                                        imageOnHover(index, !isEmployee(), true)
+                                                                    }
+                                                                    onMouseLeave={() =>
+                                                                        imageLeave(index, !isEmployee(), true)
+                                                                    }
+                                                                />
+                                                                <Button
+                                                                    id={'btnDelete' + index}
+                                                                    variant="contained"
+                                                                    style={{ color: 'white', backgroundColor: 'red', opacity: 0 }}
+                                                                    onMouseEnter={() =>
+                                                                        imageOnHover(index, !isEmployee(), true)
+                                                                    }
+                                                                    onMouseLeave={() =>
+                                                                        imageLeave(index, !isEmployee(), true)
+                                                                    }
+                                                                    onClick={(e) =>
+                                                                        selectedPicture(
+                                                                            e,
+                                                                            'delete',
+                                                                            image.Id
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {'Verwijderen'}
+                                                                </Button>
+                                                                <CardContent className={stylesFotoLib.cardContent}>
+                                                                    <Typography
+                                                                        gutterBottom
+                                                                        variant="h6"
+                                                                        align="center"
+                                                                    >
+                                                                        {imageName[0]}
+                                                                    </Typography>
+                                                                </CardContent>
+                                                            </Card>
+                                                        </Grid>
+                                                    );
                                                 }
-                                                if (userCompany == image.Company_Id) {
-                                                    if (!isEmployee()) {
-                                                        return (
-                                                            <Grid item xs={12} sm={6} md={4} key={index}>
-                                                                <Card className={stylesFotoLib.card}>
-                                                                    <Button
-                                                                        id={'btn' + index}
-                                                                        variant="contained"
-                                                                        style={{ color: 'white', backgroundColor: 'blue', opacity: 0 }}
-                                                                        onMouseEnter={() =>
-                                                                            imageOnHover(index, !isEmployee(), true)
-                                                                        }
-                                                                        onMouseLeave={() =>
-                                                                            imageLeave(index, !isEmployee(), true)
-                                                                        }
-                                                                        onClick={(e) =>
-                                                                            selectedPicture(
-                                                                                e, 'select',
-                                                                                image.Id
-                                                                            )
-                                                                        }
+                                                else {
+                                                    return (
+                                                        <Grid item xs={12} sm={6} md={4} key={index}>
+                                                            <Card className={stylesFotoLib.card}>
+                                                                <Button
+                                                                    id={'btn' + index}
+                                                                    variant="contained"
+                                                                    style={{ color: 'white', backgroundColor: 'blue', opacity: 0 }}
+                                                                    onMouseEnter={() =>
+                                                                        imageOnHover(index, !isEmployee(), true)
+                                                                    }
+                                                                    onMouseLeave={() =>
+                                                                        imageLeave(index, !isEmployee(), true)
+                                                                    }
+                                                                    onClick={(e) =>
+                                                                        selectedPicture(
+                                                                            e, 'select',
+                                                                            image.Id
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {'Selecteren'}
+                                                                </Button>
+                                                                <CardMedia
+                                                                    id={'img' + index}
+                                                                    className={stylesFotoLib.cardMedia}
+                                                                    title={imageName[0]}
+                                                                    image={actualImageURL}
+                                                                    onMouseEnter={() =>
+                                                                        imageOnHover(index, !isEmployee(), true)
+                                                                    }
+                                                                    onMouseLeave={() =>
+                                                                        imageLeave(index, !isEmployee(), true)
+                                                                    }
+                                                                />
+                                                                <CardContent className={stylesFotoLib.cardContent}>
+                                                                    <Typography
+                                                                        gutterBottom
+                                                                        variant="h6"
+                                                                        align="center"
                                                                     >
-                                                                        {'Selecteren'}
-                                                                    </Button>
-                                                                    <CardMedia
-                                                                        id={'img' + index}
-                                                                        className={stylesFotoLib.cardMedia}
-                                                                        title={imageName[0]}
-                                                                        image={actualImageURL}
-                                                                        onMouseEnter={() =>
-                                                                            imageOnHover(index, !isEmployee(), true)
-                                                                        }
-                                                                        onMouseLeave={() =>
-                                                                            imageLeave(index, !isEmployee(), true)
-                                                                        }
-                                                                    />
-                                                                    <Button
-                                                                        id={'btnDelete' + index}
-                                                                        variant="contained"
-                                                                        style={{ color: 'white', backgroundColor: 'red', opacity: 0 }}
-                                                                        onMouseEnter={() =>
-                                                                            imageOnHover(index, !isEmployee(), true)
-                                                                        }
-                                                                        onMouseLeave={() =>
-                                                                            imageLeave(index, !isEmployee(), true)
-                                                                        }
-                                                                        onClick={(e) =>
-                                                                            selectedPicture(
-                                                                                e,
-                                                                                'delete',
-                                                                                image.Id
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        {'Verwijderen'}
-                                                                    </Button>
-                                                                    <CardContent className={stylesFotoLib.cardContent}>
-                                                                        <Typography
-                                                                            gutterBottom
-                                                                            variant="h6"
-                                                                            align="center"
-                                                                        >
-                                                                            {imageName[0]}
-                                                                        </Typography>
-                                                                    </CardContent>
-                                                                </Card>
-                                                            </Grid>
-                                                        );
-                                                    }
-                                                    else {
-                                                        return (
-                                                            <Grid item xs={12} sm={6} md={4} key={index}>
-                                                                <Card className={stylesFotoLib.card}>
-                                                                    <Button
-                                                                        id={'btn' + index}
-                                                                        variant="contained"
-                                                                        style={{ color: 'white', backgroundColor: 'blue', opacity: 0 }}
-                                                                        onMouseEnter={() =>
-                                                                            imageOnHover(index, !isEmployee(), true)
-                                                                        }
-                                                                        onMouseLeave={() =>
-                                                                            imageLeave(index, !isEmployee(), true)
-                                                                        }
-                                                                        onClick={(e) =>
-                                                                            selectedPicture(
-                                                                                e, 'select',
-                                                                                image.Id
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        {'Selecteren'}
-                                                                    </Button>
-                                                                    <CardMedia
-                                                                        id={'img' + index}
-                                                                        className={stylesFotoLib.cardMedia}
-                                                                        title={imageName[0]}
-                                                                        image={actualImageURL}
-                                                                        onMouseEnter={() =>
-                                                                            imageOnHover(index, !isEmployee(), true)
-                                                                        }
-                                                                        onMouseLeave={() =>
-                                                                            imageLeave(index, !isEmployee(), true)
-                                                                        }
-                                                                    />
-                                                                    <CardContent className={stylesFotoLib.cardContent}>
-                                                                        <Typography
-                                                                            gutterBottom
-                                                                            variant="h6"
-                                                                            align="center"
-                                                                        >
-                                                                            {imageName[0]}
-                                                                        </Typography>
-                                                                    </CardContent>
-                                                                </Card>
-                                                            </Grid>
-                                                        );
-                                                    }
+                                                                        {imageName[0]}
+                                                                    </Typography>
+                                                                </CardContent>
+                                                            </Card>
+                                                        </Grid>
+                                                    );
                                                 }
-                                            })
-                                        )}
-                                    </Grid>
-                                </Container>
-                            </div>
-                            :
+                                            }
+                                        })
+                                    )}
+                                </Grid>
+                            </Container>
+                        </div>
+                    }
+                    {editorFiles.length <= 0 &&
                         <div style={{
                             display: "flex",
                             justifyContent: "center",
