@@ -221,7 +221,7 @@ for (let i = 0; i < TableStructure.length; i++) {
         const plainPsw = requestBody.values[pswIndex];
 
         if (plainPsw === null) {
-            let arr = [];
+          let arr = [];
 
           columns.splice(pswIndex, 1);
           values.splice(pswIndex, 1);
@@ -354,7 +354,7 @@ for (let i = 0; i < TableStructure.length; i++) {
 
               arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
             } else {
-                result = await Storage.addDesign(requestBody.docName, companyID, requestBody.templateId, requestBody.data, true);
+              result = await Storage.addDesign(requestBody.name, companyID, requestBody.templateId, requestBody.data, true);
 
               arr.push(`${table.columns[i]} = '${requestBody.values[i]}'`);
             }

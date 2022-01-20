@@ -10216,11 +10216,6 @@
   dependencies:
     "picomatch" "^2.2.1"
 
-"readline@^1.3.0":
-  "integrity" "sha1-xYDXfvLPyHUrEySYBg3JeTp6wBw="
-  "resolved" "https://registry.npmjs.org/readline/-/readline-1.3.0.tgz"
-  "version" "1.3.0"
-
 "recursive-readdir@2.2.2":
   "integrity" "sha512-nRCcW9Sj7NuZwa2XvH9co8NPeXUBhZP7CRKJtU+cS6PW9FpCIFoI5ib0NT1ZrbNuPoRy0ylyCaUL8Gih4LSyFg=="
   "resolved" "https://registry.npmjs.org/recursive-readdir/-/recursive-readdir-2.2.2.tgz"
