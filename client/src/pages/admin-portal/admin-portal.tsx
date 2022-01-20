@@ -3,12 +3,13 @@
 import * as React from 'react';
 import './admin-portal.css';
 import kyndaLetter from './kyndaletter.png';
-import cog from './cog69420.png';
 import FotoGalleryImg from './photolibicon.jpg';
 import { CreateExport } from '../../helpers/Export';
 import Api from '../../helpers/Api';
 import { getToken } from '../../helpers/Token';
 import Enumerable from 'linq';
+import testimg2 from './testimg2.png';
+import { User } from '../../@types/general';
 
 export async function getData() {
     const ApiInstance = new Api(getToken());
@@ -19,7 +20,6 @@ export async function getData() {
     let designListDb = [];
     // sets the arrays w data in them from the database
     companyListDb = await ApiInstance.all('company');
-    console.log(companyListDb);
     let companyList = Enumerable.from(companyListDb.content).toArray();
     if (typeof (userListDb = await ApiInstance.all('user')) === 'undefined') {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
@@ -104,23 +104,11 @@ function AdminPortal() {
                 <div class="kyndaLogo">
                     <img src={kyndaLetter} width="104" height="55" alt="kyndaLogoImg" />
                 </div>
-                <div class="adminPortalHeader">Adminportaal</div>
-                <div class="dropDown">
-                    <label for="menu"> Opties: </label>
-                    <select name="menu" id="menu">
-                        <option value="optie1">optie1</option>
-                        <option value="optie2">optie2</option>
-                        <option value="optie3">optie3</option>
-                        <option value="optie4">optie4</option>
-                    </select>
-                </div>
+                <div class="adminPortalHeader">Admin portal</div>
                 <div class="logOutButton">
                     <div className="logUitButton" onClick={() => onLogOutButtonClick()}>
                         Uitloggen
                     </div>
-                </div>
-                <div class="kyndaCog">
-                    <img src={cog} width="40" height="40" alt="settingsImg" />
                 </div>
             </div>
 
@@ -196,7 +184,7 @@ function AdminPortal() {
                             alt="gallery"
                             onClick={function () {
                                 window
-                                    .open('/fotogalerij?companyId=' + portalPosition, '_blank')
+                                    .open('/fotogalerij?companyId=' + (parseInt(portalPosition) + parseInt(1)), '_blank')
                                     .focus();
                             }}
                         />
@@ -204,10 +192,10 @@ function AdminPortal() {
                             <div
                                 className="ImportTemplateButton"
                                 onClick={function () {
-                                    window.open('/editor?companyId=' + portalPosition, '_blank').focus();
+                                    window.location = '/editor?companyId=' + (parseInt(portalPosition) + parseInt(1));
                                 }}
                             >
-                                <h3>Import template</h3>
+                                <h3>Template importeren</h3>
                             </div>
                             <div
                                 className="GebruikerToevoegen"
@@ -226,7 +214,7 @@ function AdminPortal() {
                                 <h3>Hoofdgebruiker account wijzigen</h3>
                             </div>
                             <div className="BedrijfnaamWijzigen" id="BedrijfnaamWijzigen">
-                                <h3>Bedrijfnaam wijzigen</h3>
+                                <h3>Bedrijfsnaam wijzigen</h3>
                             </div>
                         </div>
                         <div className="DeletePortal" id="DeletePortal">
@@ -248,14 +236,16 @@ function AdminPortal() {
                             <div class="mainViewTemplatesHeader">Templates</div>
                             <div class="mainViewTemplatesList" id="mainViewTemplatesList"></div>
                         </div>
-                        <div class="mainViewTemplatePreview" id="mainViewTemplatePreview"></div>
+                        <div class="mainViewTemplatePreview" id="mainViewTemplatePreview">
+                            <img id="testimg" src={testimg2} style={{ width: '100%', height: '100%'}} />
+                        </div>
                         <div className="Gbrtoevoegen" id="Gbrtoevoegen">
                             <div className="GbrToevoegenHeader">Gebruiker toevoegen</div>
                             <div className="GbrInvoer">
                                 Naam: <input type="text" id="GbrNaamInvoer" />
                             </div>
                             <div className="GbrInvoer">
-                                Email: <input type="text" id="GbrEmailInvoer" />
+                                E-mail: <input type="text" id="GbrEmailInvoer" />
                             </div>
                             <div className="GbrInvoer">
                                 Wachtwoord: <input type="password" id="GbrPassInvoer" />
@@ -285,7 +275,7 @@ function AdminPortal() {
                             />
                         </div>
                         <div className="CompanyInput">
-                            Telefoon:{' '}
+                            Telefoonnummer:{' '}
                             <input
                                 style={{ marginLeft: '5px', width: '75.6%' }}
                                 type="text"
@@ -293,7 +283,7 @@ function AdminPortal() {
                             />
                         </div>
                         <div className="CompanyInput">
-                            Email:{' '}
+                            E-mail:{' '}
                             <input
                                 style={{ marginLeft: '28px', width: '75.6%' }}
                                 type="text"
@@ -375,7 +365,7 @@ function AdminPortal() {
 
 function onSelectUserPortalButtonClick(id, userPortalList, SetUserPortalList) {
     const pos: number = id.replace('selector ', '');
-    portalPosition = parseInt(1) + parseInt(pos);
+    portalPosition = pos;
     document.getElementById('mainView').style.display = 'flex';
     document.getElementById('Gbrtoevoegen').style.display = 'none';
 
@@ -404,7 +394,7 @@ function onSelectUserPortalButtonClick(id, userPortalList, SetUserPortalList) {
             `<br/>` +
             'E-mail: ' +
             userPortalList[pos].mainUserList.Email +
-            `</p><div class="changeMainUserText" id="changeMainUserText">Email gebruiker:
+            `</p><div class="changeMainUserText" id="changeMainUserText">E-mail gebruiker:
             <input type="text" class="changeMainUser" id="changeMainUser"/>
             <div class="setNewMainUser" id="setNewMainUser">Maak hoofdgebruiker</div></div>`;
     }
@@ -485,6 +475,11 @@ function loadUserPortalUsers(portalPos, userPortalList) {
         }
         const ApiInstance = new Api(getToken());
         // sets the arrays w data in them from the database
+
+        if (Enumerable.from(User.makeUserArray((await ApiInstance.all('user')).content)).select(u => u.Email).contains(document.getElementById('GbrEmailInvoer').value)) {
+            alert("Er bestaat al een gebruiker met deze email");
+            return;
+        }
 
         let result = [];
         if (
@@ -598,7 +593,6 @@ function loadUserPortalTemplates(portalPos, userPortalList) {
                 userPortalList[portalPos].designList[b].Downloads > 0
             ) {
                 total += userPortalList[portalPos].designList[b].Downloads;
-                totalEuro = totalEuro + 4.99;
             }
         }
 
@@ -606,7 +600,6 @@ function loadUserPortalTemplates(portalPos, userPortalList) {
             Id: userPortalList[portalPos].importedTemplateList[a].Id,
             name: userPortalList[portalPos].importedTemplateList[a].Name,
             total: total,
-            totalEuro: totalEuro,
         });
     }
     let tempList = document.createDocumentFragment();
@@ -618,7 +611,7 @@ function loadUserPortalTemplates(portalPos, userPortalList) {
         ShowTemplate.onclick = function () {
             loadUserPortalTemplatePreview(portalPos, TempPos, userPortalList, name);
         };
-        ShowTemplate.innerHTML = 'Bekijk Template';
+        ShowTemplate.innerHTML = 'Bekijk template';
 
         let TemplateItem = document.createElement('div');
         TemplateItem.className = 'TemplateItem';
@@ -627,10 +620,7 @@ function loadUserPortalTemplates(portalPos, userPortalList) {
             statsList[c].name +
             `<br />` +
             'Totaal Downloads: ' +
-            statsList[c].total +
-            `<br />` +
-            "Euro's: " +
-            statsList[c].totalEuro;
+            statsList[c].total
 
         TemplateItem.appendChild(ShowTemplate);
 
@@ -676,12 +666,7 @@ function loadUserPortalDesigns(portalPos, selectedTemplateId, userPortalList, te
     return tempList;
 }
 
-function loadUserPortalTemplatePreview(
-    portalPos,
-    selectedTemplateId,
-    userPortalList,
-    templateName
-) {
+function loadUserPortalTemplatePreview(portalPos, selectedTemplateId, userPortalList, templateName) {
     document.getElementById('Gbrtoevoegen').style.display = 'none';
     document.getElementById('mainViewTemplatePreview').style.display = 'block';
     document.getElementById('mainViewDesigns').style.display = 'block';
@@ -694,7 +679,6 @@ function loadUserPortalTemplatePreview(
 }
 
 function onAddUserButtonClick() {
-    console.log(document.getElementById('Gbrtoevoegen').style.display);
     if (document.getElementById('Gbrtoevoegen').style.display === 'block') {
         document.getElementById('Gbrtoevoegen').style.display = 'none';
         return;
@@ -708,6 +692,7 @@ async function onChangeCompanyNameButtonClick(portalPos, userPortalList) {
     let companyInput = prompt('Voer de nieuwe bedrijfsnaam in.');
     if (!(companyInput != '') || typeof companyInput === 'object') return;
     userPortalList[portalPos].companyName = companyInput;
+    console.log(userPortalList[portalPos]);
 
     const ApiInstance = new Api(getToken());
     let companyListDb = [];
@@ -717,10 +702,9 @@ async function onChangeCompanyNameButtonClick(portalPos, userPortalList) {
             userPortalList[portalPos].DbId
         )) === 'undefined'
     ) {
-        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
-        return;
+        //window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        //return;
     }
-    console.log(typeof companyListDb);
     const companyList = companyListDb.content;
     let result = [];
     if (
@@ -736,12 +720,8 @@ async function onChangeCompanyNameButtonClick(portalPos, userPortalList) {
                 companyList[0].Housenumber,
             ])) === 'undefined')
     ) {
-        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
-        return;
-    }
-    if (result.status !== 'SUCCESS') {
-        window.alert('Bedrijfsnaam kon niet veranderd worden. Probeer het opnieuw.');
-        return;
+        //window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
+        //return;
     }
 
     document.getElementById('userPortalItemCompanyselector ' + portalPos).innerHTML = companyInput;
@@ -751,14 +731,11 @@ async function onChangeCompanyNameButtonClick(portalPos, userPortalList) {
         `</h1>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<p class="CompanyName">` +
         document.getElementById('userPortalItemCompanyselector ' + portalPos).innerHTML +
         `</p>`;
+
+    
 }
 
-async function onDeleteUserPortalButtonClick(
-    portalPos,
-    deletePortal,
-    userPortalList,
-    SetUserPortalList
-) {
+async function onDeleteUserPortalButtonClick(portalPos, deletePortal, userPortalList, SetUserPortalList) {
     if (!deletePortal) {
         document.getElementById('DeletePortalTxt').style.display = 'block';
         document.getElementById('DeletePortalConfirm').style.display = 'flex';
@@ -766,13 +743,11 @@ async function onDeleteUserPortalButtonClick(
     }
     document.getElementById('mainView').style.display = 'none';
     const delUserIdList = Enumerable.from(
-        userPortalList[portalPos].registeredEmployeeList
-            .where((u) => u.Company_Id === userPortalList[portalPos].DbId)
-            .select((i) => i.Id)
-            .toArray()
-    );
+        userPortalList[portalPos].registeredEmployeeList)
+        .where((u) => u.Company_Id === userPortalList[portalPos].DbId)
+        .select((i) => i.Id)
+        .toArray();
 
-    console.log(delUserIdList);
     const ApiInstance = new Api(getToken());
     let result = [];
     if (
@@ -805,6 +780,8 @@ async function onDeleteUserPortalButtonClick(
             .where((p) => p.DbId !== userPortalList[portalPos].DbId)
             .toArray()
     );
+
+    //window.location.reload();
 }
 
 async function onAddNewUserPortalButtonClick(SetUserPortalList) {
@@ -821,7 +798,7 @@ async function onAddNewUserPortalButtonClick(SetUserPortalList) {
         document.getElementById('newMainUserPassword').value === ''
     ) {
         window.alert(
-            'Het enige veld dat niet verplicht is om in te vullen is het telefoonnummer veld.'
+            'Telefoonnummer veld is optioneel.'
         );
         return;
     }
@@ -846,7 +823,7 @@ async function onAddNewUserPortalButtonClick(SetUserPortalList) {
     }
 
     if (response.status !== 'SUCCESS') {
-        window.alert('Nieuw bedrijf kan niet woden aangemaakt. Probeer het opnieuw.');
+        window.alert('Nieuw bedrijf kan niet worden aangemaakt. Probeer het opnieuw.');
         return;
     }
 
@@ -894,7 +871,6 @@ function onChangeMainUserButtonClick(userPortalList, SetUserPortalList) {
     document.getElementById('mainViewUserData').style.display = 'flex';
     document.getElementById('changeMainUserText').style.display = 'flex';
     document.getElementById('setNewMainUser').onclick = async function () {
-        console.log(userPortalList[portalPosition].registeredEmployeeList);
         if (
             document.getElementById('changeMainUser').value !== '' &&
             Enumerable.from(userPortalList[portalPosition].registeredEmployeeList)
@@ -915,7 +891,7 @@ function onChangeMainUserButtonClick(userPortalList, SetUserPortalList) {
                     userPortalList[portalPosition].mainUserList.Id,
                     [
                         userPortalList[portalPosition].mainUserList.Email,
-                        userPortalList[portalPosition].mainUserList.Password,
+                        null,
                         3,
                         userPortalList[portalPosition].mainUserList.Name,
                         userPortalList[portalPosition].mainUserList.Company_Id,
@@ -936,7 +912,7 @@ function onChangeMainUserButtonClick(userPortalList, SetUserPortalList) {
             if (
                 typeof (result = await ApiInstance.update('user', NewMainUser[0].Id, [
                     NewMainUser[0].Email,
-                    NewMainUser[0].Password,
+                    null,
                     2,
                     NewMainUser[0].Name,
                     NewMainUser[0].Company_Id,
@@ -956,21 +932,14 @@ function onChangeMainUserButtonClick(userPortalList, SetUserPortalList) {
             userPortalList[portalPosition].registeredEmployeeList.push(
                 userPortalList[portalPosition].mainUserList
             );
-            console.log('List of user ids: ');
-            console.log(
-                Enumerable.from(userPortalList[portalPosition].registeredEmployeeList)
-                    .select((u) => u.Id)
-                    .toArray()
-            );
-            console.log('Id old main user: ' + oldMainUser.Id);
+
             userPortalList[portalPosition].registeredEmployeeList.splice(
                 Enumerable.from(userPortalList[portalPosition].registeredEmployeeList)
                     .select((u) => u.Id)
                     .indexOf(oldMainUser.Id) - 1,
                 1
             );
-            console.log('User list + old main user and - new main user: ');
-            console.log(userPortalList[portalPosition].registeredEmployeeList);
+
             userPortalList[portalPosition].mainUserList = NewMainUser[0];
 
             document.getElementById('mainViewUserDataText').style.display = 'block';

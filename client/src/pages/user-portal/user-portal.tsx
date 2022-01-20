@@ -137,7 +137,6 @@ function UserPortal() {
     const [headerMsg, setheaderMsg] = useState(['Home', 'pagina']);
     const [userList, setUserList] = useState(Array<User>());
     const [anchorEl, setAnchorEl] = useState(null);
-    const [pass, setPass] = useState('');
     const [imageList, setImageList] = useState(Array<Image>());
     const openMenu = Boolean(anchorEl);
     const handleDrawerOpen = () => {
@@ -203,10 +202,8 @@ function UserPortal() {
             settemplateList(await getTemplates());
             setdesignList(await getDesigns());
             setInfoView(await makeInfoViewBoolList());
-            setPass(await GetUserPassword(getPayloadAsJson()!));
             setUserList(await getUsers());
             
-
             loadImages();
         })();
     }, []);
@@ -294,8 +291,20 @@ function UserPortal() {
                                         handleCloseMenu();
                                         setDesignView(false);
                                         settemplateView(false);
+                                        setFotoLibView(false);
                                         setheaderMsg(['Instellingen', '']);
                                         setSettingsView(true);
+                                        setCurrentPassInput("");
+                                        setConfirmPassInput("");
+                                        setNewPassInput("");
+                                        setPassErrorMsg(["", "", ""]);
+                                        setChangeNameInput("");
+                                        setChangeEmailInput("");
+                                        setNewUserNameInput("");
+                                        setnewUserEmailInput("");
+                                        setnewUserPassInput("");
+                                        setChangeName(false);
+                                        setChangeEmail(false);
                                         window.scroll(0, 0);
                                     }}
                                         style={{ marginTop: '10px' }}>
@@ -304,9 +313,21 @@ function UserPortal() {
                                     <MenuItem onClick={() => {
                                         handleCloseMenu();
                                         setDesignView(false);
+                                        setFotoLibView(false);
                                         settemplateView(false);
                                         setheaderMsg(['Instellingen', '']);
                                         setSettingsView(true);
+                                        setCurrentPassInput("");
+                                        setConfirmPassInput("");
+                                        setNewPassInput("");
+                                        setPassErrorMsg(["", "", ""]);
+                                        setChangeNameInput("");
+                                        setChangeEmailInput("");
+                                        setNewUserNameInput("");
+                                        setnewUserEmailInput("");
+                                        setnewUserPassInput("");
+                                        setChangeName(false);
+                                        setChangeEmail(false);
                                         window.scroll(0, window.innerHeight / 2.5);
                                     }}
                                         style={{ marginTop: '10px' }}>
@@ -317,8 +338,20 @@ function UserPortal() {
                                             handleCloseMenu();
                                             setDesignView(false);
                                             settemplateView(false);
+                                            setFotoLibView(false);
                                             setheaderMsg(['Instellingen', '']);
                                             setSettingsView(true);
+                                            setCurrentPassInput("");
+                                            setConfirmPassInput("");
+                                            setNewPassInput("");
+                                            setPassErrorMsg(["", "", ""]);
+                                            setChangeNameInput("");
+                                            setChangeEmailInput("");
+                                            setNewUserNameInput("");
+                                            setnewUserEmailInput("");
+                                            setnewUserPassInput("");
+                                            setChangeName(false);
+                                            setChangeEmail(false);
                                             window.scroll(0, window.innerHeight / 1);
                                         }}
                                             style={{ marginTop: '10px' }}>
@@ -513,7 +546,7 @@ function UserPortal() {
                                                             alignItems: 'center',
                                                             justifyContent: 'center',
                                                         }}>
-                                                            {'Laadst bijgewerkt: ' + (design.Updated_at.toString() === 'Invalid Date' ? 'nooit' : design.Updated_at.toLocaleDateString())}
+                                                            {'laatst bijgewerkt: ' + (design.Updated_at.toString() === 'Invalid Date' ? 'nooit' : design.Updated_at.toLocaleDateString())}
                                                         </ListItem>
                                                         <ListItem style={{
                                                             alignItems: 'center',
@@ -527,15 +560,19 @@ function UserPortal() {
                                                     <Typography gutterBottom variant="h6" align="center">
                                                         {design.Name} <br />
                                                         {!design.Verified && isModerator ?
-                                                            <Button variant="contained" color="primary" onClick={async () => {
-                                                                window.open('/editor?designId=' + design.Id, '_blank');
+                                                            <Button variant="contained" color="primary" onClick={() => {
+                                                                window.location.href = '/editor?designId=' + design.Id;
                                                             }}>
                                                                 Valideren / bewerken
                                                             </Button> : !design.Verified ?
-                                                                <Button variant="contained" color="primary">
+                                                                <Button variant="contained" color="primary" onClick={() => {
+                                                                    window.location.href = '/editor?designId=' + design.Id;
+                                                                }}>
                                                                     Bewerken
-                                                                </Button> : <Button variant="contained" color="primary">
-                                                                    Downloaden
+                                                                </Button> : <Button variant="contained" color="primary" onClick={() => {
+                                                                    window.open(process.env.REACT_APP_SERVER_URL + design.Filepath, '_blank')?.focus();
+                                                                }}>
+                                                                    Bekijken / Downloaden
                                                                 </Button>
                                                         }
                                                     </Typography>
@@ -565,7 +602,7 @@ function UserPortal() {
                                                         align="center">
                                                         {template.Name}<br/>
                                                         <Button variant="contained" color="primary" onClick={async () => {
-                                                            window.open('/editor?templateId=' + template.Id, '_blank');
+                                                            window.location.href = '/editor?templateId=' + template.Id;
                                                         }}>
                                                             Maak design
                                                         </Button>
@@ -632,7 +669,7 @@ function UserPortal() {
                         <List>
                             <ListItem>
                                 <Typography variant="h6" style={{textAlign: 'center', marginLeft: '120px'}}>
-                                    Hieronder kunt u uw naam of email veranderen.<br />
+                                    Hieronder kunt u uw naam of e-mail veranderen.<br />
                                     U wordt hierna uitgelogd.
                                 </Typography>
                             </ListItem>
@@ -641,9 +678,14 @@ function UserPortal() {
                             <Typography variant="h6">
                                 {'Naam: '} &emsp;&emsp;&emsp;&nbsp;
                                 </Typography>
-                                {changeName ? <><TextField required value={changeNameInput} onChange={handleInputchangeName} />&emsp;&emsp;&emsp;&emsp;&emsp;<Button variant="contained" color="primary" onClick={() => { changeNameOrEmail(changeNameInput, '', changeName, changeEmail, setChangeUserDataErrorMsg, pass)}}>
+                                {changeName ? <><TextField required value={changeNameInput} onChange={handleInputchangeName} />&emsp;&emsp;&emsp;&emsp;&emsp;<Button variant="contained" color="primary" onClick={() => {
+                                    changeNameOrEmail(changeNameInput, '', changeName, changeEmail, setChangeUserDataErrorMsg);
+                                }}>
                                     Toepassen
-                                </Button></> : <Typography variant="h6" style={{ cursor: 'pointer' }} onClick={() => { setChangeName(!changeName)}}>
+                                </Button></> : <Typography id="changeName" variant="h6" style={{ cursor: 'pointer' }} onClick={() => {
+                                    document.getElementById('changeEmail')!.style.pointerEvents = 'none';
+                                    setChangeName(!changeName);
+                                }}>
                                     {getPayloadAsJson()!.naam}
                                 </Typography>}                               
                         </ListItem>
@@ -651,9 +693,14 @@ function UserPortal() {
                             <Typography variant="h6">
                                 {'E-mail: '} &emsp;&emsp;&emsp;
                                 </Typography>
-                                {changeEmail ? <><TextField required value={changeEmailInput} onChange={handleInputchangeEmail} />&emsp;&emsp;&emsp;&emsp;&emsp;<Button variant="contained" color="primary" onClick={() => { changeNameOrEmail('', changeEmailInput, changeName, changeEmail, setChangeUserDataErrorMsg, pass)}}>
+                                {changeEmail ? <><TextField required value={changeEmailInput} onChange={handleInputchangeEmail} />&emsp;&emsp;&emsp;&emsp;&emsp;<Button variant="contained" color="primary" onClick={() => {
+                                    changeNameOrEmail('', changeEmailInput, changeName, changeEmail, setChangeUserDataErrorMsg);
+                                }}>
                                 Toepassen
-                            </Button></> : <Typography variant="h6" style={{ cursor: 'pointer' }} onClick={() => { setChangeEmail(!changeEmail)}}>
+                                </Button></> : <Typography id="changeEmail" variant="h6" style={{ cursor: 'pointer' }} onClick={() => {
+                                    document.getElementById('changeName')!.style.pointerEvents = 'none';
+                                    setChangeEmail(!changeEmail);
+                                }}>
                                     {getPayloadAsJson()!.email}
                                 </Typography>}
                         </ListItem>
@@ -676,8 +723,9 @@ function UserPortal() {
                             align="center"
                             style={{ paddingTop: '50px', paddingBottom: '50px', paddingLeft: '200px', paddingRight: '200px' }}>
                             <Button variant="contained" color="primary" onClick={() => {
-                                    ChangePass(setCurrentPassInput, setConfirmPassInput, setNewPassInput, getPayloadAsJson()!.sub, pass, currentPassInput, newPassInput, confirmPassInput, setPassErrorMsg);
-                            }}>
+                                    ChangePass(setCurrentPassInput, setConfirmPassInput, setNewPassInput, getPayloadAsJson()!.sub, currentPassInput, newPassInput, confirmPassInput, setPassErrorMsg);
+
+                                }}>
                                 Toepassen
                             </Button>
                         </Typography>
@@ -686,8 +734,8 @@ function UserPortal() {
                     <List>
                         {getPayloadAsJson()!.type === 'Moderator' ? <ListItem style={{ alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
                             <Typography variant="h6">
-                                Hieronder kunt u een gebruiker selecteren om hoofdgebruiker te maken.<br />
-                                Er kan maar een hoofdgebruiker zijn. Dit betekent dat <br />het huidige hoofdgebruiker account een normale gebruiker wordt.
+                                Hieronder kunt u een gebruiker promoveren tot hoofdgebruiker.<br />
+                                Er kan maar een hoofdgebruiker zijn. Dit betekent dat <br />het huidige hoofdgebruikeraccount een normale gebruiker wordt.
                             </Typography>
                         </ListItem> : ''}
                         {getPayloadAsJson()!.type === 'Moderator'
@@ -778,19 +826,19 @@ function UserPortal() {
                                     <AccountCircle style={{ fontSize: '100px', marginRight: '15px' }} />
                                     <Typography variant="h6">Naam: &emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp;<TextField required error={newUserErrorMsg[0] !== ''} helperText={newUserErrorMsg[0]} value={newUserNameInput} onChange={handleInputChangeNewUserName} />
                                         <br /><br />
-                                        Email: &emsp;&emsp;&emsp;&emsp;&emsp;<TextField required error={newUserErrorMsg[1] !== ''} helperText={newUserErrorMsg[1]} value={newUserEmailInput} onChange={handleInputChangeNewUserEmail} />
+                                        E-mail: &emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp;<TextField required error={newUserErrorMsg[1] !== ''} helperText={newUserErrorMsg[1]} value={newUserEmailInput} onChange={handleInputChangeNewUserEmail} />
                                         <br /><br />
                                         Wachtwoord: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<TextField required type={'password'} error={newUserErrorMsg[2] !== ''} helperText={newUserErrorMsg[2]} value={newUserPassInput} onChange={handleInputChangeNewUserPass} />
                                     </Typography>
                                 </ListItem>
                                 <ListItem>
-                                    <Button variant="contained" color="primary" style={{ marginLeft: '175px', marginTop: '30px' }} onClick={() => OnAddNewUserButtonClick(setnewUserPassInput, setnewUserEmailInput, setNewUserNameInput, setUserList, setnewUserErrorMsg, newUserNameInput, newUserEmailInput, newUserPassInput)}>
+                                    <Button variant="contained" color="primary" style={{ marginLeft: '175px', marginTop: '30px' }} onClick={() => {OnAddNewUserButtonClick(setnewUserPassInput, setnewUserEmailInput, setNewUserNameInput, setUserList, setnewUserErrorMsg, newUserNameInput, newUserEmailInput, newUserPassInput);}}>
                                         Toepassen
                                     </Button>
                                 </ListItem>
                                 <Divider />
                             </List> : ''}                   
-                </Box> : mainPage(queryParamsObject, imageList, isModerator, setImageList, stylesFotoLib)}                         
+                </Box> : mainPage(queryParamsObject, imageList, isModerator, setImageList, stylesFotoLib, false)}                         
             </div>
         </React.Fragment>
     );
@@ -802,7 +850,7 @@ function fileNameValidation(fileName: string) {
     return newFileName.indexOf(' ') >= 0;
 }
 
-async function changeNameOrEmail(newName: string, newEmail: string, changeName: boolean, changeEmail: boolean, setChangeUserDataErrorMsg: any, pass: string) {
+async function changeNameOrEmail(newName: string, newEmail: string, changeName: boolean, changeEmail: boolean, setChangeUserDataErrorMsg: any) {
     setChangeUserDataErrorMsg([changeName && newEmail === '' ? 'Dit veld is verplicht' : '', changeEmail && newEmail === '' ? 'newEmail' : '']);
 
     if (changeName && newName === '' || changeEmail && newEmail === '') return;
@@ -813,7 +861,7 @@ async function changeNameOrEmail(newName: string, newEmail: string, changeName: 
         result = await ApiInstance.update('user', getPayloadAsJson()!.sub,
             [
                 getPayloadAsJson()!.email,
-                pass,
+                null,
                 getPayloadAsJson()!.type === 'Moderator' ? '2' : '3',
                 newName,
                 getPayloadAsJson()!.company.toString(),
@@ -823,7 +871,7 @@ async function changeNameOrEmail(newName: string, newEmail: string, changeName: 
         result = await ApiInstance.update('user', getPayloadAsJson()!.sub,
             [
                 newEmail,
-                pass,
+                null,
                 getPayloadAsJson()!.type === 'Moderator' ? '2' : '3',
                 getPayloadAsJson()!.naam,
                 getPayloadAsJson()!.company.toString(),
@@ -850,9 +898,8 @@ async function OnAddNewUserButtonClick(setnewUserPassInput: any, setnewUserEmail
             window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
             return;
         };
-        const UserEmailList = Enumerable.from(User.makeUserArray(userListDb.content)).select(u => u.Email).toArray();
 
-        if (UserEmailList.indexOf(newUserEmail) !== -1) {
+        if (Enumerable.from(User.makeUserArray((await ApiInstance.all('user')).content)).select(u => u.Email).contains(newUserEmail)) {
             setnewUserErrorMsg(['', 'Dit email adres bestaat al.', '']);
             return;
         }
@@ -883,6 +930,7 @@ export async function getDesigns() {
     const ApiInstance = new Api(getToken()!);
     let designListDb = [];
     let templateListDb = [];
+
     if (typeof (designListDb = await ApiInstance.all('design')) === 'undefined') {
         window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
         return new Array<Design>();
@@ -957,28 +1005,6 @@ async function makeInfoViewBoolList() {
     return boolList;
 }
 
-async function onValidateButtonClick(design: Design, setdesignList: any) {
-    const ApiInstance = new Api(getToken()!);
-    let result = [];
-
-    if (typeof (result = await ApiInstance.update('design', design.Id, [
-        design.Filepath,
-        design.Created_at.toLocaleDateString(),
-        design.Updated_at.toLocaleDateString(),
-        design.Downloads.toString(),
-        '1',
-        design.Template_id.toString(),
-        design.Name,
-    ])) === undefined) {
-        window.alert(
-            'De verbinding met de database is verbroken. Probeer het later opnieuw.'
-        );
-        return;
-    };
-
-    setdesignList(await getDesigns());
-}
-
 export async function onMakeMainUserButtonClick(user: User, currentUserId: number) {
     const ApiInstance = new Api(getToken()!);
     let userDataDb = [];
@@ -991,7 +1017,7 @@ export async function onMakeMainUserButtonClick(user: User, currentUserId: numbe
     if (typeof (result = await ApiInstance.update('user', currentUserId,
         [
             userDataDb.content[0].Email,
-            userDataDb.content[0].Password,
+            null,
             3,
             userDataDb.content[0].Name,
             userDataDb.content[0].Company_Id
@@ -1005,7 +1031,7 @@ export async function onMakeMainUserButtonClick(user: User, currentUserId: numbe
     if (typeof (result = await ApiInstance.update('user', user.Id,
         [
             user.Email,
-            user.Password,
+            null,
             '2',
             user.Name,
             user.Company_Id.toString()
@@ -1018,16 +1044,6 @@ export async function onMakeMainUserButtonClick(user: User, currentUserId: numbe
 
     document.cookie = document.cookie.substring(document.cookie.indexOf('token='), 6);
     window.location.replace('/');
-}
-
-export async function GetUserPassword(userInstance: Payload) {
-    let userDataDb = [];
-    const ApiInstance = new Api(getToken()!);
-    if (typeof (userDataDb = await ApiInstance.read('user', userInstance.sub)) === 'undefined') {
-        window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
-        return;
-    }
-    return userDataDb.content[0].Password;
 }
 
 function makeNewInfoViewBoolList(index: number, designList: Array<Design>, infoView: Array<Boolean>) {
@@ -1063,27 +1079,30 @@ function userLeave(id: number) {
     document.getElementById(userButtonId)!.style.opacity = '0';
 }
 
-export async function ChangePass(setCurrentPassInput: any, setConfirmPassInput: any, setNewPassInput: any, userId: number, userPassword: string, currentPass: string, newPass: string, confirmPass: string, setPassError: any) {
+export async function ChangePass(setCurrentPassInput: any, setConfirmPassInput: any, setNewPassInput: any, userId: number, currentPass: string, newPass: string, confirmPass: string, setPassError: any) {
+    const ApiInstance = new Api(getToken()!);
+    const validation = (await ApiInstance.verifyPassword(getPayloadAsJson()!.email, currentPass)).content.valid;
+
     setPassError([
-        currentPass === '' ? 'Dit veld is verplicht' : currentPass !== userPassword ? 'Het wachtwoord is onjuist' : '',
+        currentPass === '' ? 'Dit veld is verplicht' : !validation ? 'Het wachtwoord is onjuist' : '',
         newPass === '' ? 'Dit veld is verplicht' : '',
         confirmPass === '' ? 'Dit veld is verplicht' : newPass === '' ? 'U heeft geen nieuw wachtwoord opgegeven' : newPass !== confirmPass ? 'Wachtwoorden zijn ongelijk' : ''
     ]);
 
     // check for password format; minimaal 8 tekens, 1+ hoofdletter, 1+ cijfer & 1+ speciaal teken
-    if (newPass !== confirmPass || currentPass !== userPassword) return;
+    if (newPass !== confirmPass || !validation) return;
 
     if (['!', '@', '#', '$', '%', '^', '&', ' *', '(', ')', '-', '_', '=', '+', '[', ']', '{', '}', `|`, ';', ':', "'", '"', ',', '<', '.', '>', '/', '?', '`', '~'].some(s => newPass.includes(s)) &&
         ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].some(s => newPass.includes(s)) && newPass.length > 7 &&
         ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'].some(s => newPass.includes(s)) &&
-        ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'].some(s => newPass.includes(s.toUpperCase()))) {
-        const ApiInstance = new Api(getToken()!);
+        ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'].some(s => newPass.includes(s.toUpperCase()))) {        
         let userDataDb = [];
         if (typeof (userDataDb = await ApiInstance.read('user', userId)) === 'undefined') {
             window.alert('De verbinding met de database is verbroken. Probeer het later opnieuw.');
             return;
         }
         let result = [];
+        console.log('updating...');
         if (typeof (result = await ApiInstance.update('user', userId,
             [
                 userDataDb.content[0].Email,
@@ -1107,8 +1126,11 @@ export async function ChangePass(setCurrentPassInput: any, setConfirmPassInput: 
             'Het wachtwoord voldoet niet aan de minimale eisen.',
             'Het wachtwoord voldoet niet aan de minimale eisen.'
         ]);
+        return;
     }
 
+    document.cookie = document.cookie.substring(document.cookie.indexOf('token='), 6);
+    window.location.replace('/');
 }
 
 export default CreateExport('/user-portal', UserPortal);

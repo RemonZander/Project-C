@@ -12,7 +12,7 @@ export default class Api {
             throw Error("ENV Variable not found.")
         }
     
-        this.serverUrl = serverUrl;
+        this.serverUrl = serverUrl + '/api';
     }
 
     async _doFetch(url: string, method: string, body: null | object = null) {
@@ -36,6 +36,21 @@ export default class Api {
             .catch((err) => console.error(err));
     }
 
+    async verifyPassword(email: string, password: string) {
+        return await this._doFetch(this.serverUrl + `/compare`, 'POST', {
+            email: email,
+            password: password
+        });
+    }
+
+    async makePDF(design: object, html: string, height: number) {
+        return await this._doFetch(this.serverUrl + `/pdf`, 'POST', {
+            design: design,
+            html: html,
+            height: height
+        });
+    }
+
     async all(resource: string) {
         return await this._doFetch(this.serverUrl + `/${resource}`, 'GET');
     }
@@ -46,8 +61,9 @@ export default class Api {
         });
     }
 
-    async createFile(fileName: string, dataString: string, type: FileType, companyId: number | null = null, templateId: number | null = null) {
+    async createFile(docName: string, fileName: string, dataString: string, type: FileType, companyId: number | null = null, templateId: number | null = null) {
         return await this._doFetch(this.serverUrl + `/${type}/create`, 'POST', {
+            docName: docName,
             name: fileName,
             data: dataString,
             companyId: companyId,
@@ -55,12 +71,13 @@ export default class Api {
         });
     }
 
-    async updateFile(fileName: string, dataString: string, type: FileType, id: number, values: Array<string>, companyId: number | null = null, templateId: number | null = null) {
+    async updateFile(docName: string, fileName: string, dataString: string, type: FileType, id: number, values: Array<string>, companyId: number | null = null, templateId: number | null = null) {
         return await this._doFetch(this.serverUrl + `/${type}/update`, 'PUT', {
-            id: id,
-            values: values,
+            docName: docName,
             name: fileName,
             data: dataString,
+            id: id,
+            values: values,
             companyId: companyId,
             templateId: templateId,
         });
@@ -75,7 +92,7 @@ export default class Api {
 
     async createImage(file: File, companyId: number | null = null) {
         const result = await readFileAsDataUrl(file);
-        return await this.createFile(file.name, result, "image", companyId);
+        return await this.createFile('', file.name, result, "image", companyId);
     }
 
     async removeImage(id: number) {
@@ -86,7 +103,7 @@ export default class Api {
         return await this._doFetch(this.serverUrl + `/${resource}/read`, 'POST', { id: id });
     }
 
-    async update(resource: string, id: number, values: Array<string>) {
+    async update(resource: string, id: number, values: Array<string | null>) {
         return await this._doFetch(this.serverUrl + `/${resource}/update`, 'PUT', {
             id: id,
             values: values,

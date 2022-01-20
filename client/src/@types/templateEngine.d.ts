@@ -19,10 +19,31 @@ export interface TemplateFiles {
     js: Array<JavascriptData>,
 }
 
+// Deprecated
 export interface EntryPoint {
     id: string,
     element: HTMLElement,
     spanClasses: Array<string>,
     pElements: Array<HTMLParagraphElement>,
     spanElements: Array<HTMLSpanElement>,
+}
+
+export interface TextEntryPoint {
+    id: string,
+    element: HTMLElement,
+    type: "text",
+    spanClasses: Array<string>,
+    pElements: Array<HTMLParagraphElement>,
+    spanElements: Array<HTMLSpanElement>,
+}
+
+export interface SelectedElement {
+    element: HTMLElement,
+    type: "image" | "text",
+}
+export interface ImageEntryPoint {
+    id: string,
+    element: HTMLElement,
+    type: "image",
+    imgElement: HTMLImageElement,
 }

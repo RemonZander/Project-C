@@ -23,7 +23,9 @@ import Api from '../../helpers/Api';
 import { getPayloadAsJson, getToken } from '../../helpers/Token';
 import { PageProps } from '../../@types/app';
 import { Image } from '../../@types/general';
+import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
 import { ClassNameMap } from '@mui/material';
+import Enumerable from 'linq';
 
 //===========MATERIAL DESIGN styles===========
 const Input = styled('input')({
@@ -145,11 +147,6 @@ function Gallery(props: PageProps) {
                     <Grid container spacing={2} justifyContent="flex-end">
                         <Grid item>{adminButton(isAdmin)}</Grid>
                         <Grid item>
-                            <div className="searchbar">
-                                <input type="text" placeholder="Zoeken..." />
-                            </div>
-                        </Grid>
-                        <Grid item>
                             <Button
                                 variant="contained"
                                 color="primary"
@@ -164,24 +161,17 @@ function Gallery(props: PageProps) {
                                 Uitloggen
                             </Button>
                         </Grid>
-                        <Grid item>
-                            <Settings
-                                className={styles.icon}
-                                style={{ color: 'black' }}
-                                fontSize="large"
-                            />
-                        </Grid>
                     </Grid>
                 </Toolbar>
             </AppBar>
             <main>
-                {mainPage(props, images, isAdmin, setImages, styles)}
+                {mainPage(props, images, isAdmin, setImages, styles, false)}
             </main>
         </>
     );
 }
 
-export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolean, setImages: React.Dispatch<React.SetStateAction<Image[]>>, styles: ClassNameMap) {
+export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolean, setImages: React.Dispatch<React.SetStateAction<Image[]>>, styles: ClassNameMap, select: boolean) {
     return (
         <div>
             <Container maxWidth="md" className={styles.cardGrid}>
@@ -211,35 +201,35 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
                                     return (
                                         <Grid item xs={12} sm={6} md={4} key={index}>
                                             <Card className={styles.card}>
-                                                <Button
+                                                {select ? <Button
                                                     id={'btn' + index}
                                                     variant="contained"
                                                     style={{ color: 'white', backgroundColor: 'blue', opacity: 0 }}
                                                     onMouseEnter={() =>
-                                                        imageOnHover(index, isAdmin)
+                                                        imageOnHover(index, isAdmin, select)
                                                     }
                                                     onMouseLeave={() =>
-                                                        imageLeave(index, isAdmin)
+                                                        imageLeave(index, isAdmin, select)
                                                     }
                                                     onClick={(e) =>
                                                         selectedPicture(
-                                                            e,'select',
+                                                            e, 'select',
                                                             image.Id
                                                         )
                                                     }
                                                 >
                                                     {'Selecteren'}
-                                                </Button>
+                                                </Button> : ''}
                                                 <CardMedia
                                                     id={'img' + index}
                                                     className={styles.cardMedia}
                                                     title={imageName[0]}
                                                     image={actualImageURL}
                                                     onMouseEnter={() =>
-                                                        imageOnHover(index, isAdmin)
+                                                        imageOnHover(index, isAdmin, select)
                                                     }
                                                     onMouseLeave={() =>
-                                                        imageLeave(index, isAdmin)
+                                                        imageLeave(index, isAdmin, select)
                                                     }
                                                 />
                                                 <Button
@@ -247,10 +237,10 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
                                                     variant="contained"
                                                     style={ {color: 'white', backgroundColor: 'red', opacity: 0} }
                                                     onMouseEnter={() =>
-                                                        imageOnHover(index, isAdmin)
+                                                        imageOnHover(index, isAdmin, select)
                                                     }
                                                     onMouseLeave={() =>
-                                                        imageLeave(index, isAdmin)
+                                                        imageLeave(index, isAdmin, select)
                                                     }
                                                     onClick={(e) =>
                                                         selectedPicture(
@@ -279,35 +269,35 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
                                     return (
                                         <Grid item xs={12} sm={6} md={4} key={index}>
                                             <Card className={styles.card}>
-                                                <Button
+                                                {select ? <Button
                                                     id={'btn' + index}
                                                     variant="contained"
                                                     style={{ color: 'white', backgroundColor: 'blue', opacity: 0 }}
                                                     onMouseEnter={() =>
-                                                        imageOnHover(index, isAdmin)
+                                                        imageOnHover(index, isAdmin, select)
                                                     }
                                                     onMouseLeave={() =>
-                                                        imageLeave(index, isAdmin)
+                                                        imageLeave(index, isAdmin, select)
                                                     }
                                                     onClick={(e) =>
                                                         selectedPicture(
-                                                            e,'select',
+                                                            e, 'select',
                                                             image.Id
                                                         )
                                                     }
                                                 >
                                                     {'Selecteren'}
-                                                </Button>
+                                                </Button> : ''}
                                                 <CardMedia
                                                     id={'img' + index}
                                                     className={styles.cardMedia}
                                                     title={imageName[0]}
                                                     image={actualImageURL}
                                                     onMouseEnter={() =>
-                                                        imageOnHover(index, isAdmin)
+                                                        imageOnHover(index, isAdmin, select)
                                                     }
                                                     onMouseLeave={() =>
-                                                        imageLeave(index, isAdmin)
+                                                        imageLeave(index, isAdmin, select)
                                                     }
                                                 />
                                                 <CardContent className={styles.cardContent}>
@@ -360,21 +350,24 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
         return imageName;
     }
 
-    function imageOnHover(id: number, isAdmin: boolean) {
+    function imageOnHover(id: number, isAdmin: boolean, select: boolean) {
         const imgId = 'img' + id;
-        if (isAdmin) {
-            const buttonId = 'btn' + id;
-            const buttonDeleteId = 'btnDelete' + id;
-            document.getElementById(imgId)!.style.filter = 'blur(4px)';
-            document.getElementById(imgId)!.style.transition = '1s';
+        
+        const buttonId = 'btn' + id;
+        const buttonDeleteId = 'btnDelete' + id;
+        document.getElementById(imgId)!.style.filter = 'blur(4px)';
+        document.getElementById(imgId)!.style.transition = '1s';
 
+        if (select) {
             document.getElementById(buttonId)!.style.transition = '1s';
             document.getElementById(buttonId)!.style.opacity = '1';
             document.getElementById(buttonId)!.style.top =
                 String(parseInt(document.getElementById(imgId)!.style.height) / 1.5) + 'px';
             document.getElementById(buttonId)!.style.left =
-                String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px';  
+                String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px';
+        }
 
+        if (isAdmin) {
             document.getElementById(buttonDeleteId)!.style.transition = '1s';
             document.getElementById(buttonDeleteId)!.style.opacity = '1';
             document.getElementById(buttonDeleteId)!.style.top =
@@ -382,41 +375,30 @@ export function mainPage(props: PageProps, images: Array<Image>, isAdmin: boolea
             document.getElementById(buttonDeleteId)!.style.left =
                 String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px'; 
         }
-        else {
-            const buttonId = 'btn' + id;
-            document.getElementById(imgId)!.style.filter = 'blur(4px)';
-            document.getElementById(imgId)!.style.transition = '1s';
-            document.getElementById(buttonId)!.style.transition = '1s';
-            document.getElementById(buttonId)!.style.opacity = '1';
-            document.getElementById(buttonId)!.style.top =
-                String(parseInt(document.getElementById(imgId)!.style.height) / 1.5) + 'px';
-            document.getElementById(buttonId)!.style.left =
-                String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px';  
-        }
     }
 
-    function imageLeave(id: number, isAdmin: boolean) {
+    function imageLeave(id: number, isAdmin: boolean, select: boolean) {
         const imgId = 'img' + id;
-        if (isAdmin) {
-            const buttonId = 'btn' + id;
-            const buttonDeleteId = 'btnDelete' + id;
-            
-            document.getElementById(imgId)!.style.filter = 'none';
-            document.getElementById(buttonId)!.style.opacity = '0';
-
-            document.getElementById(imgId)!.style.filter = 'none';
+        const buttonId = 'btn' + id;
+        if (isAdmin) {           
+            const buttonDeleteId = 'btnDelete' + id;            
             document.getElementById(buttonDeleteId)!.style.opacity = '0';
         }
-        else {
-            const buttonId = 'btn' + id; 
-            document.getElementById(imgId)!.style.filter = 'none';
-            document.getElementById(buttonId)!.style.opacity = '0';
-        }
+        else document.getElementById(imgId)!.style.filter = 'none';
+        if (select) document.getElementById(buttonId)!.style.opacity = '0';
+        document.getElementById(imgId)!.style.filter = 'none';
     }
 
-    function selectedPicture(picture: any, type: string, id: number) {
+    async function selectedPicture(picture: any, type: string, id: number) {
         picture.preventDefault();
-        if (type === 'select') {
+        if (type === 'select') {            
+            const image: Image = Enumerable.from(images).where(i => i.Id === id).toArray()[0];
+            await fetch(process.env.REACT_APP_SERVER_URL + image.Filepath)
+                .then(response => response.blob())
+                .then(async data => {
+                    const imgURL = await readFileAsDataUrl(new File([data], "name"));
+                });
+
             alert('Uw foto is geselecteerd!');
         } else {
             console.log(id);

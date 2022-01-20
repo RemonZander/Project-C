@@ -11,13 +11,17 @@ class Storage {
     this.templateDirName = "templates";
   }
   
-  async addFileToStorage(path, data) {
+  async addFileToStorage(path, data, force = false) {
     try {
       const normalizedPath = pathLib.normalize(path);
       const parsedPath = pathLib.parse(normalizedPath);
 
       if (!fs.existsSync(parsedPath.dir)) {
         await fsPromises.mkdir(parsedPath.dir, { recursive: true }, (err) => { if (err) throw err; });
+      }
+
+      if (fs.existsSync(normalizedPath) && force) {
+        await fsPromises.rm(normalizedPath);
       }
 
       fsPromises.appendFile(normalizedPath, data, (err) => { if (err) throw err; })
@@ -88,36 +92,40 @@ class Storage {
     }
   }
 
-  async removeCompany(companyId) {
-    fsPromises.rm(
-      path.normalize(this.storagePathAbsolute + `/${companyId}`),
-      { recursive: true, force: true },
-      (err) => { if (err) throw err; }
-    );
+    async removeCompany(companyId) {
+        try {
+            fsPromises.rm(
+                pathLib.normalize(this.storagePathAbsolute + `/${companyId}`),
+                { recursive: true, force: true },
+            );
+        } catch (e) {
+            console.log(e);
+        }
+
   }
 
-  async addImage(fileName, companyId, dataUrl) {
-    return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.imageDirName}/${fileName}`, Buffer.from(dataUrl.split(",")[1], "base64"));
+  async addImage(fileName, companyId, dataUrl, force = false) {
+    return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.imageDirName}/${fileName}`, Buffer.from(dataUrl.split(",")[1], "base64"), force);
   }
 
   async removeImage(filepath) {
     this.removeFile(pathLib.normalize(process.cwd() + filepath))
   }
 
-  async addTemplate(templateName, companyId, data) {
-    return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.templateDirName}/${templateName}.html`, data);
+  async addTemplate(templateName, companyId, data, force = false) {
+    return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.templateDirName}/${templateName}`, data, force);
   }
 
   async removeTemplate(companyId, templateName) {
-    this.removeFile(`${this.storagePathAbsolute}/${companyId}/${this.templateDirName}/${templateName}.html`)
+    this.removeFile(`${this.storagePathAbsolute}/${companyId}/${this.templateDirName}/${templateName}`)
   }
 
-  async addDesign(designName, companyId, templateId, data) {
-    return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.designDirName}/${templateId}/${designName}.html`, data);
+  async addDesign(designName, companyId, templateId, data, force = false) {
+    return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.designDirName}/${templateId}/${designName}`, data, force);
   }
 
   async removeDesign(designName, companyId, templateId) {
-    this.removeFile(`${this.storagePathAbsolute}/${companyId}/${this.designDirName}/${templateId}/${designName}.html`)
+    this.removeFile(`${this.storagePathAbsolute}/${companyId}/${this.designDirName}/${templateId}/${designName}`)
   }
 }
 

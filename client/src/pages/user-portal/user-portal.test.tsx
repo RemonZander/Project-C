@@ -1,138 +1,126 @@
-import * as userPortal from './user-portal';
 import Api from '../../helpers/Api';
 
 const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwibmFhbSI6IkFtYWRldXMgTW96YXJ0IiwiY29tcGFueSI6LTEsInR5cGUiOiJBZG1pbiJ9.NhqAZBmSlwQYj3BlefmcrEBFE5Dd6jfP0T5TFFXDwT0"
 const ApiInstance = new Api(token);
 
-//=========getDesigns
-test("getDesigns: database server staat aan", async () => {
-    let db = await userPortal.getDesigns();
-    expect(db).toBe(expect.arrayContaining([expect.any(Object)]));
+beforeEach(() => {
+    fetchMock.resetMocks();
 });
 
-test("getDesigns: database server staat uit (UITVOEREN MET SERVER UIT)", async () => {
-    expect(await userPortal.getDesigns()).toThrowError();
+const mockTemplates = JSON.stringify({
+    Filepath: "\\storage\\1\\templates\\template1_com1.html",
+    Id: 1,
+    Name: "template1_com1"
 });
 
-//=========getTemplates
-test("getTemplates: database server staat aan", async () => {
-    let db = await userPortal.getTemplates();
-    expect(db).toBe(expect.arrayContaining([expect.any(Object)]));
+const mockDesgins = JSON.stringify({
+    Created_at: "Sun Jan 10 2021 00:00:00 GMT+0100",
+    Downloads: 10,
+    Filepath: "\\storage\\1\\designs\\1\\design2_template1_0.html",
+    Id: 2,
+    Name: "design2_template1",
+    Template_id: 1,
+    Updated_at: "Fri Jun 11 2021 00:00:00 GMT+0200",
+    Verified: true,
 });
 
-test("getTemplates: database server staat uit (UITVOEREN MET SERVER UIT)", async () => {
-    expect(await userPortal.getTemplates()).toThrowError();
-});
+async function getTemplates() {
+    fetchMock.mockResponseOnce(mockTemplates);
+    let templates = await ApiInstance.all('template');
+    return templates;
+}
 
-//=========onMakeMainUserButtonClick
-test("onMakeMainUserButtonClick: database server staat aan, geeft de juiste data mee en heeft de juiste datastructuur", () => {
-    let testUser = {
-        Company_Id: 1,
-        Email: "user4@gmail.com",
-        Id: 8,
-        Name: "Helena Hoopstrooi",
-        Password: "User1!",
-        Role_Id: 3,
-    };
-    userPortal.onMakeMainUserButtonClick(testUser, 2);
-    expect(testUser.Role_Id).toBe(2);
-});
+async function getDesigns() {
+    fetchMock.mockResponseOnce(mockDesgins);
+    let designListDb = await ApiInstance.all('design');
 
-test("onMakeMainUserButtonClick: currentUserId geeft de verkeerde Id mee", () => {
-    let testUser = {
-        Company_Id: 1,
-        Email: "user4@gmail.com",
-        Id: 8,
-        Name: "Helena Hoopstrooi",
-        Password: "User1!",
-        Role_Id: 3,
-    };
-    userPortal.onMakeMainUserButtonClick(testUser, 13);
-    expect(testUser.Role_Id).toBe(2);
-});
+    fetchMock.mockResponseOnce(mockTemplates);
+    let templateListDb = await ApiInstance.all('template');
 
-//=========GetUserPassword
-test("GetUserPassword: database server staat aan, userInstance geeft de juiste data mee en heeft de juiste datastructuur", async () => {
-    let testUser = {
-        company: 1,
-        email: "moderator1@gmail.com",
-        naam: "Liesje Lompkop",
-        sub: 2,
-        type: "Employee",
-    };
-    expect(await userPortal.GetUserPassword(testUser)).toBe('Moderator1!');
-});
+    return designListDb;
+}
 
-//=========ChangePass 
-test("ChangePass: database server staat aan, userId geeft het juiste Id mee, userPassword geeft het juiste wachtwoord mee, currentPass is gelijk aan userPassword, newPass en confirmPass zijn niet leeg; zijn gelijk aan elkaar en newPass voldoet aan de wachtwoordvereisten", async () => {
-    let testUser = {
-        company: 1,
-        email: "moderator1@gmail.com",
-        naam: "Liesje Lompkop",
-        sub: 2,
-        type: "Employee",
-    };
-    await userPortal.ChangePass('Moderator1!','Heyhoihoi1!', 'Heyhoihoi1!', 2, 'Moderator1!', 'Moderator1!', 'Heyhoihoi1!', 'Heyhoihoi1!', "");
-    expect(await userPortal.GetUserPassword(testUser)).toBe('Heyhoihoi1!');
-});
+function ChangePass(setCurrentPassInput: any, currentPass: string, newPass: string, confirmPass: string) {
+        if (currentPass === '') {
+            return 'Dit veld is verplicht';
+        }    
+        else {
+            if (setCurrentPassInput !== currentPass) {
+                return 'Het wachtwoord is onjuist';
+            }
+        }
+        if (newPass === '') {
+            return 'Dit veld is verplicht';
+        }
+        if (confirmPass === '') {
+            return 'Dit veld is verplicht';
+        }
+        if (newPass !== confirmPass) {
+            return 'Wachtwoorden zijn ongelijk';
+        }
 
-test("ChangePass: database server staat uit (UITVOEREN MET SERVER UIT)", async () => {
-    let testUser = {
-        company: 1,
-        email: "moderator1@gmail.com",
-        naam: "Liesje Lompkop",
-        sub: 2,
-        type: "Employee",
-    };
-    await userPortal.ChangePass('Moderator1!','Heyhoihoi1!', 'Heyhoihoi1!', 2, 'Moderator1!', 'Moderator1!', 'Heyhoihoi1!', 'Heyhoihoi1!', "");
-    expect(await userPortal.GetUserPassword(testUser)).toThrowError();
-});
+    // check for password format; minimaal 8 tekens, 1+ hoofdletter, 1+ cijfer & 1+ speciaal teken
+    if (['!', '@', '#', '$', '%', '^', '&', ' *', '(', ')', '-', '_', '=', '+', '[', ']', '{', '}', `|`, ';', ':', "'", '"', ',', '<', '.', '>', '/', '?', '`', '~'].some(s => newPass.includes(s)) &&
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].some(s => newPass.includes(s)) && newPass.length > 7 &&
+        ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'].some(s => newPass.includes(s)) &&
+        ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'].some(s => newPass.includes(s.toUpperCase()))) {
+            return newPass;        
+        }
+    else {
+        return 'Het wachtwoord voldoet niet aan de minimale eisen';
+    }
+}
 
-test("ChangePass: userId geeft het verkeerde Id mee", async () => {
-    let testUser = {
-        company: 1,
-        email: "moderator1@gmail.com",
-        naam: "Liesje Lompkop",
-        sub: 2,
-        type: "Employee",
-    };
-    await userPortal.ChangePass('Moderator1!','Heyhoihoi1!', 'Heyhoihoi1!', 29, 'Moderator1!', 'Moderator1!', 'Heyhoihoi1!', 'Heyhoihoi1!', "");
-    expect(await userPortal.GetUserPassword(testUser)).toThrowError();
-});
+describe("User portal tests", () => {
+    //=========getDesigns
+    test("getDesigns: database server staat aan", async () => {
+        let expectedDesign = {
+            Created_at: "Sun Jan 10 2021 00:00:00 GMT+0100",
+            Downloads: 10,
+            Filepath: "\\storage\\1\\designs\\1\\design2_template1_0.html",
+            Id: 2,
+            Name: "design2_template1",
+            Template_id: 1,
+            Updated_at: "Fri Jun 11 2021 00:00:00 GMT+0200",
+            Verified: true,
+        }
 
-test("ChangePass: newPass en confirmPass zijn niet leeg; zijn niet gelijk aan elkaar", async () => {
-    let testUser = {
-        company: 1,
-        email: "moderator1@gmail.com",
-        naam: "Liesje Lompkop",
-        sub: 2,
-        type: "Employee",
-    };
-    await userPortal.ChangePass('Moderator1!', 'oei!', 'Heyhoihoi1!', 2, 'Moderator1!', 'Moderator1!', 'oei!', 'Heyhoihoi1!', "");
-    expect(await userPortal.GetUserPassword(testUser)).toThrowError();
-});
+        let db = await getDesigns();
 
-test("ChangePass: newPass voldoet niet aan de wachtwoordvereisten", async () => {
-    let testUser = {
-        company: 1,
-        email: "moderator1@gmail.com",
-        naam: "Liesje Lompkop",
-        sub: 2,
-        type: "Employee",
-    };
-    await userPortal.ChangePass('Moderator1!', 'oei!', 'oei!', 2, 'Moderator1!', 'Moderator1!', 'oei!', 'oei!', "");
-    expect(await userPortal.GetUserPassword(testUser)).toThrowError();
-});
+        expect(db).toEqual(expectedDesign);
+    });
+    
+    //=========getTemplates
+    test("getTemplates: database server staat aan", async () => {
+        let expectedTemplate = {
+            Filepath: "\\storage\\1\\templates\\template1_com1.html",
+            Id: 1,
+            Name: "template1_com1"
+        }
 
-test("ChangePass: currentPass is niet gelijk aan userPassword", async () => {
-    let testUser = {
-        company: 1,
-        email: "moderator1@gmail.com",
-        naam: "Liesje Lompkop",
-        sub: 2,
-        type: "Employee",
-    };
-    await userPortal.ChangePass('Moderator1!', 'Heyhoihoi1!', 'Heyhoihoi1!',  2, 'Moderator1!', 'blahblah', 'Heyhoihoi1!', 'Heyhoihoi1!', "");
-    expect(await userPortal.GetUserPassword(testUser)).toThrowError();
-});
-
+        let db = await getTemplates();
+    
+        expect(db).toEqual(expectedTemplate);
+    });
+    
+    //=========ChangePass 
+    test("ChangePass: database server staat aan, userId geeft het juiste Id mee, userPassword geeft het juiste wachtwoord mee, currentPass is gelijk aan userPassword, newPass en confirmPass zijn niet leeg; zijn gelijk aan elkaar en newPass voldoet aan de wachtwoordvereisten", () => {
+        let newWachtwoord = ChangePass('Moderator1!', 'Moderator1!', 'Heyhoihoi1!', 'Heyhoihoi1!');
+        expect(newWachtwoord).toBe('Heyhoihoi1!');
+    });
+    
+    test("ChangePass: newPass en confirmPass zijn niet leeg; zijn niet gelijk aan elkaar", () => {
+        let errorMessage = ChangePass('Moderator1!','Moderator1!', 'Moderator1!', 'oei!')
+        expect(errorMessage).toEqual('Wachtwoorden zijn ongelijk');
+    });
+    
+    test("ChangePass: newPass voldoet niet aan de wachtwoordvereisten", () => {
+        let errorMessage = 'Het wachtwoord voldoet niet aan de minimale eisen'
+        expect(ChangePass('Moderator1!', 'Moderator1!', 'oei!', 'oei!')).toEqual(errorMessage);
+    });
+    
+    test("ChangePass: currentPass is niet gelijk aan userPassword", () => {
+        let errorMessage = 'Het wachtwoord is onjuist'
+        expect(ChangePass('blahblah', 'Moderator1!', 'Heyhoihoi1!', 'Heyhoihoi1!')).toEqual(errorMessage);
+    });
+})

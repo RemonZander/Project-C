@@ -1,18 +1,23 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 
 import './templateEngine.css';
 
 import { useEffect, useRef, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
-import { Box, Grid, styled } from '@material-ui/core';
-import { Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
-import { getPayloadAsJson, getToken, isAdmin } from '../../helpers/Token';
+import { ArrowUpward, ArrowBack, ArrowForward, ArrowDownward } from '@mui/icons-material'
+import { Box, Grid, styled, Typography, AppBar, Toolbar, Card, CardMedia, CardContent, Container, Divider, List, ListItem } from '@material-ui/core';
+import { Button, Checkbox, FormControl, FormControlLabel, InputLabel, Link, MenuItem, Select, Stack, TextField } from '@mui/material';
+import { makeStyles } from '@material-ui/core/styles';
+import { getPayloadAsJson, getToken, isAdmin, isEmployee, isModerator } from '../../helpers/Token';
 import { PageProps } from '../../@types/app';
-import { HtmlData, EntryPoint, ImagesData, TemplateFiles, EditorSectionType } from '../../@types/templateEngine';
-import { jsPDF } from "jspdf";
-import html2canvas from 'html2canvas';
+import { HtmlData, EntryPoint, TemplateFiles, TextEntryPoint, ImageEntryPoint, ImagesData, SelectedElement } from '../../@types/templateEngine';
 import Api from '../../helpers/Api';
+import { mainPage } from '../fotolibrary-pagina/fotolibrary-pagina';
+import { Image as image } from '../../@types/general';
+import kyndalogo from './kynda.png';
+import download from 'downloadjs';
+import Enumerable from 'linq';
 
 const ApiInstance = new Api(getToken());
 
@@ -29,25 +34,146 @@ const Input = styled('input')({
     display: 'none',
 });
 
+const useStylesFotoLib = makeStyles(() => ({
+    icon: {
+        marginRight: '20px',
+    },
+    cardGrid: {
+        padding: '20px 0',
+    },
+    card: {
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    cardMedia: {
+        paddingTop: '56.25%',
+        width: '100%',
+        height: '100%',
+    },
+    cardContent: {
+        flexGrow: 1,
+    },
+}));
+
+export const findImageByUrl = (url: string, imageFiles: Array<ImagesData>) => imageFiles.find(obj => obj['name'] === url.split('/').at(-1));
+
+export const createSelectedElement = (element: HTMLElement, type: "image" | "text"): SelectedElement => ({ element: element, type: type });
+
+/**
+ * Creates a copy of the template and removes any keywords that are found.
+ * @param template 
+ * @param keyword 
+ * @returns A new document with the removed keyword
+ */
+export const removeKeywordFromTemplate = (templateString: string, keywords: Array<string>): string => {
+    // Copy document to a new document
+    // TODO: Refactor
+    const newDoc = new DOMParser().parseFromString(templateString, 'text/html');
+
+    function removeKeyword(identifier: string) {
+        const elements = newDoc.querySelectorAll("." + identifier);
+
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].classList.remove(identifier);
+        }
+    }
+
+    keywords.forEach(keyword => removeKeyword(keyword))
+
+    return new XMLSerializer().serializeToString(newDoc);
+}
+
+/** 
+* Algorithm om alle "entrypoints" te vinden in een template. Een entrypoint is een html element die teksten bevat.
+*/
+export function getEntryPointsRecursive(files: TemplateFiles, container: HTMLElement, entryPoints: Array<EntryPoint | TextEntryPoint | ImageEntryPoint> = [], closestElementWithId: string = "") {
+    const children = container.children;
+
+    if (children.length === 0) {
+        throw Error("Invalid container, does not include children.")
+    }
+
+    const entryPoint = entryPoints.filter(point => point.id === closestElementWithId)[0];
+
+    for (let i = 0; i < children.length; i++) {
+        const currentElement = children[i] as HTMLElement;
+        // const currentElementStyles = getComputedStyle(currentElement);
+
+        // Assume that we found an entrypoint and give it an appropiate ID
+        if (currentElement.id === "" && currentElement.tagName.toLowerCase() === "div" && currentElement.style.length !== 0) {
+            currentElement.id = "layer_" + entryPoints.length;
+            currentElement.className = "layer";
+
+            entryPoints.push({
+                id: currentElement.id,
+                element: currentElement,
+                type: "text",
+                spanClasses: [],
+                pElements: [],
+                spanElements: [],
+            });
+        }
+
+        if (currentElement.tagName.toLowerCase() === "p") {
+            entryPoint.pElements.push(currentElement as HTMLParagraphElement);
+        }
+
+        if (currentElement.tagName.toLowerCase() === "span") {
+            entryPoint.spanElements.push(currentElement as HTMLSpanElement);
+
+            if (!entryPoint.spanClasses.includes(currentElement.className)) {
+                entryPoint.spanClasses.push(currentElement.className);
+            }
+        }
+
+        if (currentElement.tagName.toLowerCase() === "img") {
+            const imgSrc: string = currentElement.src;
+
+            if (!imgSrc.startsWith("data")) {
+                const imageObj = findImageByUrl(imgSrc, files.images);
+
+                if (imageObj === undefined) {
+                    console.error("Source is niet gevonden in de lijst met afbeeldingen.");
+                }
+
+                currentElement.src = imageObj!.data;
+            }
+
+            entryPoints.push({
+                id: currentElement.parentNode.id,
+                type: "image",
+                element: currentElement.parentNode,
+                imgElement: currentElement,
+            });
+        }
+
+        if (currentElement.children.length !== 0) {
+            getEntryPointsRecursive(files, currentElement, entryPoints, currentElement.id === "" ? closestElementWithId : currentElement.id);
+        }
+    }
+
+    return entryPoints;
+}
+
 function TemplateEngine(props: PageProps) {
-    const [templatePos, setTemplatePos] = useState(0);
-    const [templates, setTemplates] = useState([]);
+    const [editorPosition, setEditorPosition] = useState(0);
     const [designs, setDesigns] = useState([]);
-    const [templateFiles, setTemplateFiles] = useState<Array<HtmlData>>([]);
-    const [templateImages, setTemplateImages] = useState<Array<ImagesData>>([]);
-    const [selectedElement, setSelectedElement] = useState(null);
+    const [editorFiles, setEditorFiles] = useState<Array<HtmlData>>([]);
+    const [selectedElement, setSelectedElement] = useState<SelectedElement>(null);
     const [textFieldValue, setTextFieldValue] = useState("");
+    const [imageWidthValue, setImageWidthValue] = useState("");
+    const [imageHeightValue, setImageHeightValue] = useState("");
     const [textWrap, setTextWrap] = useState("");
     const [textAlign, setTextAlign] = useState("");
     const [isElementEditable, setIsElementEditable] = useState(false);
-    const [section, setSection] = useState<EditorSectionType>(null);
+    const [headerText, setHeaderText] = useState("", "");
+    const [isSaved, setIsSaved] = useState(null);
 
     const [isDesignPending, setIsDesignPending] = useState<boolean>(true);
 
-    const [companies, setCompanies] = useState([]);
     const [templateName, setTemplateName] = useState("");
     const [designName, setDesignName] = useState("");
-    const [selectedCompany, setSelectedCompany] = useState({ Name: '' });
 
     const uploadSectionRef = useRef(null);
     const designSectionRef = useRef(null);
@@ -58,41 +184,61 @@ function TemplateEngine(props: PageProps) {
     const alignOptionsRef = useRef(null);
     const editableCheckboxRef = useRef(null);
     const editorFrameRef = useRef(null);
-    
+
+    // Marks an element to be editable by a customer
     const editableKeyword = 'editable';
+    const editableImageKeyword = 'editable-image';
+    // Marks an element to be selectable for the admin
     const selectableKeyword = 'selectable';
+    const selectableImageKeyword = 'selectable-image';
+    // Shows the user what element is currently selected
+    const selectedKeyword = 'selected';
+    const selectedImageKeyword = 'selected-image';
 
     const companyId = props.queryParams?.companyId;
     const templateId = props.queryParams?.templateId;
     const designId = props.queryParams?.designId;
 
-    const isCustomerTemplateMode = !isAdmin() && companyId === undefined && templateId !== undefined && designId === undefined;
-    const isCustomerDesignMode = !isAdmin() && companyId === undefined && templateId === undefined && designId !== undefined;
-    
+    const isTemplateMode = companyId === undefined && templateId !== undefined && designId === undefined;
+    const isDesignMode = companyId === undefined && templateId === undefined && designId !== undefined;
+
     const isAdminTemplateMode = isAdmin() && companyId !== undefined && templateId === undefined && designId === undefined;
     const isAdminDesignMode = isAdmin() && companyId !== undefined && templateId === undefined && designId !== undefined;
 
-    useEffect(() => {
-        if (isCustomerTemplateMode) {
-            ApiInstance.read('template', templateId).then(res => {
+    const [fotoLibView, setFotoLibView] = useState(false);
+    const [imageList, setImageList] = useState(Array<image>());
+    const queryParamsObject: { queryParams: { [key: string]: string | number } } = { queryParams: { 'companyId': getPayloadAsJson()!.company } };
+    const stylesFotoLib = useStylesFotoLib();
+
+    useEffect(async () => {
+        let isVerified = true;
+        setImageList(image.makeImageArray((await ApiInstance.all('image')).content));
+
+        if (isTemplateMode) {
+            await ApiInstance.read('template', templateId).then(res => {
                 if (res.status === "SUCCESS") {
-                    setTemplates(res.content);
-                    fetch(process.env.REACT_APP_SERVER_URL + res.content[templatePos].Filepath)
+                    setEditorFiles(res.content);
+                    fetch(process.env.REACT_APP_SERVER_URL + res.content[editorPosition].Filepath)
                         .then(res => res.text())
-                        .then(html => setTemplateFiles([{name: "", data: html, isFetched: true}]));
+                        .then(html => setEditorFiles([{name: "", data: html, isFetched: true}]));
                 }
             })
-        } else if (isAdminDesignMode || isCustomerDesignMode) {
-            ApiInstance.read('design', designId).then(res => {
+        } else if (isAdminDesignMode || (isModerator() || isEmployee() && isDesignMode)) {
+            await ApiInstance.read('design', designId).then(res => {
                 if (res.status === "SUCCESS") {
-                    if (res.content[templatePos].Verified === 1) {
+                    if (res.content[editorPosition].Verified === 1) {
                         setIsDesignPending(false);
+                        isVerified = false;
+
+                        window.location = isAdmin() ? "/admin-portal" : "/user-portal";
+                        return;
                     }
 
                     setDesigns(res.content);
-                    fetch(process.env.REACT_APP_SERVER_URL + res.content[templatePos].Filepath)
+
+                    fetch(process.env.REACT_APP_SERVER_URL + res.content[editorPosition].Filepath)
                         .then(res => res.text())
-                        .then(html => setTemplateFiles([{ name: "", data: html, isFetched: true }]));
+                        .then(html => setEditorFiles([{ name: "", data: html, isFetched: true }]));
                 }
             })
         }
@@ -110,20 +256,11 @@ function TemplateEngine(props: PageProps) {
         }
 
         if (editableCheckboxRef.current !== null) {
-            (editableCheckboxRef.current as HTMLInputElement).checked = selectedElement.classList.contains(editableKeyword);
+            (editableCheckboxRef.current as HTMLInputElement).checked =  selectedElement.element.classList.contains(editableKeyword);
         }
 
-        if (section === 'upload') {
-            ApiInstance.all('company').then(res => {
-                if (res.status === "FAIL") {
-                    alert("Iets is er misgegaan.");
-                } else {
-                    setCompanies(res.content);
-                    setSelectedCompany(res.content[0]);
-                }
-            })
-        }
-    }, [section])
+        setHeaderText(isAdminTemplateMode ? ["Template", "maken"] : isTemplateMode ? ["Design", "maken"] : isVerified ? ["Design", "Bewerken"] : ["Design", "Downloaden"]);
+    }, [])
 
     function toggleEditorToUpload() {
         editorSectionRef.current.classList.toggle("toggleNone")
@@ -144,7 +281,7 @@ function TemplateEngine(props: PageProps) {
 
         const exportFiles = e.target.files;
 
-        if (e.target.files.length !== 0) {
+        if (exportFiles.length !== 0) {
             (async () => {
                 let files: TemplateFiles = {
                     html: [],
@@ -163,13 +300,13 @@ function TemplateEngine(props: PageProps) {
                     const file = exportFiles[i];
     
                     if (file.type === 'text/html') {
-                        files['html'].push(createObj(file, await readFile(file)));
+                        files.html.push(createObj(file, await readFile(file)));
                     } else if (file.type === 'text/css') {
-                        files['css'].push(createObj(file, await readFile(file)));
+                        files.css.push(createObj(file, await readFile(file)));
                     } else if (file.type === 'text/javascript') {
-                        files['js'].push(createObj(file, await readFile(file)));
+                        files.js.push(createObj(file, await readFile(file)));
                     } else if (['image/png', 'image/jpg', 'image/jpeg'].includes(file.type)) {
-                        files['images'].push(createObj(file, await readFileAsDataUrl(file)));
+                        files.images.push(createObj(file, await readFileAsDataUrl(file)));
                     } else {
                         return;
                     }
@@ -190,280 +327,374 @@ function TemplateEngine(props: PageProps) {
                     const doc = new DOMParser().parseFromString(htmlObj.data, 'text/html');
     
                     Array.from(doc.getElementsByTagName('head')[0].children).forEach(child => {
-                        if (child.tagName === 'LINK' || child.tagName === 'SCRIPT') child.remove();
+                        if (child.tagName.toLowerCase() === 'link' || (child.tagName.toLowerCase() === 'script')) child.remove();
                     })
     
                     // Add the contents of the css files as a style element to the html document
-                    for (let i = 0; i < files['css'].length; i++) {
-                        const node = document.createElement('style');
-                        node.innerHTML = files['css'][i]['data'] +
-                            `
-                                .${selectableKeyword}:hover {
-                                    outline: 2rem solid black !important;
-                                    outline-radius: 0.8rem !important;
-                                    cursor: pointer !important;
-                                }
-                                .${editableKeyword} {
-                                    outline: 2rem solid black !important;
-                                    outline-radius: 0.8rem !important;
-                                    cursor: pointer !important;
-                                }
-                            `.replace(/\r?\n|\r/g, '');
-    
-                        doc.getElementsByTagName('head')[0].appendChild(node);
+                    const styleNode = document.createElement('style');
+
+                    // Check if css includes a background-image key with a url and change the value to be a dataurl
+                    for (let i = 0; i < files.css.length; i++) {
+                        let cssData: string = files.css[i].data;
+
+                        const matches = cssData.matchAll(/background-image:url\(.*?\)/g);
+
+                        for (const match of matches) {
+                            cssData = cssData.replace(match[0], `background-image:url("${findImageByUrl(match[0].substring(match[0].indexOf("("), match[0].indexOf(")")), files.images)?.data}")`)
+                        }
+
+                        styleNode.innerHTML += cssData;
                     }
+
+                    const imageBaseStyle = `
+                            filter: brightness(0.5) drop-shadow(1px 1px 0 black) drop-shadow(-1px -1px 0 black) !important;
+                            -webkit-filter: brightness(0.5) drop-shadow(1px 1px 0 black) drop-shadow(-1px -1px 0 black) !important;
+                            cursor: pointer !important;
+                    `;
+
+                    const textBaseStyle = `
+                            outline: 2rem solid black !important;
+                            outline-radius: 0.8rem !important;
+                            cursor: pointer !important;
+                    `;
+
+                    styleNode.innerHTML += `
+                        .${editableKeyword} {
+                            ${textBaseStyle}
+                        }
+                        .${editableImageKeyword} {
+                            ${imageBaseStyle}
+                        }
+                        .${selectableKeyword}:hover {
+                            ${textBaseStyle}
+                        }
+                        .${selectableImageKeyword}:hover {
+                            ${imageBaseStyle}
+                        }
+                        .${selectedKeyword}:hover {
+                            ${textBaseStyle}
+                        }
+                        .${selectedImageKeyword} {
+                            ${imageBaseStyle}
+                        }
+                    `
+
+                    styleNode.innerHTML.replace(/\r?\n|\r/g, '');
+
+                    doc.getElementsByTagName('head')[0].appendChild(styleNode);
     
                     if (fontDataLoaded) {
+                        const scriptNode = document.createElement('script');
+
                         for (let i = 0; i < files['js'].length; i++) {
-                            const node = document.createElement('script');
                             const js = files['js'][i]['data'];
-    
-                            node.innerHTML = js.replace(js.substring(js.indexOf('document'), js.lastIndexOf(';') + 1), `
+
+                            scriptNode.innerHTML += js.replace(js.substring(js.indexOf('document'), js.lastIndexOf(';') + 1), `
                             const head = document.getElementsByTagName('head')[0];
                             const styleNode = document.createElement('style');
                             styleNode.innerHTML = buildFontRule(nameArray[i], dataArray[i], fontStyle[i][j], fontWeight[i], fontStretch[i]);
                             head.appendChild(styleNode);`)
-    
-                            doc.getElementsByTagName('head')[0].appendChild(node);
                         }
+
+                        doc.getElementsByTagName('head')[0].appendChild(scriptNode);
                     }
-    
+
+                    const entryPoints = getEntryPointsRecursive(files, doc.getElementById('outer-wrapper'));
+
+                    for (let i = 0; i < entryPoints.length; i++) {
+                        const point = entryPoints[i];
+
+                        if (point.type === "image") {
+                            const imagePoint: ImageEntryPoint = point;
+
+                            imagePoint.imgElement.classList.add(selectableImageKeyword);
+                            continue;
+                        }
+
+                        const mergedSpan = [];
+
+                        point.spanClasses.forEach(spanClass => {
+                            const span = doc.createElement('span');
+                            span.className = spanClass
+
+                            mergedSpan.push(span);
+                        })
+
+                        point.pElements.forEach(p => p.remove());
+                        
+                        const node = document.createElement('script');
+
+                        for (let j = 0; j < mergedSpan.length; j++) {
+                            const span = mergedSpan[j];
+
+                            point.spanElements.forEach(el => {
+                                if (el.className === span.className) {
+                                    span.innerText += el.innerText.trim() + ' ';
+                                }
+                            })
+
+                            span.innerText = span.innerText.trim();
+
+                            if (span.innerText.length === 0) {
+                                continue;
+                            }
+
+                            span.id = point.id + "_span_" + j;
+
+                            // Default styling values
+                            span.style.display = "block";
+                            span.style.lineHeight = 1;
+                            span.style.whiteSpace = "normal";
+                            span.style.textAlign = "left";
+                            span.className += " " + selectableKeyword;
+
+                            span.dataset.textLimit = span.innerText.length;
+
+                            point.element.appendChild(span);
+                        }
+
+                        doc.getElementsByTagName('head')[0].appendChild(node);
+                    }
+
                     files['html'][i].data = new XMLSerializer().serializeToString(doc);
                     files['html'][i].isFetched = false;
                 }
     
-                setTemplateFiles(files['html']);
-                setTemplateImages(files['images']);
+                setEditorFiles(files['html']);
             })();
         }
     }
 
-    function handleTemplateLoad(e) {
+    function handleFileLoad(e) {
         // TODO: Make compatible for multiple templates
         const doc: Document = e.target.contentDocument;
 
-        if (templateFiles[templatePos].isFetched) {
-            doc.querySelectorAll("." + editableKeyword).forEach(el => el.onclick = (e) => {
-                setSelectedElement(e.target);
-                setTextFieldValue(e.target.innerText);
-            });
+        if (editorFiles[editorPosition].isFetched) {
+
+            doc.querySelectorAll("." + editableKeyword).forEach(el => 
+                el.onclick = (e) => {
+                    setSelectedElement(createSelectedElement(e.target, "text"));
+                    setTextFieldValue(e.target.innerText);
+                }
+            );
+
+            doc.querySelectorAll("." + editableImageKeyword).forEach(el => 
+                el.onclick = (e) => {
+                    setSelectedElement(createSelectedElement(e.target, "image"));
+                }
+            );
 
             return;
         }
 
-        const wrapper = doc.getElementById('outer-wrapper');
-        const imgTags = doc.getElementsByTagName('img');
-
-        // Returns an object that includes the name and the dataUrl (signed as data)
-        const findImageByUrl = (url: string) => templateImages.find(imgObj => imgObj['name'] === url.split('/').at(-1));
-
-        // Replace image tags sources with data urls
-        for (let i = 0; i < imgTags.length; i++) {
-            const imgTag = imgTags[i];
-
-            const imgObj = findImageByUrl(imgTag.src);
-
-            if (imgObj !== undefined) {
-                imgTag.src = imgObj['data'];
+        doc.querySelectorAll('.' + selectableKeyword).forEach(span => {
+            span.onclick = (e) => {
+                setSelectedElement(createSelectedElement(e.target, "text"));
+                setTextFieldValue(e.target.innerText);
+                setTextWrap(e.target.style.whiteSpace);
+                setTextAlign(e.target.style.textAlign);
+                setIsElementEditable(e.target.classList.contains(editableKeyword))
             }
-        }
-        
-        // Self calling function that returns the entry points for use further down the code
-        // It also adds ids, classes and events to the elements it goes through
-        const entryPoints = (function getEntryPointsRecursive(container: HTMLElement, entryPoints: Array<EntryPoint> = [], closestElementWithId: string = "") {
-            const children = container.children;
-            const entryPoint = entryPoints.filter(point => point.id === closestElementWithId)[0];
+        })
 
-            for (let i = 0; i < children.length; i++) {
-                const child = children[i] as HTMLElement;
-                const childStyles = getComputedStyle(child);
-
-                if (childStyles.backgroundImage !== 'none') {
-                    const url = childStyles.backgroundImage.split("\"")[1];
-
-                    if (!(url.startsWith('data:'))) {
-                        const image = findImageByUrl(url);
-
-                        if (image !== undefined) {
-                            child.style.backgroundImage = `url(${image['data']})`;
-                        }
-                    }
-                }
-
-                // Assume that we found an entrypoint and give it an appropiate ID
-                if (child.id === "" && child.tagName.toLowerCase() === "div" && child.style.length !== 0) {
-                    child.id = "layer_" + entryPoints.length;
-                    child.className = "layer";
-
-                    entryPoints.push({
-                        id: child.id,
-                        element: child,
-                        spanClasses: [],
-                        pElements: [],
-                        spanElements: []
-                    });
-                }
-
-                if (child.tagName.toLowerCase() === "p") {
-                    entryPoint.pElements.push(child as HTMLParagraphElement);
-                }
-
-                if (child.tagName.toLowerCase() === "span") {
-                    entryPoint.spanElements.push(child as HTMLSpanElement);
-
-                    if (!entryPoint.spanClasses.includes(child.className)) {
-                        entryPoint.spanClasses.push(child.className);
-                    }
-                }
-
-                if (child.children.length !== 0) {
-                    getEntryPointsRecursive(child, entryPoints, child.id === "" ? closestElementWithId : child.id);
-                }
+        doc.querySelectorAll('.' + selectableImageKeyword).forEach(img => {
+            img.onclick = (e) => {
+                setSelectedElement(createSelectedElement(e.target, "image"));
+                setIsElementEditable(e.target.classList.contains(editableImageKeyword))
             }
+        })
+    }
 
-            return entryPoints;
-        })(wrapper);
+    function saveChangesInSession(fileIndex: number, newDocument: Document) {
+        // Saves changes in current editing session
+        editorFiles[fileIndex].data = new XMLSerializer().serializeToString(newDocument);
+    }
 
-        for (let i = 0; i < entryPoints.length; i++) {
-            const point = entryPoints[i];
+    function saveChangesPermanent() {
+        for (let i = 0; i < designs.length; i++) {
+            const design = designs[i];
 
-            const mergedSpan = [];
+            // TODO: COMPATIBILITY FOR MULTIPLE TEMPLATES
+            saveChangesInSession(i, editorFrameRef.current.contentDocument);
 
-            point.spanClasses.forEach(spanClass => {
-                const span = doc.createElement('span');
-                span.className = spanClass
+            const { Id, ...newDesign } = design;
+            newDesign.Updated_at = new Date().toLocaleDateString('en-US');
 
-                mergedSpan.push(span);
-            })
+            const fileName = design.Filepath.split('\\').at(-1);
 
-            point.pElements.forEach(p => p.remove());
-
-            for (let j = 0; j < mergedSpan.length; j++) {
-                const span = mergedSpan[j];
-
-                point.spanElements.forEach(el => {
-                    if (el.className === span.className) {
-                        span.innerText += el.innerText.trim() + ' ';
-                    }
-                })
-
-                span.innerText = span.innerText.trim();
-
-                if (span.innerText.length === 0) {
-                    continue;
+            ApiInstance.updateFile(
+                design.Name,
+                fileName,
+                editorFiles[editorPosition].data,
+                "design",
+                design.id,
+                Object.values(newDesign),
+                getPayloadAsJson()?.company,
+                design.Template_id
+            ).then(res => {
+                if (res.status === "SUCCESS") {
+                    setIsSaved(true);
+                } else {
+                    alert("Design is NIET opgeslagen.")
+                    console.error(res);
                 }
-
-                console.log(span.innerText);
-
-                span.id = point.id + "_span_" + j;
-
-                // Default styling values
-                span.style.display = "block";
-                span.style.lineHeight = 1;
-                span.style.whiteSpace = "normal";
-                span.style.textAlign = "left";
-                span.className += " " + selectableKeyword;
-                
-                span.onclick = (e) => {
-                    setSelectedElement(e.target);
-                    setTextFieldValue(e.target.innerText);
-                    setTextWrap(e.target.style.whiteSpace);
-                    setTextAlign(e.target.style.textAlign);
-                    setIsElementEditable(e.target.classList.contains(editableKeyword))
-                }
-
-                span.dataset.textLimit = span.innerText.length;
-
-                point.element.appendChild(span);
-            }
+            });
         }
     }
 
     function handleTextChange(e) {
-        selectedElement.innerText = e.target.value;
+        selectedElement.element.innerText = e.target.value;
+        setIsSaved(false);
         setTextFieldValue(e.target.value);
     }
 
+    function handleImageWidthChange(e) {
+        selectedElement.element.style.width = e.target.value + "px";
+        setIsSaved(false);
+        setImageWidthValue(e.target.value);
+    }
+
+    function handleImageHeightChange(e) {
+        selectedElement.element.style.height = e.target.value + "px";
+        setIsSaved(false);
+        setImageHeightValue(e.target.value);
+    }
+
     function handleWrapping(e) {
-        selectedElement.style.whiteSpace = e.target.value;
+        selectedElement.element.style.whiteSpace = e.target.value;
+        setIsSaved(false);
         setTextWrap(e.target.value);
     }
 
     function handleAlign(e) {
-        selectedElement.style.textAlign = e.target.value;
+        selectedElement.element.style.textAlign = e.target.value;
+        setIsSaved(false);
         setTextAlign(e.target.value);
     }
 
+    function handleImageSelect(dataURL: string) {
+        selectedElement.element.src = dataURL;
+        setIsSaved(false);
+    }
+
+    function handleImageMoveDown() {
+        setIsSaved(false);
+
+        if (selectedElement.element.style.marginTop === '') {
+            selectedElement.element.style.marginTop = "1%";
+            return; 
+        }
+        
+        selectedElement.element.style.marginTop = (parseInt(selectedElement.element.style.marginTop.replace('%', '')) + parseInt(1)).toString() + "%";
+    }
+
+    function handleImageMoveUp() {
+        setIsSaved(false);
+
+        if (selectedElement.element.style.marginTop === '') {
+            selectedElement.element.style.marginTop = "-1%";
+            return;
+        }
+
+        selectedElement.element.style.marginTop = (parseInt(selectedElement.element.style.marginTop.replace('%', '')) + parseInt(-1)).toString() + "%";
+    }
+
+    function handleImageMoveLeft() {
+        setIsSaved(false);
+
+        if (selectedElement.element.style.marginLeft === '') {
+            selectedElement.element.style.marginLeft = "-1%";
+            return;
+        }
+
+        selectedElement.element.style.marginLeft = (parseInt(selectedElement.element.style.marginLeft.replace('%', '')) + parseInt(-1)).toString() + "%";
+    }
+
+    function handleImageMoveRight() {
+        setIsSaved(false);
+
+        if (selectedElement.element.style.marginLeft === '') {
+            selectedElement.element.style.marginLeft = "1%";
+            return;
+        }
+
+        selectedElement.element.style.marginLeft = (parseInt(selectedElement.element.style.marginLeft.replace('%', '')) + parseInt(1)).toString() + "%";
+    }
+
+    function handleFontSizeUp() {
+        setIsSaved(false);
+        selectedElement.element.style.fontSize = (parseInt(window.getComputedStyle(selectedElement.element, null).getPropertyValue('font-size').replaceAll('px', '')) + parseInt(parseInt(window.getComputedStyle(selectedElement.element, null).getPropertyValue('font-size').replaceAll('px', '')) / 48) + "px");
+    }
+
+    function handleFontSizeDown() {
+        setIsSaved(false);
+        selectedElement.element.style.fontSize = (parseInt(window.getComputedStyle(selectedElement.element, null).getPropertyValue('font-size').replaceAll('px', '')) - parseInt(parseInt(window.getComputedStyle(selectedElement.element, null).getPropertyValue('font-size').replaceAll('px', '')) / 48) + "px");
+    }
+
     function handleCheckboxEditable(e) {
-        const list = selectedElement.classList;
+        const list =  selectedElement.element.classList;
+        const elementType = selectedElement.type;
 
-        e.target.checked ? list.add(editableKeyword) : list.remove(editableKeyword);
+        let keyword = editableKeyword;
 
-        setIsElementEditable(list.contains(editableKeyword))
+        if (elementType === "image") {
+            keyword = editableImageKeyword;
+        }
+
+        e.target.checked ? list.add(keyword) : list.remove(keyword);
+
+        setIsSaved(false);
+        setIsElementEditable(list.contains(keyword))
     }
 
     function handleAdminFormUploadTemplate(e) {
         // Not too sure about this approach, refactor later if possible
-        // for (let i = 0; i < templateFiles.length; i++) {
-        //     const template = templateFiles[i];
+        for (let i = 0; i < editorFiles.length; i++) {
+            const template = editorFiles[i];
 
-        //     const newDoc = new DOMParser().parseFromString(template.data, 'text/html');
-        //     const selectableElements = newDoc.querySelectorAll("." + selectableKeyword);
+            // TODO: COMPATIBILITY FOR MULTIPLE TEMPLATES
+            saveChangesInSession(editorPosition, editorFrameRef.current.contentDocument);
 
-        //     for (let i = 0; i < selectableElements.length; i++) {
-        //         selectableElements[i].classList.remove(selectableKeyword);
-        //     }
-
-        //     ApiInstance.createFile(`${templateName}_${i}`, new XMLSerializer().serializeToString(newDoc), "template", companyId).then(res => {
-        //         if (res.status === "SUCCESS") {
-        //             alert("Template is geupload.");
-        //             setSection(null);
-        //             toggleEditorToUpload();
-        //         } else {
-        //             alert("Template is NIET geupload.");
-        //             toggleEditorToUpload();
-        //         }
-        //     })
-        // }
-
-        const newDoc = new DOMParser().parseFromString(new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 'text/html');
-        const selectableElements = newDoc.querySelectorAll("." + selectableKeyword);
-
-        for (let i = 0; i < selectableElements.length; i++) {
-            selectableElements[i].classList.remove(selectableKeyword);
+            ApiInstance.createFile(
+                templateName,
+                `${templateName.replaceAll(' ', '_')}_${i}`, 
+                removeKeywordFromTemplate(template.data, [selectableKeyword, selectableImageKeyword]),
+                "template", 
+                companyId
+            ).then(res => {
+                if (res.status === "SUCCESS") {
+                    alert("Template is geupload.");
+                    toggleEditorToUpload();
+                } else {
+                    alert("Template is NIET geupload.");
+                    toggleEditorToUpload();
+                }
+            })
         }
-
-        ApiInstance.createFile(`${templateName}`, new XMLSerializer().serializeToString(newDoc), "template", companyId).then(res => {
-            if (res.status === "SUCCESS") {
-                alert("Template is geupload.");
-                setSection(null);
-                toggleEditorToUpload();
-            } else {
-                alert("Template is NIET geupload.");
-                toggleEditorToUpload();
-            }
-        })
     }
 
     // TODO: new name if possible
     function handleCustomerFormUploadTemplateToDesign(e) {
         // Not too sure about this approach, refactor later if possible
-        for (let i = 0; i < templates.length; i++) {
-            const template = templates[i];
+        for (let i = 0; i < editorFiles.length; i++) {
+            const template = editorFiles[i];
+
+            // TODO: COMPATIBILITY FOR MULTIPLE TEMPLATES
+            saveChangesInSession(editorPosition, editorFrameRef.current.contentDocument);
 
             ApiInstance.createFile(
-                `${designName}_${i}`, 
-                new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 
+                designName,
+                `${designName.replaceAll(' ', '_')}_${i}`,
+                template.data, 
                 "design", 
                 getPayloadAsJson()?.company, 
-                template.Id
+                templateId
             ).then(res => {
                 if (res.status === "FAIL") {
                     alert("Design is NIET gemaakt. Er ging iets mis.");
                     toggleEditorToDesign();
-                } else if (i === templates.length - 1 && res.status === "SUCCESS") {
+                } else if (i === editorFiles.length - 1 && res.status === "SUCCESS") {
                     alert("Design is gemaakt. U kunt het design nog aanpassen zolang het nog niet gevalideerd is.");
-                    setSection(null);
                     toggleEditorToDesign();
                 }
             })
@@ -473,47 +704,36 @@ function TemplateEngine(props: PageProps) {
     function ActionButton(props) {
         return (
             <Button variant="contained" component="span" onClick={e => {
-                let confirmResult = null;
-
-                if (isAdminTemplateMode) {
-                    confirmResult = window.confirm("Weet u zeker dat u de template wilt uploaden?");
-                } else if (isAdminDesignMode) {
-                    confirmResult = window.confirm("Weet u zeker dat u de template wilt goedkeuren?");
-                } else {
-                    confirmResult = window.confirm("Weet u zeker dat u een design wilt maken?");
-                }
+                let confirmResult = window.confirm(props.confirmMessage);
 
                 if (!confirmResult) {
                     alert("Actie geannuleerd");
                 } else {
                     if (isAdminTemplateMode) {
-                        setSection("upload");
                         toggleEditorToUpload();
-                    } else if (isAdminDesignMode) {
-                        designs.forEach(design => {
-                            const { Id, ...newDesign} = design;
-                            newDesign.Updated_at = new Date().toLocaleDateString('nl');
-                            newDesign.Verified = 1;
-                            // const newDoc = new DOMParser().parseFromString(new XMLSerializer().serializeToString(editorFrameRef.current.contentDocument), 'text/html');
-                            // const editableElements = newDoc.querySelectorAll("." + editableKeyword);
-                            
-                            // for (let i = 0; i < editableElements.length; i++) {
-                            //     editableElements[i].classList.remove(editableKeyword);
-                            // }
 
-                            // changed to also update file if necessary
+                        return;
+                    }
 
-                            ApiInstance.update("design", design.Id, Object.values(newDesign)).then(res => {
-                                if (res.status === "SUCCESS") {
-                                    alert("Design is goedgekeurd")
-                                } else {
-                                    alert("Design is NIET goedgekeurd.");
-                                }
-                            })
-                        });
-                    } else {
-                        setSection("design");
+                    if ((isModerator() || isEmployee()) && isTemplateMode) {
                         toggleEditorToDesign();
+
+                        return;
+                    }
+
+                    if (isAdminDesignMode || (isModerator() && isDesignMode)) {
+                        ApiInstance.makePDF(
+                            designs[editorPosition],
+                            removeKeywordFromTemplate(editorFiles[editorPosition].data, [editableKeyword, editableImageKeyword]),
+                            1
+                        ).then(res => {
+                            if (res.status === "SUCCESS") {
+                                alert("Design is goedgekeurd")
+                                window.location.reload();
+                            } else {
+                                alert("Design is NIET goedgekeurd.");
+                            }
+                        })
                     }
                 }
             }} style={{ width: "100%" }}>
@@ -522,39 +742,265 @@ function TemplateEngine(props: PageProps) {
         )
     }
 
+    function fotosToevoegenButton(isAdmin: boolean) {
+        if (!isAdmin) return;
+        return (
+            <>
+                <Input
+                    id="contained-button-file"
+                    multiple
+                    type="file"
+                    accept='image/*'
+                    onChange={async (e) => {
+                        for (let i = 0; i < e.target.files!.length; i++) {
+                            if (e.target.files![i].size > 20971520) {
+                                alert('Uw foto is te groot!');
+                            } else if (e.target.files![i].name.split('.')[0].indexOf(' ') >= 0) {
+                                alert('Uw foto bevat een spatie in de naam!');
+                            } else {
+                                if (Object.keys(props.queryParams).length === 0 &&props.queryParams.constructor === Object
+                                ) {
+                                    await ApiInstance.createImage(e.target.files![i]);
+                                    setImageList(image.makeImageArray((await ApiInstance.all('image')).content));
+                                } else {
+                                    await ApiInstance.createImage(
+                                        e.target.files![i],
+                                        isAdmin ? typeof (props.queryParams.companyId) === 'string' ? parseInt(props.queryParams.companyId) : props.queryParams.companyId : parseInt(getPayloadAsJson()!.company)
+                                    );
+                                    setImageList(image.makeImageArray((await ApiInstance.all('image')).content));
+                                }
+                            }
+                        }
+                    }}
+                />
+                <label htmlFor="contained-button-file">
+                    <Button variant="contained" component="span" color="primary">
+                        Foto's toevoegen
+                    </Button>
+                </label>
+            </>
+        );
+        
+    }
+
+    function EditorTextSize() {
+        return (
+            <div>
+                <Button variant="contained" style={{ textAlign: "center", padding: "0px", fontSize: "15px", marginRight: "10px" }} onClick={() => { handleFontSizeUp(); }}>
+                    A^
+                </Button>
+                <Button variant="contained" style={{ textAlign: "center", padding: "0px", fontSize: "15px" }} onClick={() => { handleFontSizeDown(); }}>
+                    a˅
+                </Button>
+            </div>
+        )
+    }
+
+    function EditorTextWrap() {
+        return (
+            <FormControl style={{ width: "100%" }}>
+                <InputLabel id="templateEditorSelectWrapLabel">Tekstomloop</InputLabel>
+                <Select
+                    id="templateEditorSelectWrap"
+                    labelId='templateEditorSelectWrapLabel'
+                    label="Wrap"
+                    value={textWrap}
+                    onChange={handleWrapping}
+                    ref={wrapOptionsRef}
+                >
+                    <MenuItem value={"normal"}>Tekstomloop</MenuItem>
+                    <MenuItem value={"nowrap"}>Geen tekstomloop</MenuItem>
+                </Select>
+            </FormControl>
+        )
+    }
+
+    function EditorTextAlign() {
+        return (
+            <FormControl style={{ width: "100%" }}>
+                <InputLabel id="templateEditorSelectAlignLabel">Tekstuitlijning</InputLabel>
+                <Select
+                    id="templateEditorSelectAlign"
+                    labelId='templateEditorSelectAlignLabel'
+                    label="Align"
+                    value={textAlign}
+                    onChange={handleAlign}
+                    ref={alignOptionsRef}
+                >
+                    <MenuItem value={"left"}>Links</MenuItem>
+                    <MenuItem value={"center"}>Midden</MenuItem>
+                    <MenuItem value={"right"}>Richts</MenuItem>
+                </Select>
+            </FormControl>
+        )
+    }
+
+    function imagesEmpty(images: Array<image>) {
+        let userCompany;
+        if (isAdmin()) {
+            userCompany = props.queryParams.companyId;
+        }
+        else {
+            userCompany = getPayloadAsJson()!.company;
+        }
+        for (let i = 0; i < images.length; i++) {
+            const imageId = images[i].Company_Id;
+            if (userCompany == imageId) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function retrieveImageName(filepath: string) {
+        const imageFilePath = filepath;
+        const imagePathArray = imageFilePath.split('\\');
+        const imagePathName = imagePathArray[imagePathArray.length - 1];
+        const imageName = imagePathName.split('.');
+        return imageName;
+    }
+
+    function imageOnHover(id: number, isAdmin: boolean, select: boolean) {
+        const imgId = 'img' + id;
+
+        const buttonId = 'btn' + id;
+        const buttonDeleteId = 'btnDelete' + id;
+        document.getElementById(imgId)!.style.filter = 'blur(4px)';
+        document.getElementById(imgId)!.style.transition = '1s';
+
+        if (select) {
+            document.getElementById(buttonId)!.style.transition = '1s';
+            document.getElementById(buttonId)!.style.opacity = '1';
+            document.getElementById(buttonId)!.style.top =
+                String(parseInt(document.getElementById(imgId)!.style.height) / 1.5) + 'px';
+            document.getElementById(buttonId)!.style.left =
+                String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px';
+        }
+
+        if (isAdmin) {
+            document.getElementById(buttonDeleteId)!.style.transition = '1s';
+            document.getElementById(buttonDeleteId)!.style.opacity = '1';
+            document.getElementById(buttonDeleteId)!.style.top =
+                String(parseInt(document.getElementById(imgId)!.style.height) / 1.5) + 'px';
+            document.getElementById(buttonDeleteId)!.style.left =
+                String(parseInt(document.getElementById(imgId)!.style.width) / 7) + 'px';
+        }
+    }
+
+    function imageLeave(id: number, isAdmin: boolean, select: boolean) {
+        const imgId = 'img' + id;
+        const buttonId = 'btn' + id;
+        if (isAdmin) {
+            const buttonDeleteId = 'btnDelete' + id;
+            document.getElementById(buttonDeleteId)!.style.opacity = '0';
+        }
+        else document.getElementById(imgId)!.style.filter = 'none';
+        if (select) document.getElementById(buttonId)!.style.opacity = '0';
+        document.getElementById(imgId)!.style.filter = 'none';
+    }
+
+    async function selectedPicture(e: Event, type: string, id: number) {
+        e.preventDefault();
+
+        if (type === 'select') {
+            const image: Image = Enumerable.from(imageList).where(i => i.Id === id).toArray()[0];
+            fetch(process.env.REACT_APP_SERVER_URL + image.Filepath)
+            .then(response => response.blob())
+            .then(data => {
+                readFileAsDataUrl(new File([data], "name")).then(result => {
+                    handleImageSelect(result);
+                    setFotoLibView(false);
+                    alert('Uw foto is geselecteerd!');
+                });
+            });
+        } else {
+            ApiInstance.removeImage(id).then(() => window.location.reload());
+        }
+    }
+
+    function EditorMarkAsEditable() {
+        return (
+            <FormControlLabel
+                label="Editable by customer"
+                control={
+                    <Checkbox
+                        checked={isElementEditable}
+                        onChange={handleCheckboxEditable}
+                        ref={editableCheckboxRef}
+                    />
+                }
+            />
+        )
+    }
+
     return (
         <>
+            <AppBar position="relative" style={{ background: 'white' }}>
+                <Toolbar>
+                    <img
+                        src={kyndalogo}
+                        alt="kynda logo"
+                        width="90"
+                        height="30"
+                        style={{ marginRight: '20px' }}
+                    />
+                    <Typography variant="h5" style={{ color: 'black' }}>
+                        {headerText[0]}
+                    </Typography>
+                    <Typography variant="h5" style={{ color: 'black', marginLeft: '6px' }}>
+                        {headerText[1]}
+                    </Typography>
+                    <Grid container spacing={2} justifyContent="flex-end">
+                        <Grid item>{fotosToevoegenButton((isAdmin() || isModerator()) && fotoLibView)}</Grid>
+                        <Grid item>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => {
+                                    document.cookie = document.cookie.substring(
+                                        document.cookie.indexOf('token='),
+                                        6
+                                    );
+                                    window.location.replace('/');
+                                }}
+                            >
+                                Uitloggen
+                            </Button>
+                        </Grid>
+                        <Grid item>
+                        </Grid>
+                    </Grid>
+                </Toolbar>
+            </AppBar>
             {
                 isAdminTemplateMode ?
-                <Box ref={uploadSectionRef} className='toggleNone' sx={{ flexDirection: 'column', justifyContent: 'center', margin: '30px 30% 0 30%' }}>
-                    <h1>Upload template form</h1>
-                    <TextField fullWidth label="Naam" id="fullWidth" style={{ marginTop: "20px" }} onChange={e => setTemplateName(e.target.value)} />
-                    <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleAdminFormUploadTemplate}>Upload template</Button>
-                    <Button variant="contained" color='error' style={{ marginTop: "20px", marginLeft: "20px" }} onClick={e => {
-                        setSection(null);
-                        toggleEditorToUpload();
-                    }}>Cancel</Button>
+                    <Box ref={uploadSectionRef} className='toggleNone' sx={{ flexDirection: 'column', justifyContent: 'center', margin: '30px 30% 0 30%'}}>
+                        <h1>Template uploaden</h1>
+                        <TextField fullWidth label="Naam" id="fullWidth" style={{ marginTop: "20px" }} onChange={e => setTemplateName(e.target.value)} />
+                        <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleAdminFormUploadTemplate}>Upload template</Button>
+                        <Button variant="contained" color='error' style={{ marginTop: "20px", marginLeft: "20px" }} onClick={e => {
+                            toggleEditorToUpload();
+                    }}>Annuleer</Button>
                 </Box>
                 :
                 <Box ref={designSectionRef} className='toggleNone' sx={{ flexDirection: 'column', justifyContent: 'center', margin: '30px 30% 0 30%' }}>
-                    <h1>Template naar design form</h1>
+                    <h1>Template naar design</h1>
                     <TextField fullWidth label="Naam" id="fullWidth" style={{ marginTop: "20px" }} onChange={e => setDesignName(e.target.value)} />
                     <Button variant="contained" style={{ marginTop: "20px" }} onClick={handleCustomerFormUploadTemplateToDesign}>Maak design</Button>
                     <Button variant="contained" color='error' style={{ marginTop: "20px", marginLeft: "20px" }} onClick={e => {
-                        setSection(null);
                         toggleEditorToDesign();
-                    }}>Cancel</Button>
+                    }}>Annuleer</Button>
                 </Box>
             }
-            <Grid ref={editorSectionRef} container style={{ overflow: "hidden" }}>
-                <Grid item xs={2} style={{ height: "100vh" }}>
+            <Grid ref={editorSectionRef} container style={{ overflow: "hidden"}}>
+                <Grid item xs={2} style={{ height: "93.2vh" }}>
                     <Box
                         component={Grid}
                         container
                         boxShadow={3}
                         style={{ height: "inherit" }}
                     >
-                        <Stack spacing={2} alignItems={"center"} style={{ width: "95%", margin: "10px 10px 0 10px" }}>
+                        <Stack spacing={2} alignItems={"center"} style={{ width: "100%", margin: "20px 10px 0 10px" }}>
                             {
                                 isAdminTemplateMode && (
                                     <label htmlFor="contained-button-file" style={{ width: "100%" }}>
@@ -566,25 +1012,39 @@ function TemplateEngine(props: PageProps) {
                                             type="file"
                                             onChange={loadFilesHandler}
                                         />
-                                        <Button variant="contained" component="span" style={{ width: "100%" }}>
-                                            Load export files
+                                        <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }}>
+                                            Exportbestanden laden
                                         </Button>
                                     </label>
                                 )
                             }
                             {
-                                templateFiles.length > 1 &&
-                                <>
-                                    <Button variant="contained" component="span" onClick={() => setTemplatePos(templatePos + 1)} style={{ width: "100%" }}>
-                                        Next
-                                    </Button>
-                                    <Button variant="contained" component="span" onClick={() => setTemplatePos(templatePos - 1)} style={{ width: "100%" }}>
-                                        Previous
-                                    </Button>
-                                </>
+                                editorFiles.length > 1 &&
+                                <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                                    <Button 
+                                        variant="contained" 
+                                        component="span" 
+                                        onClick={() => {
+                                            saveChangesInSession(editorPosition, editorFrameRef.current.contentDocument);
+                                            setEditorPosition(editorPosition - 1);
+                                        }} 
+                                        style={{ width: "40%" }}
+                                        disabled={ editorPosition <= 0 }
+                                    >Vorige</Button>
+                                    <Button 
+                                        variant="contained" 
+                                        component="span" 
+                                        onClick={() => {
+                                            saveChangesInSession(editorPosition, editorFrameRef.current.contentDocument);
+                                            setEditorPosition(editorPosition + 1);
+                                        }} 
+                                        style={{ width: "40%" }}
+                                        disabled={editorPosition >= editorFiles.length - 1}
+                                    >Volgende</Button>
+                                </div>
                             }
                             {
-                                selectedElement !== null &&
+                                (isAdminTemplateMode || (isModerator() || isEmployee() && (isTemplateMode || isDesignMode))) && selectedElement !== null && selectedElement.type === "text" &&
                                 <>
                                     <TextField
                                         id="templateEditorTextField"
@@ -596,85 +1056,245 @@ function TemplateEngine(props: PageProps) {
                                         onChange={handleTextChange}
                                         style={{ width: "100%" }}
                                         ref={textFieldRef}
-                                        inputProps={{ maxLength: parseInt(selectedElement.dataset.textLimit) }}
+                                        // inputProps={{ maxLength: parseInt(selectedElement.element.dataset.textLimit) }}
                                     />
-                                    <FormControl style={{ width: "100%" }}>
-                                        <InputLabel id="templateEditorSelectWrapLabel">Wrap</InputLabel>
-                                        <Select
-                                            id="templateEditorSelectWrap"
-                                            labelId='templateEditorSelectWrapLabel'
-                                            label="Wrap"
-                                            value={textWrap}
-                                            onChange={handleWrapping}
-                                            ref={wrapOptionsRef}
-                                        >
-                                            <MenuItem value={"normal"}>Wrap</MenuItem>
-                                            <MenuItem value={"nowrap"}>No wrap</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                    <FormControl style={{ width: "100%" }}>
-                                        <InputLabel id="templateEditorSelectAlignLabel">Align</InputLabel>
-                                        <Select
-                                            id="templateEditorSelectAlign"
-                                            labelId='templateEditorSelectAlignLabel'
-                                            label="Align"
-                                            value={textAlign}
-                                            onChange={handleAlign}
-                                            ref={alignOptionsRef}
-                                        >
-                                            <MenuItem value={"left"}>Left</MenuItem>
-                                            <MenuItem value={"center"}>Center</MenuItem>
-                                            <MenuItem value={"right"}>Right</MenuItem>
-                                        </Select>
-                                    </FormControl>
+                                    <EditorTextSize />
+                                    <EditorTextWrap />
+                                    <EditorTextAlign />
                                 </>
                             }
                             {
-                                selectedElement !== null && isAdminTemplateMode &&
-                                <FormControlLabel
-                                    label="Editable by customer"
-                                    control={
-                                        <Checkbox
-                                            checked={isElementEditable}
-                                            onChange={handleCheckboxEditable}
-                                            ref={editableCheckboxRef}
+                                (isAdminTemplateMode || (isModerator() || isEmployee() && (isTemplateMode || isDesignMode))) && selectedElement !== null && selectedElement.type === "image" &&
+                                <>
+                                    <Button variant="contained" style={{ textAlign: "center", width: "100%" }} onClick={() => { setFotoLibView(!fotoLibView) }}>
+                                        afbeelding selecteren
+                                    </Button>
+                                    <div style={{ width: "100%", display: "flex", alignContent: "flex-start" }}>
+                                        <div style={{ display: "flex", flexDirection: "column", width: "40%" }}><TextField
+                                            label="Breedte"
+                                            variant="filled"
+                                            value={imageWidthValue}
+                                            onChange={handleImageWidthChange}
+                                            style={{ width: "100%", marginBottom: "10px" }}
                                         />
-                                    }
-                                />
+                                            <TextField
+                                                label="Hoogte"
+                                                variant="filled"
+                                                value={imageHeightValue}
+                                                onChange={handleImageHeightChange}
+                                                style={{ width: "100%" }}
+                                            />
+                                        </div>
+                                        <div style={{ width: "60%" }}>
+                                            <Typography variant="body2" style={{marginBottom: "5px", marginLeft: "15px"}}>Afbeelding verplaatsen</Typography>
+                                            <Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px", marginLeft: "52px" }} onClick={() => { handleImageMoveUp(); }}>
+                                                <ArrowUpward style={{ fontSize: "15px" }} />
+                                            </Button>
+                                            <div style={{marginLeft: "20px"}}><Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px" }} onClick={() => { handleImageMoveLeft(); }}>
+                                                <ArrowBack style={{ fontSize: "15px" }} />
+                                            </Button>
+                                                <Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px", marginLeft: "30px" }} onClick={() => { handleImageMoveRight(); }}>
+                                                    <ArrowForward style={{ fontSize: "15px" }} />
+                                                </Button>
+                                            </div>
+                                            <Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px", marginLeft: "52px" }} onClick={() => { handleImageMoveDown(); }}>
+                                                <ArrowDownward style={{ fontSize: "15px" }} />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </>
                             }
                             {
-                                selectedElement !== null &&
-                                <Button variant="contained" component="span" color="success" onClick={e => setSelectedElement(null)} style={{ width: "100%" }}>
-                                    Done
-                                </Button>
+                                isAdminTemplateMode && selectedElement !== null &&
+                                <EditorMarkAsEditable />
                             }
                             {
-                                templateFiles.length > 0 && isAdminTemplateMode && <ActionButton text="Upload" />
+                                editorFiles.length > 0 && isAdminTemplateMode && 
+                                <ActionButton text="Upload" confirmMessage="Weet u zeker dat u de template wilt uploaden?" />
                             }
                             {
-                                templateFiles.length > 0 && isCustomerTemplateMode && <ActionButton text="Maak design" />
+                                editorFiles.length > 0 && (isModerator() || isEmployee()) && isTemplateMode && 
+                                <ActionButton text="Maak design" confirmMessage="Weet u zeker dat u een design wilt maken?" />
                             }
                             {
-                                templateFiles.length > 0 && isAdminDesignMode && <ActionButton text="Valideer" />
+                                editorFiles.length > 0 && isAdminDesignMode || (isModerator() && isDesignMode) && isDesignPending &&
+                                <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u de design wilt goedkeuren?" />
                             }
+                            {
+                                isSaved !== null &&
+                                <Button variant="contained" component="span" disabled={isSaved} color={isSaved ? "primary" : "error"} style={{ width: "100%", textAlign: "center" }} onClick={e => {
+                                    saveChangesPermanent();
+                                }}>{isSaved ? "Opgeslagen" : "Klik om op te slaan"}</Button>
+                            }
+                            <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={e => {
+                                window.location = isAdmin() ? "/admin-portal" : "/user-portal";
+                            }}>Terug naar {isAdmin() ? "admin portaal" : "user portaal"}</Button>
                         </Stack>
                     </Box>
                 </Grid>
                 <Grid item xs={true}>
-                    {templateFiles.length > 0 && templatePos >= 0 && templatePos <= templateFiles.length - 1 ?
-                        <iframe onLoad={handleTemplateLoad}
+                    {editorFiles.length > 0 && editorPosition >= 0 && editorPosition <= editorFiles.length - 1 && (isAdminTemplateMode || isTemplateMode || isDesignMode) &&
+                        <iframe onLoad={handleFileLoad}
                             title="templateViewer"
-                            srcDoc={templateFiles[templatePos]?.data}
-                            style={{ height: "100%", width: "100%" }}
+                            srcDoc={editorFiles[editorPosition]?.data}
+                            style={{ height: "100%", width: "100%", display: fotoLibView ? "none" : "block" }}
                             ref={editorFrameRef}
+                            id="IframeDoc"
                         ></iframe>
-                        :
+                    }
+                    {selectedElement !== null && selectedElement.type === "image" && fotoLibView &&
+                        <div>
+                            <Container maxWidth="md" className={stylesFotoLib.cardGrid}>
+                                <Grid container spacing={4}>
+                                    {imagesEmpty(imageList) ? (
+                                        <Typography gutterBottom variant="h6" align="center">
+                                            Geen foto's
+                                        </Typography>
+                                    ) : (
+                                        imageList.map((image, index) => {
+                                            const initialImageURL =
+                                                process.env.REACT_APP_SERVER_URL + image.Filepath;
+                                            const actualImageURL = initialImageURL.replace(/\\/g, '/');
+                                            const imageName = retrieveImageName(image.Filepath);
+                                            const propsFotolib = getPayloadAsJson()!.type === "Admin" ? props : queryParamsObject;
+                                            let token = getPayloadAsJson();
+                                            let userCompany;
+                                            if (Object.keys(propsFotolib.queryParams).length === 0 && propsFotolib.queryParams.constructor === Object) {
+                                                userCompany = token!.company;
+                                            } else {
+                                                userCompany = propsFotolib.queryParams.companyId;
+                                            }
+                                            if (userCompany == image.Company_Id) {
+                                                if (!isEmployee()) {
+                                                    return (
+                                                        <Grid item xs={12} sm={6} md={4} key={index}>
+                                                            <Card className={stylesFotoLib.card}>
+                                                                <Button
+                                                                    id={'btn' + index}
+                                                                    variant="contained"
+                                                                    style={{ color: 'white', backgroundColor: 'blue', opacity: 0 }}
+                                                                    onMouseEnter={() =>
+                                                                        imageOnHover(index, !isEmployee(), true)
+                                                                    }
+                                                                    onMouseLeave={() =>
+                                                                        imageLeave(index, !isEmployee(), true)
+                                                                    }
+                                                                    onClick={(e) =>
+                                                                        selectedPicture(
+                                                                            e, 'select',
+                                                                            image.Id
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {'Selecteren'}
+                                                                </Button>
+                                                                <CardMedia
+                                                                    id={'img' + index}
+                                                                    className={stylesFotoLib.cardMedia}
+                                                                    title={imageName[0]}
+                                                                    image={actualImageURL}
+                                                                    onMouseEnter={() =>
+                                                                        imageOnHover(index, !isEmployee(), true)
+                                                                    }
+                                                                    onMouseLeave={() =>
+                                                                        imageLeave(index, !isEmployee(), true)
+                                                                    }
+                                                                />
+                                                                <Button
+                                                                    id={'btnDelete' + index}
+                                                                    variant="contained"
+                                                                    style={{ color: 'white', backgroundColor: 'red', opacity: 0 }}
+                                                                    onMouseEnter={() =>
+                                                                        imageOnHover(index, !isEmployee(), true)
+                                                                    }
+                                                                    onMouseLeave={() =>
+                                                                        imageLeave(index, !isEmployee(), true)
+                                                                    }
+                                                                    onClick={(e) =>
+                                                                        selectedPicture(
+                                                                            e,
+                                                                            'delete',
+                                                                            image.Id
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {'Verwijderen'}
+                                                                </Button>
+                                                                <CardContent className={stylesFotoLib.cardContent}>
+                                                                    <Typography
+                                                                        gutterBottom
+                                                                        variant="h6"
+                                                                        align="center"
+                                                                    >
+                                                                        {imageName[0]}
+                                                                    </Typography>
+                                                                </CardContent>
+                                                            </Card>
+                                                        </Grid>
+                                                    );
+                                                }
+                                                else {
+                                                    return (
+                                                        <Grid item xs={12} sm={6} md={4} key={index}>
+                                                            <Card className={stylesFotoLib.card}>
+                                                                <Button
+                                                                    id={'btn' + index}
+                                                                    variant="contained"
+                                                                    style={{ color: 'white', backgroundColor: 'blue', opacity: 0 }}
+                                                                    onMouseEnter={() =>
+                                                                        imageOnHover(index, !isEmployee(), true)
+                                                                    }
+                                                                    onMouseLeave={() =>
+                                                                        imageLeave(index, !isEmployee(), true)
+                                                                    }
+                                                                    onClick={(e) =>
+                                                                        selectedPicture(
+                                                                            e, 'select',
+                                                                            image.Id
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {'Selecteren'}
+                                                                </Button>
+                                                                <CardMedia
+                                                                    id={'img' + index}
+                                                                    className={stylesFotoLib.cardMedia}
+                                                                    title={imageName[0]}
+                                                                    image={actualImageURL}
+                                                                    onMouseEnter={() =>
+                                                                        imageOnHover(index, !isEmployee(), true)
+                                                                    }
+                                                                    onMouseLeave={() =>
+                                                                        imageLeave(index, !isEmployee(), true)
+                                                                    }
+                                                                />
+                                                                <CardContent className={stylesFotoLib.cardContent}>
+                                                                    <Typography
+                                                                        gutterBottom
+                                                                        variant="h6"
+                                                                        align="center"
+                                                                    >
+                                                                        {imageName[0]}
+                                                                    </Typography>
+                                                                </CardContent>
+                                                            </Card>
+                                                        </Grid>
+                                                    );
+                                                }
+                                            }
+                                        })
+                                    )}
+                                </Grid>
+                            </Container>
+                        </div>
+                    }
+                    {editorFiles.length <= 0 &&
                         <div style={{
                             display: "flex",
                             justifyContent: "center",
                             alignItems: "center",
                             height: "100vh",
-                        }}>No template selected</div>
+                        }}>Geen template geselecteerd</div>
                     }
                 </Grid>
             </Grid>

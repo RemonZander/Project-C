@@ -7,7 +7,7 @@ class Route {
   }
 
   add(url, cb) {
-    this.urlCollection.push({ url: url, action: cb });
+    this.urlCollection.push({ url: '/api' + url, action: cb });
   }
 
   addAll(table) {
@@ -35,8 +35,8 @@ class Route {
         // create special exception to notify if body is missing or empty
         await conn.runStatement(
           `
-                    INSERT INTO ${table.name} (${table.columns.join()})
-                    VALUES (${requestBody.values.map((val) => "?").join()})`,
+          INSERT INTO ${table.name} (${table.columns.join()})
+          VALUES (${requestBody.values.map((val) => "?").join()})`,
           requestBody.values
         );
 
@@ -119,7 +119,7 @@ class Route {
     });
   }
 
-  addCrud(table, except = []) {
+  addCrud(table) {
     this.addAll(table);
     this.addCreate(table);
     this.addRead(table);

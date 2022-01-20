@@ -25,20 +25,20 @@ function Login(props: PageProps) {
                     <img src={kynda} alt="Kynda logo" className="image"></img>
                     <h2>
                         {queryParams.adminPage
-                            ? 'Log in op het admin-portaal'
-                            : 'Log in op het klanten-portaal'}
+                            ? 'Log in op het admin-portal'
+                            : 'Log in op het klanten-portal'}
                     </h2>
                     <form method="post">
                         <div className="txt_field">
                             <input type="text" id="email" name="email" required ref={emailInputRef}></input>
-                            <label>Email</label>
+                            <label>E-mail</label>
                         </div>
                         <div className="txt_field">
                             <input type="password" id="password" name="password" required ref={passwordInputRef}></input>
                             <label>Wachtwoord</label>
                         </div>
                         <div className="Errormsg">
-                            {isAuthError === true && 'Uw login gegevens kloppen niet!'}
+                            {isAuthError === true && 'Uw inloggegevens kloppen niet!'}
                         </div>
                         <input
                             type="submit"
@@ -54,7 +54,7 @@ function Login(props: PageProps) {
                                     // te sturen naar de url die wordt meegegeven.
                                     // Voor meer informatie over fetch kan je naar deze url gaan
                                     // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
-                                    fetch(process.env.REACT_APP_SERVER_URL + '/auth', {
+                                    fetch(process.env.REACT_APP_SERVER_URL + '/api/auth', {
                                         method: 'POST',
                                         body: JSON.stringify({
                                             email: (email as HTMLInputElement).value,
@@ -63,10 +63,7 @@ function Login(props: PageProps) {
                                     })
                                         .then((res) => res.json())
                                         .then((data) => {
-                                            if (
-                                                'token' in data.content &&
-                                                data.content.token !== null
-                                            ) {
+                                            if ('token' in data.content && data.content.token !== null) {
                                                 document.cookie = 'token=' + data.content.token + ';';
 
                                                 const payload = JSON.parse(
@@ -90,9 +87,6 @@ function Login(props: PageProps) {
                             }
 
                         ></input>
-                        <div className="pass-adminlogin">
-                            <a href="./forgot_password">Wachtwoord vergeten?</a>
-                        </div>
                     </form>
                 </div>
             </React.Fragment>
