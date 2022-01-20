@@ -735,7 +735,7 @@ function UserPortal() {
                         {getPayloadAsJson()!.type === 'Moderator' ? <ListItem style={{ alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
                             <Typography variant="h6">
                                 Hieronder kunt u een gebruiker promoveren tot hoofdgebruiker.<br />
-                                Er kan maar één hoofdgebruiker zijn. Dit betekent dat <br />het huidige hoofdgebruikeraccount een normale gebruiker wordt.
+                                Er kan maar een hoofdgebruiker zijn. Dit betekent dat <br />het huidige hoofdgebruikeraccount een normale gebruiker wordt.
                             </Typography>
                         </ListItem> : ''}
                         {getPayloadAsJson()!.type === 'Moderator'

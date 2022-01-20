@@ -5,8 +5,9 @@ import './templateEngine.css';
 import { useEffect, useRef, useState } from 'react';
 import { CreateExport } from '../../helpers/Export';
 import { readFile, readFileAsDataUrl } from '../../helpers/FileReader';
-import { Box, Grid, styled, Typography, AppBar, Toolbar, Card, CardMedia, CardContent, Container } from '@material-ui/core';
-import { Button, Checkbox, Divider, FormControl, FormControlLabel, InputLabel, Link, MenuItem, Select, Stack, TextField } from '@mui/material';
+import { ArrowUpward, ArrowBack, ArrowForward, ArrowDownward } from '@mui/icons-material'
+import { Box, Grid, styled, Typography, AppBar, Toolbar, Card, CardMedia, CardContent, Container, Divider, List, ListItem } from '@material-ui/core';
+import { Button, Checkbox, FormControl, FormControlLabel, InputLabel, Link, MenuItem, Select, Stack, TextField } from '@mui/material';
 import { makeStyles } from '@material-ui/core/styles';
 import { getPayloadAsJson, getToken, isAdmin, isEmployee, isModerator } from '../../helpers/Token';
 import { PageProps } from '../../@types/app';
@@ -161,6 +162,8 @@ function TemplateEngine(props: PageProps) {
     const [editorFiles, setEditorFiles] = useState<Array<HtmlData>>([]);
     const [selectedElement, setSelectedElement] = useState<SelectedElement>(null);
     const [textFieldValue, setTextFieldValue] = useState("");
+    const [imageWidthValue, setImageWidthValue] = useState("");
+    const [imageHeightValue, setImageHeightValue] = useState("");
     const [textWrap, setTextWrap] = useState("");
     const [textAlign, setTextAlign] = useState("");
     const [isElementEditable, setIsElementEditable] = useState(false);
@@ -510,6 +513,16 @@ function TemplateEngine(props: PageProps) {
         setTextFieldValue(e.target.value);
     }
 
+    function handleImageWidthChange(e) {
+        selectedElement.element.style.width = e.target.value + "px";
+        setImageWidthValue(e.target.value);
+    }
+
+    function handleImageHeightChange(e) {
+        selectedElement.element.style.height = e.target.value + "px";
+        setImageHeightValue(e.target.value);
+    }
+
     function handleWrapping(e) {
         selectedElement.element.style.whiteSpace = e.target.value;
         setTextWrap(e.target.value);
@@ -522,6 +535,46 @@ function TemplateEngine(props: PageProps) {
 
     function handleImageSelect(dataURL: string) {
         selectedElement.element.src = dataURL;
+    }
+
+    function handleImageMoveDown() {
+        if (selectedElement.element.style.marginTop === '') {
+            selectedElement.element.style.marginTop = "1%";
+            return; 
+        }
+        
+        selectedElement.element.style.marginTop = (parseInt(selectedElement.element.style.marginTop.replace('%', '')) + parseInt(1)).toString() + "%";
+        console.log(selectedElement.element.style.marginTop);
+    }
+
+    function handleImageMoveUp() {
+        if (selectedElement.element.style.marginTop === '') {
+            selectedElement.element.style.marginTop = "-1%";
+            return;
+        }
+
+        selectedElement.element.style.marginTop = (parseInt(selectedElement.element.style.marginTop.replace('%', '')) + parseInt(-1)).toString() + "%";
+        console.log(selectedElement.element.style.marginTop);
+    }
+
+    function handleImageMoveLeft() {
+        if (selectedElement.element.style.marginLeft === '') {
+            selectedElement.element.style.marginLeft = "-1%";
+            return;
+        }
+
+        selectedElement.element.style.marginLeft = (parseInt(selectedElement.element.style.marginLeft.replace('%', '')) + parseInt(-1)).toString() + "%";
+        console.log(selectedElement.element.style.marginLeft);
+    }
+
+    function handleImageMoveRight() {
+        if (selectedElement.element.style.marginLeft === '') {
+            selectedElement.element.style.marginLeft = "1%";
+            return;
+        }
+
+        selectedElement.element.style.marginLeft = (parseInt(selectedElement.element.style.marginLeft.replace('%', '')) + parseInt(1)).toString() + "%";
+        console.log(selectedElement.element.style.marginLeft);
     }
 
     function handleFontSizeUp() {
@@ -748,9 +801,46 @@ function TemplateEngine(props: PageProps) {
 
     function EditorImageGallery() {
         return (
-            <Button variant="contained" style={{ textAlign: "center", width: "100%" }} onClick={() => { setFotoLibView(!fotoLibView) }}>
-                Kies een afbeelding
-            </Button>
+            <>
+                <Button variant="contained" style={{ textAlign: "center", width: "100%" }} onClick={() => { setFotoLibView(!fotoLibView) }}>
+                    afbeelding selecteren
+                </Button>
+                <Button variant="contained" style={{ textAlign: "center", width: "100%" }} onClick={() => { console.log(getComputedStyle(selectedElement.element).width); }}>
+                    width
+                </Button>
+                <div style={{ width: "100%", display: "flex", alignContent: "flex-start" }}>
+                    <div style={{display: "flex", flexDirection: "column", width: "40%"}}><TextField
+                        label="Breedte"
+                        variant="filled"
+                        value={imageWidthValue}
+                        onChange={handleImageWidthChange}
+                        style={{ width: "100%", marginBottom: "10px" }}
+                    />
+                    <TextField
+                        label="Hoogte"
+                        variant="filled"
+                        value={imageHeightValue}
+                        onChange={handleImageHeightChange}
+                        style={{ width: "100%" }}
+                    />
+                    </div>
+                    <div style={{ marginLeft: "10%", marginTop: "25px", width: "60%" }}>
+                        <Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px", marginLeft: "32px" }} onClick={() => { handleImageMoveUp(); }}>
+                            <ArrowUpward style={{ fontSize: "15px" }} />
+                        </Button>
+                        <div><Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px" }} onClick={() => { handleImageMoveLeft(); }}>
+                            <ArrowBack style={{ fontSize: "15px" }} />
+                        </Button>
+                            <Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px", marginLeft: "30px" }} onClick={() => { handleImageMoveRight(); }}>
+                                <ArrowForward style={{ fontSize: "15px" }} />
+                            </Button>
+                        </div>
+                        <Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px", marginLeft: "32px" }} onClick={() => { handleImageMoveDown(); }}>
+                            <ArrowDownward style={{ fontSize: "15px" }} />
+                        </Button>
+                    </div>
+                </div>
+            </>
         )
     }
 
@@ -919,7 +1009,7 @@ function TemplateEngine(props: PageProps) {
                         boxShadow={3}
                         style={{ height: "inherit" }}
                     >
-                        <Stack spacing={2} alignItems={"center"} style={{ width: "95%", margin: "20px 10px 0 10px" }}>
+                        <Stack spacing={2} alignItems={"center"} style={{ width: "100%", margin: "20px 10px 0 10px" }}>
                             {
                                 isAdminTemplateMode && (
                                     <label htmlFor="contained-button-file" style={{ width: "100%" }}>
