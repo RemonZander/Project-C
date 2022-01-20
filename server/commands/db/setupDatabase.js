@@ -29,7 +29,6 @@ const sqlData = fs
 console.log("Succesfully created database.");
 console.log("Copying test data.");
 (async () => {
-    // await copyDir("./test_files_old", "./storage");
     await copyDir("./storage testdata", "./storage");
 })();
 console.log("Test data copied.");

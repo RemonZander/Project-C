@@ -570,7 +570,7 @@ function UserPortal() {
                                                                 }}>
                                                                     Bewerken
                                                                 </Button> : <Button variant="contained" color="primary" onClick={() => {
-                                                                    window.location.href = '/editor?designId=' + design.Id;
+                                                                    window.open(process.env.REACT_APP_SERVER_URL + design.Filepath, '_blank')?.focus();
                                                                 }}>
                                                                     Bekijken / Downloaden
                                                                 </Button>

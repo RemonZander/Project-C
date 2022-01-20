@@ -230,7 +230,6 @@ function TemplateEngine(props: PageProps) {
                         setIsDesignPending(false);
                         isVerified = false;
 
-                        window.open(process.env.REACT_APP_SERVER_URL + res.content[editorPosition].Filepath);
                         window.location = isAdmin() ? "/admin-portal" : "/user-portal";
                         return;
                     }
