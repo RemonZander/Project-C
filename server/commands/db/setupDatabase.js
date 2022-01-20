@@ -29,7 +29,7 @@ const sqlData = fs
 console.log("Succesfully created database.");
 console.log("Copying test data.");
 (async () => {
-    // await copyDir("./storage_testdata", "./storage");
+    // await copyDir("./test_files_old", "./storage");
     await copyDir("./test_files", "./storage");
 })();
 console.log("Test data copied.");

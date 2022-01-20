@@ -799,51 +799,6 @@ function TemplateEngine(props: PageProps) {
         )
     }
 
-    function EditorImageGallery() {
-        return (
-            <>
-                <Button variant="contained" style={{ textAlign: "center", width: "100%" }} onClick={() => { setFotoLibView(!fotoLibView) }}>
-                    afbeelding selecteren
-                </Button>
-                <Button variant="contained" style={{ textAlign: "center", width: "100%" }} onClick={() => { console.log(getComputedStyle(selectedElement.element).width); }}>
-                    width
-                </Button>
-                <div style={{ width: "100%", display: "flex", alignContent: "flex-start" }}>
-                    <div style={{display: "flex", flexDirection: "column", width: "40%"}}><TextField
-                        label="Breedte"
-                        variant="filled"
-                        value={imageWidthValue}
-                        onChange={handleImageWidthChange}
-                        style={{ width: "100%", marginBottom: "10px" }}
-                    />
-                    <TextField
-                        label="Hoogte"
-                        variant="filled"
-                        value={imageHeightValue}
-                        onChange={handleImageHeightChange}
-                        style={{ width: "100%" }}
-                    />
-                    </div>
-                    <div style={{ marginLeft: "10%", marginTop: "25px", width: "60%" }}>
-                        <Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px", marginLeft: "32px" }} onClick={() => { handleImageMoveUp(); }}>
-                            <ArrowUpward style={{ fontSize: "15px" }} />
-                        </Button>
-                        <div><Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px" }} onClick={() => { handleImageMoveLeft(); }}>
-                            <ArrowBack style={{ fontSize: "15px" }} />
-                        </Button>
-                            <Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px", marginLeft: "30px" }} onClick={() => { handleImageMoveRight(); }}>
-                                <ArrowForward style={{ fontSize: "15px" }} />
-                            </Button>
-                        </div>
-                        <Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px", marginLeft: "32px" }} onClick={() => { handleImageMoveDown(); }}>
-                            <ArrowDownward style={{ fontSize: "15px" }} />
-                        </Button>
-                    </div>
-                </div>
-            </>
-        )
-    }
-
     function imagesEmpty(images: Array<image>) {
         let userCompany;
         if (isAdmin()) {
@@ -1047,7 +1002,7 @@ function TemplateEngine(props: PageProps) {
                                 </div>
                             }
                             {
-                                (isTemplateMode || isAdminTemplateMode) && selectedElement !== null && selectedElement.type === "text" &&
+                                (isTemplateMode || isAdminTemplateMode) || ((isModerator() || isEmployee()) && isDesignMode) && selectedElement !== null && selectedElement.type === "text" &&
                                 <>
                                     <TextField
                                         id="templateEditorTextField"
@@ -1067,9 +1022,46 @@ function TemplateEngine(props: PageProps) {
                                 </>
                             }
                             {
-                                (isTemplateMode || isAdminTemplateMode) && selectedElement !== null && selectedElement.type === "image" &&
+                                (isTemplateMode || isAdminTemplateMode) || ((isModerator() || isEmployee()) && isDesignMode) && selectedElement !== null && selectedElement.type === "image" &&
                                 <>
-                                    <EditorImageGallery />
+                                    <Button variant="contained" style={{ textAlign: "center", width: "100%" }} onClick={() => { setFotoLibView(!fotoLibView) }}>
+                                        afbeelding selecteren
+                                    </Button>
+                                    <Button variant="contained" style={{ textAlign: "center", width: "100%" }} onClick={() => { console.log(getComputedStyle(selectedElement.element).width); }}>
+                                        width
+                                    </Button>
+                                    <div style={{ width: "100%", display: "flex", alignContent: "flex-start" }}>
+                                        <div style={{ display: "flex", flexDirection: "column", width: "40%" }}><TextField
+                                            label="Breedte"
+                                            variant="filled"
+                                            value={imageWidthValue}
+                                            onChange={handleImageWidthChange}
+                                            style={{ width: "100%", marginBottom: "10px" }}
+                                        />
+                                            <TextField
+                                                label="Hoogte"
+                                                variant="filled"
+                                                value={imageHeightValue}
+                                                onChange={handleImageHeightChange}
+                                                style={{ width: "100%" }}
+                                            />
+                                        </div>
+                                        <div style={{ marginLeft: "10%", marginTop: "25px", width: "60%" }}>
+                                            <Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px", marginLeft: "32px" }} onClick={() => { handleImageMoveUp(); }}>
+                                                <ArrowUpward style={{ fontSize: "15px" }} />
+                                            </Button>
+                                            <div><Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px" }} onClick={() => { handleImageMoveLeft(); }}>
+                                                <ArrowBack style={{ fontSize: "15px" }} />
+                                            </Button>
+                                                <Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px", marginLeft: "30px" }} onClick={() => { handleImageMoveRight(); }}>
+                                                    <ArrowForward style={{ fontSize: "15px" }} />
+                                                </Button>
+                                            </div>
+                                            <Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px", marginLeft: "32px" }} onClick={() => { handleImageMoveDown(); }}>
+                                                <ArrowDownward style={{ fontSize: "15px" }} />
+                                            </Button>
+                                        </div>
+                                    </div>
                                 </>
                             }
                             {
