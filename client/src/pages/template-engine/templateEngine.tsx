@@ -168,6 +168,7 @@ function TemplateEngine(props: PageProps) {
     const [textAlign, setTextAlign] = useState("");
     const [isElementEditable, setIsElementEditable] = useState(false);
     const [headerText, setHeaderText] = useState("", "");
+    const [isSaved, setIsSaved] = useState(null);
 
     const [isDesignPending, setIsDesignPending] = useState<boolean>(true);
 
@@ -229,7 +230,8 @@ function TemplateEngine(props: PageProps) {
                         setIsDesignPending(false);
                         isVerified = false;
 
-                        window.location = process.env.REACT_APP_SERVER_URL + res.content[editorPosition].Filepath;
+                        window.open(process.env.REACT_APP_SERVER_URL + res.content[editorPosition].Filepath);
+                        window.location = isAdmin() ? "/admin-portal" : "/user-portal";
                         return;
                     }
 
@@ -504,85 +506,129 @@ function TemplateEngine(props: PageProps) {
         })
     }
 
-    function saveChanges(fileIndex: number, newDocument: Document) {
-        // Saves changes in current session
+    function saveChangesInSession(fileIndex: number, newDocument: Document) {
+        // Saves changes in current editing session
         editorFiles[fileIndex].data = new XMLSerializer().serializeToString(newDocument);
+    }
+
+    function saveChangesPermanent() {
+        for (let i = 0; i < designs.length; i++) {
+            const design = designs[i];
+
+            // TODO: COMPATIBILITY FOR MULTIPLE TEMPLATES
+            saveChangesInSession(i, editorFrameRef.current.contentDocument);
+
+            const { Id, ...newDesign } = design;
+            newDesign.Updated_at = new Date().toLocaleDateString('en-US');
+
+            const fileName = design.Filepath.split('\\').at(-1);
+
+            ApiInstance.updateFile(
+                design.Name,
+                fileName,
+                editorFiles[editorPosition].data,
+                "design",
+                design.id,
+                Object.values(newDesign),
+                getPayloadAsJson()?.company,
+                design.Template_id
+            ).then(res => {
+                if (res.status === "SUCCESS") {
+                    setIsSaved(true);
+                } else {
+                    alert("Design is NIET opgeslagen.")
+                    console.error(res);
+                }
+            });
+        }
     }
 
     function handleTextChange(e) {
         selectedElement.element.innerText = e.target.value;
+        setIsSaved(false);
         setTextFieldValue(e.target.value);
     }
 
     function handleImageWidthChange(e) {
         selectedElement.element.style.width = e.target.value + "px";
+        setIsSaved(false);
         setImageWidthValue(e.target.value);
     }
 
     function handleImageHeightChange(e) {
         selectedElement.element.style.height = e.target.value + "px";
+        setIsSaved(false);
         setImageHeightValue(e.target.value);
     }
 
     function handleWrapping(e) {
         selectedElement.element.style.whiteSpace = e.target.value;
+        setIsSaved(false);
         setTextWrap(e.target.value);
     }
 
     function handleAlign(e) {
         selectedElement.element.style.textAlign = e.target.value;
+        setIsSaved(false);
         setTextAlign(e.target.value);
     }
 
     function handleImageSelect(dataURL: string) {
         selectedElement.element.src = dataURL;
+        setIsSaved(false);
     }
 
     function handleImageMoveDown() {
+        setIsSaved(false);
+
         if (selectedElement.element.style.marginTop === '') {
             selectedElement.element.style.marginTop = "1%";
             return; 
         }
         
         selectedElement.element.style.marginTop = (parseInt(selectedElement.element.style.marginTop.replace('%', '')) + parseInt(1)).toString() + "%";
-        console.log(selectedElement.element.style.marginTop);
     }
 
     function handleImageMoveUp() {
+        setIsSaved(false);
+
         if (selectedElement.element.style.marginTop === '') {
             selectedElement.element.style.marginTop = "-1%";
             return;
         }
 
         selectedElement.element.style.marginTop = (parseInt(selectedElement.element.style.marginTop.replace('%', '')) + parseInt(-1)).toString() + "%";
-        console.log(selectedElement.element.style.marginTop);
     }
 
     function handleImageMoveLeft() {
+        setIsSaved(false);
+
         if (selectedElement.element.style.marginLeft === '') {
             selectedElement.element.style.marginLeft = "-1%";
             return;
         }
 
         selectedElement.element.style.marginLeft = (parseInt(selectedElement.element.style.marginLeft.replace('%', '')) + parseInt(-1)).toString() + "%";
-        console.log(selectedElement.element.style.marginLeft);
     }
 
     function handleImageMoveRight() {
+        setIsSaved(false);
+
         if (selectedElement.element.style.marginLeft === '') {
             selectedElement.element.style.marginLeft = "1%";
             return;
         }
 
         selectedElement.element.style.marginLeft = (parseInt(selectedElement.element.style.marginLeft.replace('%', '')) + parseInt(1)).toString() + "%";
-        console.log(selectedElement.element.style.marginLeft);
     }
 
     function handleFontSizeUp() {
+        setIsSaved(false);
         selectedElement.element.style.fontSize = (parseInt(window.getComputedStyle(selectedElement.element, null).getPropertyValue('font-size').replaceAll('px', '')) + parseInt(parseInt(window.getComputedStyle(selectedElement.element, null).getPropertyValue('font-size').replaceAll('px', '')) / 48) + "px");
     }
 
     function handleFontSizeDown() {
+        setIsSaved(false);
         selectedElement.element.style.fontSize = (parseInt(window.getComputedStyle(selectedElement.element, null).getPropertyValue('font-size').replaceAll('px', '')) - parseInt(parseInt(window.getComputedStyle(selectedElement.element, null).getPropertyValue('font-size').replaceAll('px', '')) / 48) + "px");
     }
 
@@ -598,6 +644,7 @@ function TemplateEngine(props: PageProps) {
 
         e.target.checked ? list.add(keyword) : list.remove(keyword);
 
+        setIsSaved(false);
         setIsElementEditable(list.contains(keyword))
     }
 
@@ -606,11 +653,12 @@ function TemplateEngine(props: PageProps) {
         for (let i = 0; i < editorFiles.length; i++) {
             const template = editorFiles[i];
 
-            saveChanges(editorPosition, editorFrameRef.current.contentDocument);
+            // TODO: COMPATIBILITY FOR MULTIPLE TEMPLATES
+            saveChangesInSession(editorPosition, editorFrameRef.current.contentDocument);
 
             ApiInstance.createFile(
-                templateName, 
-                `${templateName.replaceAll(' ', '_')}`, 
+                templateName,
+                `${templateName.replaceAll(' ', '_')}_${i}`, 
                 removeKeywordFromTemplate(template.data, [selectableKeyword, selectableImageKeyword]),
                 "template", 
                 companyId
@@ -632,7 +680,8 @@ function TemplateEngine(props: PageProps) {
         for (let i = 0; i < editorFiles.length; i++) {
             const template = editorFiles[i];
 
-            saveChanges(editorPosition, editorFrameRef.current.contentDocument);
+            // TODO: COMPATIBILITY FOR MULTIPLE TEMPLATES
+            saveChangesInSession(editorPosition, editorFrameRef.current.contentDocument);
 
             ApiInstance.createFile(
                 designName,
@@ -976,14 +1025,20 @@ function TemplateEngine(props: PageProps) {
                                     <Button 
                                         variant="contained" 
                                         component="span" 
-                                        onClick={() => setEditorPosition(editorPosition - 1)} 
+                                        onClick={() => {
+                                            saveChangesInSession(editorPosition, editorFrameRef.current.contentDocument);
+                                            setEditorPosition(editorPosition - 1);
+                                        }} 
                                         style={{ width: "40%" }}
                                         disabled={ editorPosition <= 0 }
                                     >Vorige</Button>
                                     <Button 
                                         variant="contained" 
                                         component="span" 
-                                        onClick={() => setEditorPosition(editorPosition + 1)} 
+                                        onClick={() => {
+                                            saveChangesInSession(editorPosition, editorFrameRef.current.contentDocument);
+                                            setEditorPosition(editorPosition + 1);
+                                        }} 
                                         style={{ width: "40%" }}
                                         disabled={editorPosition >= editorFiles.length - 1}
                                     >Volgende</Button>
@@ -1030,7 +1085,7 @@ function TemplateEngine(props: PageProps) {
                                                 onChange={handleImageHeightChange}
                                                 style={{ width: "100%" }}
                                             />
-                                        </div>                                      
+                                        </div>
                                         <div style={{ width: "60%" }}>
                                             <Typography variant="body2" style={{marginBottom: "5px", marginLeft: "15px"}}>Afbeelding verplaatsen</Typography>
                                             <Button variant="contained" size="small" style={{ textAlign: "center", minWidth: "0px", Width: "20px", marginLeft: "52px" }} onClick={() => { handleImageMoveUp(); }}>
@@ -1066,8 +1121,13 @@ function TemplateEngine(props: PageProps) {
                                 editorFiles.length > 0 && isAdminDesignMode || (isModerator() && isDesignMode) && isDesignPending &&
                                 <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u de design wilt goedkeuren?" />
                             }
+                            {
+                                isSaved !== null &&
+                                <Button variant="contained" component="span" disabled={isSaved} color={isSaved ? "primary" : "error"} style={{ width: "100%", textAlign: "center" }} onClick={e => {
+                                    saveChangesPermanent();
+                                }}>{isSaved ? "Opgeslagen" : "Klik om op te slaan"}</Button>
+                            }
                             <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={e => {
-                                saveChanges(editorPosition, editorFrameRef.current.contentDocument)
                                 window.location = isAdmin() ? "/admin-portal" : "/user-portal";
                             }}>Terug naar {isAdmin() ? "admin portaal" : "user portaal"}</Button>
                         </Stack>
@@ -1100,10 +1160,7 @@ function TemplateEngine(props: PageProps) {
                                             const propsFotolib = getPayloadAsJson()!.type === "Admin" ? props : queryParamsObject;
                                             let token = getPayloadAsJson();
                                             let userCompany;
-                                            if (
-                                                Object.keys(propsFotolib.queryParams).length === 0 &&
-                                                propsFotolib.queryParams.constructor === Object
-                                            ) {
+                                            if (Object.keys(propsFotolib.queryParams).length === 0 && propsFotolib.queryParams.constructor === Object) {
                                                 userCompany = token!.company;
                                             } else {
                                                 userCompany = propsFotolib.queryParams.companyId;

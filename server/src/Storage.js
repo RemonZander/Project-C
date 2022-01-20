@@ -113,19 +113,19 @@ class Storage {
   }
 
   async addTemplate(templateName, companyId, data, force = false) {
-    return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.templateDirName}/${templateName}.html`, data, force);
+    return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.templateDirName}/${templateName}`, data, force);
   }
 
   async removeTemplate(companyId, templateName) {
-    this.removeFile(`${this.storagePathAbsolute}/${companyId}/${this.templateDirName}/${templateName}.html`)
+    this.removeFile(`${this.storagePathAbsolute}/${companyId}/${this.templateDirName}/${templateName}`)
   }
 
   async addDesign(designName, companyId, templateId, data, force = false) {
-    return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.designDirName}/${templateId}/${designName}.html`, data, force);
+    return this.addFileToStorage(`${this.storagePathAbsolute}/${companyId}/${this.designDirName}/${templateId}/${designName}`, data, force);
   }
 
   async removeDesign(designName, companyId, templateId) {
-    this.removeFile(`${this.storagePathAbsolute}/${companyId}/${this.designDirName}/${templateId}/${designName}.html`)
+    this.removeFile(`${this.storagePathAbsolute}/${companyId}/${this.designDirName}/${templateId}/${designName}`)
   }
 }
 

@@ -134,7 +134,7 @@ async function copyDir(src, dest) {
 
   await conn.runStatement(
     `INSERT INTO template (Filepath, Company_id, Name) VALUES
-        ('\\storage\\1\\templates\\template_1.html', '1', 'template_1')`
+        ('\\storage\\1\\templates\\template_1_0.html', '1', 'template_1')`
   );
 
   //mm-dd-jjjj
