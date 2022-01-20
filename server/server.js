@@ -7,7 +7,6 @@ const fs = require("fs");
 const path = require("path");
 const statik = require('node-static');
 
-
 // Create a local server to receive data from
 let protocol = process.env.ENABLE_SSL === 'true' ? require("https") : require("http");
 let options = process.env.ENABLE_SSL === 'true' ? {
