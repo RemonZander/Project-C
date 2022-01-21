@@ -700,12 +700,14 @@ function TemplateEngine(props: PageProps) {
                 templateId
             ).then(res => {
                 if (res.status === "FAIL") {
-                    alert("Design is NIET gemaakt. Er ging iets mis.");
-                    toggleEditorToDesign();
+                    alert("Design is NIET gemaakt. Er ging iets mis. Het design is niet gemaakt.");
+                    //toggleEditorToDesign();
                 } else if (i === editorFiles.length - 1 && res.status === "SUCCESS") {
-                    alert("Design is gemaakt. U kunt het design nog aanpassen zolang het nog niet gevalideerd is.");
-                    toggleEditorToDesign();
+                    alert("Design is gemaakt.");
+                    //toggleEditorToDesign();
                 }
+
+                window.location = 'user-portal';
             })
         }
     }
