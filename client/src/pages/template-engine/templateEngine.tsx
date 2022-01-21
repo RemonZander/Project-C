@@ -704,6 +704,9 @@ function TemplateEngine(props: PageProps) {
     function ActionButton(props) {
         return (
             <Button variant="contained" component="span" onClick={e => {
+                if (isAdminDesignMode || (isModerator() && isDesignMode && !isSaved)) {
+                    if (!window.confirm("U heeft veranderingen die nog niet zijn opgeslagen. Weet u zeker dat u wilt opslaan?")) return;
+                }
                 let confirmResult = window.confirm(props.confirmMessage);
 
                 if (!confirmResult) {
@@ -921,7 +924,7 @@ function TemplateEngine(props: PageProps) {
     function EditorMarkAsEditable() {
         return (
             <FormControlLabel
-                label="Editable by customer"
+                label="Maak bewerkbaar voor klant"
                 control={
                     <Checkbox
                         checked={isElementEditable}
@@ -1127,6 +1130,9 @@ function TemplateEngine(props: PageProps) {
                                 }}>{isSaved ? "Opgeslagen" : "Klik om op te slaan"}</Button>
                             }
                             <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={e => {
+                                if (!isSaved) {
+                                    if (!window.confirm("U heeft veranderingen die nog niet zijn opgeslagen. Weet u zeker dat u wilt opslaan?")) return;
+                                }
                                 window.location = isAdmin() ? "/admin-portal" : "/user-portal";
                             }}>Terug naar {isAdmin() ? "admin portaal" : "user portaal"}</Button>
                         </Stack>
