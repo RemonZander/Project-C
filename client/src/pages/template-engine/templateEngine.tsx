@@ -1121,7 +1121,7 @@ function TemplateEngine(props: PageProps) {
                                 <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u de design wilt goedkeuren?" />
                             }
                             {
-                                isSaved !== null &&
+                                isSaved !== null && isDesignMode && (isModerator() || isEmployee()) &&
                                 <Button variant="contained" component="span" disabled={isSaved} color={isSaved ? "primary" : "error"} style={{ width: "100%", textAlign: "center" }} onClick={e => {
                                     saveChangesPermanent();
                                 }}>{isSaved ? "Opgeslagen" : "Klik om op te slaan"}</Button>
