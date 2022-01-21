@@ -14,7 +14,7 @@ import { PageProps } from '../../@types/app';
 import { HtmlData, EntryPoint, TemplateFiles, TextEntryPoint, ImageEntryPoint, ImagesData, SelectedElement } from '../../@types/templateEngine';
 import Api from '../../helpers/Api';
 import { mainPage } from '../fotolibrary-pagina/fotolibrary-pagina';
-import { Image as image } from '../../@types/general';
+import { Design, Image as image } from '../../@types/general';
 import kyndalogo from './kynda.png';
 import download from 'downloadjs';
 import Enumerable from 'linq';
@@ -168,7 +168,7 @@ function TemplateEngine(props: PageProps) {
     const [textAlign, setTextAlign] = useState("");
     const [isElementEditable, setIsElementEditable] = useState(false);
     const [headerText, setHeaderText] = useState("", "");
-    const [isSaved, setIsSaved] = useState(null);
+    const [isSaved, setIsSaved] = useState(true);
 
     const [isDesignPending, setIsDesignPending] = useState<boolean>(true);
 
@@ -666,23 +666,30 @@ function TemplateEngine(props: PageProps) {
             ).then(res => {
                 if (res.status === "SUCCESS") {
                     alert("Template is geupload.");
-                    toggleEditorToUpload();
+                    //toggleEditorToUpload();
                 } else {
                     alert("Template is NIET geupload.");
-                    toggleEditorToUpload();
+                    //toggleEditorToUpload();
                 }
+                window.location = '/admin-portal';
             })
         }
     }
 
     // TODO: new name if possible
-    function handleCustomerFormUploadTemplateToDesign(e) {
+    async function handleCustomerFormUploadTemplateToDesign(e) {
         // Not too sure about this approach, refactor later if possible
         for (let i = 0; i < editorFiles.length; i++) {
             const template = editorFiles[i];
 
             // TODO: COMPATIBILITY FOR MULTIPLE TEMPLATES
             saveChangesInSession(editorPosition, editorFrameRef.current.contentDocument);
+
+            const designNames = Enumerable.from(Design.makeDesignArray((await ApiInstance.all('design')).content)).select(d => d.Name).toArray();
+            if (Enumerable.from(designNames).contains(designName)) {
+                alert("Er bestaal al een design met deze naam.");
+                return;
+            }
 
             ApiInstance.createFile(
                 designName,
