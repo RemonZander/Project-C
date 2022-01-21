@@ -521,15 +521,13 @@ function TemplateEngine(props: PageProps) {
             newDesign.Updated_at = new Date().toLocaleDateString('en-US');
 
             const fileName = design.Filepath.split('\\').at(-1);
-
-
-            //TODO: voor Quinn, hij wilt niet opslaan!!!
+            console.log(design);
             ApiInstance.updateFile(
                 design.Name,
                 fileName,
                 editorFiles[editorPosition].data,
                 "design",
-                design.id,
+                design.Id,
                 Object.values(newDesign),
                 getPayloadAsJson()?.company,
                 design.Template_id
@@ -843,7 +841,7 @@ function TemplateEngine(props: PageProps) {
                 >
                     <MenuItem value={"left"}>Links</MenuItem>
                     <MenuItem value={"center"}>Midden</MenuItem>
-                    <MenuItem value={"right"}>Richts</MenuItem>
+                    <MenuItem value={"right"}>Rechts</MenuItem>
                 </Select>
             </FormControl>
         )
