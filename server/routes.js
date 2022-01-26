@@ -299,14 +299,14 @@ for (let i = 0; i < TableStructure.length; i++) {
                     companyID,
                 ];
             } else if (table.name === "template") {
-                result = await Storage.addTemplate(requestBody.name, companyID, requestBody.data);
+                result = await Storage.addTemplate(requestBody.name + ".html", companyID, requestBody.data);
                 sqlValues = [
                     path.normalize(Storage.storagePathRelative + `/${companyID}/templates/${requestBody.name}.html`),
                     companyID,
                     requestBody.docName,
                 ]
             } else {
-                result = await Storage.addDesign(requestBody.name, companyID, requestBody.templateId, requestBody.data);
+                result = await Storage.addDesign(requestBody.name + ".html", companyID, requestBody.templateId, requestBody.data);
                 sqlValues = [
                     path.normalize(Storage.storagePathRelative + `/${companyID}/designs/${requestBody.templateId}/${requestBody.name}.html`),
                     date,

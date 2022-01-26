@@ -133,31 +133,31 @@ async function copyDir(src, dest) {
 
   await conn.runStatement(
     `INSERT INTO template (Filepath, Company_id, Name) VALUES
-        ('\\storage\\1\\templates\\template1_com1.html', '1', 'template1_com1'),
-        ('\\storage\\1\\templates\\template2_com1.html', '1', 'template2_com1'),
-        ('\\storage\\1\\templates\\template3_com1.html', '1', 'template3_com1'),
-        ('\\storage\\2\\templates\\template1_com2.html', '2', 'template1_com2'),
-        ('\\storage\\3\\templates\\template1_com3.html', '3', 'template1_com3'),
-        ('\\storage\\3\\templates\\template2_com3.html', '3', 'template2_com3'),
-        ('\\storage\\3\\templates\\template3_com3.html', '3', 'template3_com3'),
-        ('\\storage\\3\\templates\\template4_com3.html', '3', 'template4_com3')`
+        ('\\storage\\1\\templates\\template1_bedrijf_1_0.html', '1', 'template1 bedrijf 1'),
+        ('\\storage\\1\\templates\\template_2_bedrijf_1_0.html', '1', 'template 2 bedrijf 1'),
+        ('\\storage\\1\\templates\\template_3_bedrijf_1_0.html', '1', 'template 3 bedrijf 1'),
+        ('\\storage\\2\\templates\\template_1_bedrijf_2_0.html', '2', 'template 1 bedrijf 2'),
+        ('\\storage\\3\\templates\\template_1_bedrijf_3_0.html', '3', 'template 1 bedrijf 3'),
+        ('\\storage\\3\\templates\\template_2_bedrijf_3_0.html', '3', 'template 2 bedrijf 3'),
+        ('\\storage\\3\\templates\\template_3_bedrijf_3_0.html', '3', 'template 3 bedrijf 3'),
+        ('\\storage\\3\\templates\\template_4_bedrijf_3_0.html', '3', 'template 4 bedrijf 3')`
   );
 
   //mm-dd-jjjj
   await conn.runStatement(
     `INSERT INTO design (Filepath, Created_at, Updated_at, Downloads, Verified, Template_id, Name) VALUES
-        ('\\storage\\1\\designs\\2\\design1_template1_0.html', '6-11-2021', '0-0-0000', '', FALSE, 1, 'design1_template1'),
-        ('\\storage\\1\\designs\\2\\design2_template1_0.pdf', '1-10-2021', '6-11-2021', '10', TRUE, 1, 'design2_template1'),
-        ('\\storage\\1\\designs\\3\\design1_template2_0.html', '10-11-2020', '4-5-2021', '', FALSE, 2, 'design1_template2'),
-        ('\\storage\\2\\designs\\5\\design1_template4_0.html', '18-2-2021', '0-0-0000', '', FALSE, 4, 'design1_template4'),
-        ('\\storage\\2\\designs\\5\\design2_template4_0.pdf', '1-3-2021', '3-3-2021', '99999999999', TRUE, 4, 'design2_template4'),
-        ('\\storage\\3\\designs\\8\\design1_template7_0.pdf', '4-4-2021', '0-0-0000', '-1', TRUE, 7, 'design1_template7'),
-        ('\\storage\\3\\designs\\8\\design2_template7_0.html', '8-7-2021', '0-0-0000', '', FALSE, 7, 'design2_template7'),
-        ('\\storage\\3\\designs\\8\\design3_template7_0.pdf', '7-8-2021', '8-7-2021', '69', TRUE, 7, 'design3_template7'),
-        ('\\storage\\3\\designs\\8\\design4_template7_0.html', '4-24-1900', '0-0-0000', '', FALSE, 7, 'design4_template7'),
-        ('\\storage\\3\\designs\\8\\design5_template7_0.html', '6-11-2021', '5-2-2019', '50', FALSE, 7, 'design5_template7'),
-        ('\\storage\\3\\designs\\8\\design6_template7_0.pdf', '10-8-2021', '1-1-2000', '10', TRUE, 7, 'design6_template7'),
-        ('\\storage\\3\\designs\\9\\design1_template8_0.pdf', '12-5-2021', '7-6-1800', '1000', TRUE, 8, 'design1_template8')`
+        ('\\storage\\1\\designs\\1\\design_1_template_1_0.html', '6-11-2021', '0-0-0000', '', FALSE, 1, 'design 1 template 1'),
+        ('\\storage\\1\\designs\\1\\design_2_template_1_0.pdf', '1-10-2021', '6-11-2021', '10', TRUE, 1, 'design 2 template 1'),
+        ('\\storage\\1\\designs\\2\\design_1_template_2_0.html', '10-11-2020', '4-5-2021', '', FALSE, 2, 'design 1 template 2'),
+        ('\\storage\\2\\designs\\4\\design_1_template_4_0.html', '18-2-2021', '0-0-0000', '', FALSE, 4, 'design 1 template 4'),
+        ('\\storage\\2\\designs\\4\\design_2_template_4_0.pdf', '1-3-2021', '3-3-2021', '99999999999', TRUE, 4, 'design 2 template 4'),
+        ('\\storage\\3\\designs\\7\\design_1_template_7_0.pdf', '4-4-2021', '0-0-0000', '-1', TRUE, 7, 'design 1 template 7'),
+        ('\\storage\\3\\designs\\7\\design_2_template_7_0.html', '8-7-2021', '0-0-0000', '', FALSE, 7, 'design 2 template 7'),
+        ('\\storage\\3\\designs\\7\\design_3_template_7_0.pdf', '7-8-2021', '8-7-2021', '69', TRUE, 7, 'design 3 template 7'),
+        ('\\storage\\3\\designs\\7\\design_4_template_7_0.html', '4-24-1900', '0-0-0000', '', FALSE, 7, 'design 4 template 7'),
+        ('\\storage\\3\\designs\\7\\design_5_template_7_0.html', '6-11-2021', '5-2-2019', '50', FALSE, 7, 'design 5 template 7'),
+        ('\\storage\\3\\designs\\7\\design_6_template_7_0.pdf', '10-8-2021', '1-1-2000', '10', TRUE, 7, 'design 6 template 7'),
+        ('\\storage\\3\\designs\\8\\design_1_template_8_0.pdf', '12-5-2021', '7-6-1800', '1000', TRUE, 8, 'design 1 template 8')`
   );
 
   await conn.runStatement(

@@ -14,7 +14,7 @@ import { PageProps } from '../../@types/app';
 import { HtmlData, EntryPoint, TemplateFiles, TextEntryPoint, ImageEntryPoint, ImagesData, SelectedElement } from '../../@types/templateEngine';
 import Api from '../../helpers/Api';
 import { mainPage } from '../fotolibrary-pagina/fotolibrary-pagina';
-import { Image as image } from '../../@types/general';
+import { Design, Image as image } from '../../@types/general';
 import kyndalogo from './kynda.png';
 import download from 'downloadjs';
 import Enumerable from 'linq';
@@ -168,7 +168,7 @@ function TemplateEngine(props: PageProps) {
     const [textAlign, setTextAlign] = useState("");
     const [isElementEditable, setIsElementEditable] = useState(false);
     const [headerText, setHeaderText] = useState("", "");
-    const [isSaved, setIsSaved] = useState(null);
+    const [isSaved, setIsSaved] = useState(true);
 
     const [isDesignPending, setIsDesignPending] = useState<boolean>(true);
 
@@ -521,13 +521,13 @@ function TemplateEngine(props: PageProps) {
             newDesign.Updated_at = new Date().toLocaleDateString('en-US');
 
             const fileName = design.Filepath.split('\\').at(-1);
-
+            console.log(design);
             ApiInstance.updateFile(
                 design.Name,
                 fileName,
                 editorFiles[editorPosition].data,
                 "design",
-                design.id,
+                design.Id,
                 Object.values(newDesign),
                 getPayloadAsJson()?.company,
                 design.Template_id
@@ -664,23 +664,30 @@ function TemplateEngine(props: PageProps) {
             ).then(res => {
                 if (res.status === "SUCCESS") {
                     alert("Template is geupload.");
-                    toggleEditorToUpload();
+                    //toggleEditorToUpload();
                 } else {
                     alert("Template is NIET geupload.");
-                    toggleEditorToUpload();
+                    //toggleEditorToUpload();
                 }
+                window.location = '/admin-portal';
             })
         }
     }
 
     // TODO: new name if possible
-    function handleCustomerFormUploadTemplateToDesign(e) {
+    async function handleCustomerFormUploadTemplateToDesign(e) {
         // Not too sure about this approach, refactor later if possible
         for (let i = 0; i < editorFiles.length; i++) {
             const template = editorFiles[i];
 
             // TODO: COMPATIBILITY FOR MULTIPLE TEMPLATES
             saveChangesInSession(editorPosition, editorFrameRef.current.contentDocument);
+
+            const designNames = Enumerable.from(Design.makeDesignArray((await ApiInstance.all('design')).content)).select(d => d.Name).toArray();
+            if (Enumerable.from(designNames).contains(designName)) {
+                alert("Er bestaal al een design met deze naam.");
+                return;
+            }
 
             ApiInstance.createFile(
                 designName,
@@ -691,12 +698,14 @@ function TemplateEngine(props: PageProps) {
                 templateId
             ).then(res => {
                 if (res.status === "FAIL") {
-                    alert("Design is NIET gemaakt. Er ging iets mis.");
-                    toggleEditorToDesign();
+                    alert("Design is NIET gemaakt. Er ging iets mis. Het design is niet gemaakt.");
+                    //toggleEditorToDesign();
                 } else if (i === editorFiles.length - 1 && res.status === "SUCCESS") {
-                    alert("Design is gemaakt. U kunt het design nog aanpassen zolang het nog niet gevalideerd is.");
-                    toggleEditorToDesign();
+                    alert("Design is gemaakt.");
+                    //toggleEditorToDesign();
                 }
+
+                window.location = 'user-portal';
             })
         }
     }
@@ -704,6 +713,9 @@ function TemplateEngine(props: PageProps) {
     function ActionButton(props) {
         return (
             <Button variant="contained" component="span" onClick={e => {
+                if (isAdminDesignMode || (isModerator() && isDesignMode && !isSaved)) {
+                    if (!window.confirm("U heeft veranderingen die nog niet zijn opgeslagen. Weet u zeker dat u wilt opslaan?")) return;
+                }
                 let confirmResult = window.confirm(props.confirmMessage);
 
                 if (!confirmResult) {
@@ -829,7 +841,7 @@ function TemplateEngine(props: PageProps) {
                 >
                     <MenuItem value={"left"}>Links</MenuItem>
                     <MenuItem value={"center"}>Midden</MenuItem>
-                    <MenuItem value={"right"}>Richts</MenuItem>
+                    <MenuItem value={"right"}>Rechts</MenuItem>
                 </Select>
             </FormControl>
         )
@@ -921,7 +933,7 @@ function TemplateEngine(props: PageProps) {
     function EditorMarkAsEditable() {
         return (
             <FormControlLabel
-                label="Editable by customer"
+                label="Maak bewerkbaar voor klant"
                 control={
                     <Checkbox
                         checked={isElementEditable}
@@ -1121,12 +1133,15 @@ function TemplateEngine(props: PageProps) {
                                 <ActionButton text="Valideer" confirmMessage="Weet u zeker dat u de design wilt goedkeuren?" />
                             }
                             {
-                                isSaved !== null &&
+                                isSaved !== null && isDesignMode && (isModerator() || isEmployee()) &&
                                 <Button variant="contained" component="span" disabled={isSaved} color={isSaved ? "primary" : "error"} style={{ width: "100%", textAlign: "center" }} onClick={e => {
                                     saveChangesPermanent();
                                 }}>{isSaved ? "Opgeslagen" : "Klik om op te slaan"}</Button>
                             }
                             <Button variant="contained" component="span" style={{ width: "100%", textAlign: "center" }} onClick={e => {
+                                if (!isSaved) {
+                                    if (!window.confirm("U heeft veranderingen die nog niet zijn opgeslagen. Weet u zeker dat u wilt opslaan?")) return;
+                                }
                                 window.location = isAdmin() ? "/admin-portal" : "/user-portal";
                             }}>Terug naar {isAdmin() ? "admin portaal" : "user portaal"}</Button>
                         </Stack>
