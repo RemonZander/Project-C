@@ -16,17 +16,17 @@ export default class Api {
     }
 
     async _doFetch(url: string, method: string, body: null | object = null) {
-        let options;
+        let options: RequestInit;
 
         if (method === 'GET') {
             options = {
                 method: method,
-                headers: { Authorization: 'Bear ' + this.token },
+                headers: { Authorization: 'Bearer ' + this.token },
             };
         } else {
             options = {
                 method: method,
-                headers: { Authorization: 'Bear ' + this.token },
+                headers: { Authorization: 'Bearer ' + this.token },
                 body: JSON.stringify(body),
             };
         }

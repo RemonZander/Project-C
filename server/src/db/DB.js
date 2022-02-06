@@ -7,7 +7,7 @@ const sqliteInstance = require('./SqliteInstance');
 
 class DB {
     startConnection() {
-        if (process.env.NODE_ENV === 'production') {
+        if (process.env.NODE_ENV === 'production' && false) {
             return new mySqlInstance(
                 mysql.createConnection({
                     host: process.env.DB_HOST,
@@ -17,7 +17,7 @@ class DB {
                     database: process.env.DB_NAME,
                 })
             );
-        } else if (process.env.NODE_ENV === 'development') {
+        } else if (process.env.NODE_ENV === 'development' || true) {
             return new sqliteInstance(
                 new sqlite3.Database(path.normalize(process.cwd() + '/kyndaDatabase.sqlite3'), (err) => {
                     if (err !== null) throw err;

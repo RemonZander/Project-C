@@ -1,11 +1,11 @@
 require('dotenv').config({ path: `.env.${process.env.NODE_ENV}` })
-
+console.log(process.env.CLIENT_URL);
 const RequestHelper = require("./src/RequestHelper");
 const ResponseHelper = require("./src/ResponseHelper");
 const Token = new (require("./src/Token"))();
 const fs = require("fs");
+const fsPromises = require("fs/promises");
 const path = require("path");
-const statik = require('node-static');
 
 // Create a local server to receive data from
 let protocol = process.env.ENABLE_SSL === 'true' ? require("https") : require("http");
@@ -15,8 +15,6 @@ let options = process.env.ENABLE_SSL === 'true' ? {
 } : {}
 
 const server = protocol.createServer(options);
-
-const fileServer = new statik.Server('./public');
 
 const routes = require("./routes");
 const SQLException = require("./src/exceptions/SQLException");
@@ -33,17 +31,27 @@ server.on("request", (req, res) => {
     "DELETE",
   ]);
 
-  // Serves static files TODO: Handle server letting the routing done via the client
-  if (process.env.NODE_ENV === "production") {
-    req.addListener('end', () => {
-      fileServer.serve(req, res);
-    }).resume();
-  }
-
   const reqHelper = new RequestHelper(req);
   const resHelper = new ResponseHelper(res);
 
-  if (req.url.startsWith("/storage")) {
+  if ((process.env.NODE_ENV === "production" || process.env.NODE_ENV === "staging")) {
+    if (req.url.startsWith("/static")) {
+      fsPromises.readFile(path.normalize(__dirname + "/public" + req.url)).then(data => {
+        res.writeHead(200);
+        res.end(data);
+      })
+    } 
+
+    if (req.url.startsWith("/") && !req.url.startsWith("/static") && !req.url.startsWith("/storage") && !req.url.startsWith("/api")) {
+      fsPromises.readFile(path.normalize(__dirname + "/public/index.html")).then(data => {
+        res.writeHead(200);
+        res.end(data);
+      })
+    }
+  }
+
+
+  if (req.headers.origin === process.env.CLIENT_URL && req.url.startsWith("/storage")) {
     fs.readFile(__dirname + req.url, function (err, data) {
       if (err) {
         resHelper.responseError(err);
@@ -57,7 +65,7 @@ server.on("request", (req, res) => {
     return;
   }
 
-  if (req.headers.origin === process.env.APP_URL) {
+  if ((process.env.SAME_ORIGIN === 'true' || req.headers.origin === process.env.CLIENT_URL) && req.url.startsWith("/api")) {
     req.setEncoding("utf-8");
     for (let i = 0; i < routes.length; i++) {
       const route = routes[i];
@@ -67,9 +75,10 @@ server.on("request", (req, res) => {
           resHelper.responseInvalidToken();
           break;
         }
-
+        console.log(req.url);
         (async () => {
           try {
+            console.log(route);
             const result = await route.action(reqHelper, resHelper);
 
             if (result instanceof Error) throw result;
@@ -96,6 +105,8 @@ server.on("request", (req, res) => {
             }
           }
         })();
+
+        break;
       }
     }
   }

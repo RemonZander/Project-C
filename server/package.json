@@ -6,6 +6,7 @@
   "scripts": {
     "start": "SET NODE_ENV=development&& node server.js",
     "start-prod": "SET NODE_ENV=production&& node server.js",
+    "start-staging": "SET NODE_ENV=staging&& node server.js",
     "db-test": "SET NODE_ENV=development&& node commands/db/setupDatabase testDB.sql",
     "db-prod": "SET NODE_ENV=production&& node commands/db/setupDatabase dbFile.sql"
   },

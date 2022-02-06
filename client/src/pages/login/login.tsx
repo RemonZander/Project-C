@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import './login.css';
 import kynda from './kynda.png';
 import React, { useRef, useState } from 'react';
@@ -61,31 +63,30 @@ function Login(props: PageProps) {
                                             password: (psw as HTMLInputElement).value,
                                         }),
                                     })
-                                        .then((res) => res.json())
-                                        .then((data) => {
-                                            if ('token' in data.content && data.content.token !== null) {
-                                                document.cookie = 'token=' + data.content.token + ';';
+                                    .then((res) => res.json())
+                                    .then((data) => {
+                                        if ('token' in data.content && data.content.token !== null) {
+                                            document.cookie = 'token=' + data.content.token + ';';
 
-                                                const payload = JSON.parse(
-                                                    Buffer.from(
-                                                        data.content.token.split('.')[1],
-                                                        'base64'
-                                                    ).toString()
-                                                );
+                                            const payload = JSON.parse(
+                                                Buffer.from(
+                                                    data.content.token.split('.')[1],
+                                                    'base64'
+                                                ).toString()
+                                            );
 
-                                                payload.type === 'Admin'
-                                                    ? (window.location.href =
-                                                            window.location.href + 'admin-portal')
-                                                    : (window.location.href =
-                                                            window.location.href + 'user-portal');
-                                            } else {
-                                                setIsAuthError(true);
-                                            }
-                                        });
-                                    }
+                                            payload.type === 'Admin'
+                                                ? (window.location.href =
+                                                        window.location.href + 'admin-portal')
+                                                : (window.location.href =
+                                                        window.location.href + 'user-portal');
+                                        } else {
+                                            setIsAuthError(true);
+                                        }
+                                    });
                                 }
                             }
-
+                        }
                         ></input>
                     </form>
                 </div>

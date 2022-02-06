@@ -189,7 +189,5 @@ async function copyDir(src, dest) {
   // DB CONNECTION END
   conn.endConnection();
 
-  Storage.addImage("test.gif", 0, testUri);
-
   console.log("Queries done and DB is closed");
 })();
